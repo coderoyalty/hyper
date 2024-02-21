@@ -79,24 +79,19 @@ int main(int argc, char **argv)
 																		 "}\0";
 
 	// create vertex shader
-	unsigned int vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
+	Shader vertexShader = Shader(SHADER_TYPE::VERTEX);
 	// create fragment shader
-	unsigned int fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
+	Shader fragmentShader = Shader(SHADER_TYPE::FRAGMENT);
+
+	vertexShader.compile(vertexShaderSource);
+	fragmentShader.compile(fragmentShaderSource);
 
 	// create shader program to use the shaders create
-	unsigned int shaderProgram;
-	shaderProgram = glCreateProgram();
+	ShaderProgram program = ShaderProgram();
 
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
+	program.attachShader(&vertexShader);
+	program.attachShader(&fragmentShader);
+	program.link();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -105,17 +100,13 @@ int main(int argc, char **argv)
 		processInput(window);
 
 		// draw the triangle
-		glUseProgram(shaderProgram);
+		program.use();
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glfwPollEvents();
 		glfwSwapBuffers(window);
 	}
-
-	// delete the shader
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
 
 	glfwTerminate();
 	return 0;

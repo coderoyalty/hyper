@@ -1,0 +1,8 @@
+{
+  "files.associations": {
+    "compare": "cpp",
+    "system_error": "cpp",
+    "typeinfo": "cpp",
+    "new": "cpp"
+  }
+}

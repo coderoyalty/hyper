@@ -7,7 +7,7 @@
       "command": "C:\\Users\\User\\scoop\\apps\\mingw\\current\\bin\\g++.exe",
       "args": [
         "-g",
-        "${workspaceFolder}/src/main.cpp",
+        "${workspaceFolder}/src/*.cpp",
         "${workspaceFolder}/src/glad.c",
         "-o",
         "${workspaceFolder}/main.exe",

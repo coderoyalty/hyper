@@ -32,9 +32,11 @@ int main(int argc, char **argv)
 
 	while (!glfwWindowShouldClose(window))
 	{
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
 		processInput(window);
-		glfwSwapBuffers(window);
 		glfwPollEvents();
+		glfwSwapBuffers(window);
 	}
 
 	glfwTerminate();

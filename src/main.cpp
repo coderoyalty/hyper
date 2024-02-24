@@ -2,6 +2,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "shader.hpp"
+#include <sol/sol.hpp>
+#include "scripting/lua_bindings.hpp"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -64,34 +66,11 @@ int main(int argc, char **argv)
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	const char *vertexShaderSource = "#version 330 core\n"
-																	 "layout (location = 0) in vec3 aPos;\n"
-																	 "void main()\n"
-																	 "{\n"
-																	 "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-																	 "}\0";
-
-	const char *fragmentShaderSource = "#version 330 core\n"
-																		 "out vec4 FragColor;\n"
-																		 "void main()\n"
-																		 "{\n"
-																		 "  FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-																		 "}\0";
-
-	// create vertex shader
-	Shader vertexShader = Shader(SHADER_TYPE::VERTEX);
-	// create fragment shader
-	Shader fragmentShader = Shader(SHADER_TYPE::FRAGMENT);
-
-	vertexShader.compile(vertexShaderSource);
-	fragmentShader.compile(fragmentShaderSource);
-
-	// create shader program to use the shaders create
-	ShaderProgram program = ShaderProgram();
-
-	program.attachShader(&vertexShader);
-	program.attachShader(&fragmentShader);
-	program.link();
+	sol::state lua;
+	lua.open_libraries(sol::lib::base);
+	wow::binding::bindEngineClasses(lua);
+	lua.script_file(std::string(argc > 1 ? argv[1] : "scripts/color_triangle.lua"));
+	sol::function scriptMainFunc = lua["main"];
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -100,7 +79,7 @@ int main(int argc, char **argv)
 		processInput(window);
 
 		// draw the triangle
-		program.use();
+		scriptMainFunc();
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 

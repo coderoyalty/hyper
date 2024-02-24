@@ -1,5 +1,6 @@
 #include "shader.hpp"
 #include "utils.hpp"
+#include "log.hpp"
 
 Shader::Shader(SHADER_TYPE type) : id(generateUUID())
 {
@@ -12,21 +13,22 @@ Shader::~Shader()
   glDeleteShader(shader);
 }
 
-bool Shader::compile(const char *shaderSource)
+bool Shader::compile(std::string shaderSource)
 {
   if (m_isCompiled)
   {
     return false;
   }
 
-  glShaderSource(this->shader, 1, &shaderSource, nullptr);
+  const char *source = shaderSource.c_str();
+  glShaderSource(this->shader, 1, &source, nullptr);
   glCompileShader(this->shader);
 
   this->m_isCompiled = true;
   return true;
 }
 
-bool Shader::operator==(Shader &shader)
+bool Shader::operator==(const Shader &shader)
 {
   if (shader.id == this->id)
   {
@@ -40,24 +42,28 @@ ShaderProgram::ShaderProgram()
   this->m_program = glCreateProgram();
 }
 
-void ShaderProgram::attachShader(Shader *shader)
+void ShaderProgram::attachShader(Shader &shader)
 {
-  if (this->m_isLinked)
+  if (m_isLinked)
   {
+    std::cout << "Error: Shader program is already linked. Cannot attach shader.\n";
     return;
   }
-  unsigned int raw_shader = shader->getShader();
-  for (auto it = m_attachedShaders.begin(); it < m_attachedShaders.end(); it++)
+
+  unsigned int rawShader = shader.getShader();
+
+  for (const auto &attachedShader : m_attachedShaders)
   {
-    if (shader == (*it))
+    if (attachedShader->getShader() == rawShader)
     {
+      LOG_WARN("Shader is already attached to the program.");
       return;
     }
   }
 
-  glAttachShader(m_program, raw_shader);
+  glAttachShader(m_program, rawShader);
 
-  m_attachedShaders.push_back(shader);
+  m_attachedShaders.push_back(CreateRef<Shader>(shader));
 }
 
 void ShaderProgram::link()

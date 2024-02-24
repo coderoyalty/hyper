@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <string>
+#include "core/base.hpp"
 
 enum SHADER_TYPE
 {
@@ -17,7 +19,7 @@ class Shader
 public:
   Shader(SHADER_TYPE type);
   ~Shader();
-  bool compile(const char *shaderSource);
+  bool compile(std::string shaderSource);
   unsigned int getShader()
   {
     return this->shader;
@@ -28,10 +30,10 @@ public:
     return this->shader_type;
   }
 
-  bool operator==(Shader &shader);
-  const std::string id;
+  bool operator==(const Shader &shader);
 
 protected:
+  const std::string id;
   SHADER_TYPE shader_type;
   unsigned int shader;
 
@@ -43,13 +45,13 @@ class ShaderProgram
 {
 public:
   ShaderProgram();
-  void attachShader(Shader *shader);
+  void attachShader(Shader &shader);
   void link();
   void use();
 
 private:
   bool m_isLinked;
-  std::vector<Shader *> m_attachedShaders;
+  std::vector<Ref<Shader>> m_attachedShaders;
   unsigned int m_program;
 };
 

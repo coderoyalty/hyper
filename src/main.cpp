@@ -67,7 +67,8 @@ int main(int argc, char **argv)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	sol::state lua;
-	lua.open_libraries(sol::lib::base);
+	lua.open_libraries(sol::lib::base, sol::lib::package);
+
 	wow::binding::bindEngineClasses(lua);
 	lua.script_file(std::string(argc > 1 ? argv[1] : "scripts/color_triangle.lua"));
 	sol::function scriptMainFunc = lua["main"];

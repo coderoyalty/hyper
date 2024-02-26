@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-global, lowercase-global
 local vertexShaderSource = [[
     #version 330 core
     layout (location = 0) in vec3 aPos;
@@ -16,13 +17,17 @@ local fragmentShaderSource = [[
     }
 ]]
 
-local vshader = Shader.new(ShaderType.VERTEX)
-local fshader = Shader.new(ShaderType.FRAGMENT)
+wow = require "scripts.modules.index"
+
+---@types Shader
+local vshader = wow.Shader.new(wow.ShaderType.VERTEX)
+local fshader = wow.Shader.new(wow.ShaderType.FRAGMENT)
 
 vshader:compile(vertexShaderSource)
 fshader:compile(fragmentShaderSource)
 
-local program = ShaderProgram.new()
+---@types ShaderProgram
+local program = wow.ShaderProgram.new()
 program:attachShader(vshader)
 program:attachShader(fshader)
 
@@ -30,5 +35,5 @@ program:link()
 
 -- this function will be called in the main loop
 function main()
-  program:use()
+    program:use()
 end

@@ -4,6 +4,8 @@
 #include "shader.hpp"
 #include <sol/sol.hpp>
 #include "scripting/lua_bindings.hpp"
+#include "renderer/vertex_array.hpp"
+#include "renderer/vertex_buffer.hpp"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -34,37 +36,23 @@ int main(int argc, char **argv)
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// triangle data
-	const float vertices[] =
-			{
-					-0.5f,
-					-0.5f,
-					0.0f,
-					+0.5f,
-					-0.5f,
-					0.0f,
-					0.0f,
-					+0.5f,
-					0.0f,
-			};
+	float vertices[] = {
+			// first triangle
+			-0.9f, -0.5f, 0.0f, // left
+			-0.0f, -0.5f, 0.0f, // right
+			-0.45f, 0.5f, 0.0f, // top
+													// second triangle
+			0.0f, -0.5f, 0.0f,	// left
+			0.9f, -0.5f, 0.0f,	// right
+			0.45f, 0.5f, 0.0f		// top
+	};
 
-	// Vertex array object
+	Ref<VertexBuffer> vbo = CreateRef<VertexBuffer>(vertices, sizeof(vertices));
+	BufferLayout layout({VertexAttribDescriptor(ShaderDataType::Vec3, "aPos", false)});
+	vbo->setLayout(layout);
 
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
-
-	// vertex buffer object
-	unsigned int VBO;
-	glGenBuffers(1, &VBO);
-
-	// bind vao
-	glBindVertexArray(VAO);
-	// copy our vertices array in a buffer for OpenGL to use
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	// then set our vertex attributes pointers
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	Scope<VertexArray> vao = CreateScope<VertexArray>();
+	vao->addVertexBuffer(vbo);
 
 	sol::state lua;
 	lua.open_libraries(sol::lib::base, sol::lib::package);
@@ -81,8 +69,9 @@ int main(int argc, char **argv)
 
 		// draw the triangle
 		scriptMainFunc();
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		// glBindVertexArray(VAO);
+		vao->bind();
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		glfwPollEvents();
 		glfwSwapBuffers(window);

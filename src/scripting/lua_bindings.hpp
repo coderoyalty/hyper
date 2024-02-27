@@ -3,7 +3,7 @@
 
 #include <sol/sol.hpp>
 
-namespace wow
+namespace hyp
 {
   namespace binding
   {

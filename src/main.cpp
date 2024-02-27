@@ -6,6 +6,7 @@
 #include "scripting/lua_bindings.hpp"
 #include "renderer/vertex_array.hpp"
 #include "renderer/vertex_buffer.hpp"
+#include "utils/logger.hpp"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -15,8 +16,9 @@ int main(int argc, char **argv)
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	HYP_TRACE("OpenGL Version: %.d %.d", 3, 3);
 
 	GLFWwindow *window = glfwCreateWindow(600, 600, "C++ Window", nullptr, nullptr);
 
@@ -47,17 +49,17 @@ int main(int argc, char **argv)
 			0.45f, 0.5f, 0.0f		// top
 	};
 
-	Ref<VertexBuffer> vbo = CreateRef<VertexBuffer>(vertices, sizeof(vertices));
-	BufferLayout layout({VertexAttribDescriptor(ShaderDataType::Vec3, "aPos", false)});
+	hyp::Ref<hyp::VertexBuffer> vbo = hyp::CreateRef<hyp::VertexBuffer>(vertices, sizeof(vertices));
+	hyp::BufferLayout layout({hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false)});
 	vbo->setLayout(layout);
 
-	Scope<VertexArray> vao = CreateScope<VertexArray>();
+	hyp::Scope<hyp::VertexArray> vao = hyp::CreateScope<hyp::VertexArray>();
 	vao->addVertexBuffer(vbo);
 
 	sol::state lua;
 	lua.open_libraries(sol::lib::base, sol::lib::package);
 
-	wow::binding::bindEngineClasses(lua);
+	hyp::binding::bindEngineClasses(lua);
 	lua.script_file(std::string(argc > 1 ? argv[1] : "scripts/color_triangle.lua"));
 	sol::function scriptMainFunc = lua["main"];
 

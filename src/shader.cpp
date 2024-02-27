@@ -1,6 +1,8 @@
 #include "shader.hpp"
 #include "utils.hpp"
-#include "log.hpp"
+#include "utils/logger.hpp"
+
+using namespace hyp;
 
 Shader::Shader(SHADER_TYPE type) : id(generateUUID())
 {
@@ -56,7 +58,7 @@ void ShaderProgram::attachShader(Shader &shader)
   {
     if (attachedShader->getShader() == rawShader)
     {
-      LOG_WARN("Shader is already attached to the program.");
+      HYP_WARN("Shader is already attached to the program.");
       return;
     }
   }

@@ -8,51 +8,54 @@
 #include <string>
 #include "core/base.hpp"
 
-enum SHADER_TYPE
+namespace hyp
 {
-  FRAGMENT = GL_FRAGMENT_SHADER,
-  VERTEX
-};
 
-class Shader
-{
-public:
-  Shader(SHADER_TYPE type);
-  ~Shader();
-  bool compile(std::string shaderSource);
-  unsigned int getShader()
+  enum SHADER_TYPE
   {
-    return this->shader;
-  }
+    FRAGMENT = GL_FRAGMENT_SHADER,
+    VERTEX
+  };
 
-  SHADER_TYPE getType()
+  class Shader
   {
-    return this->shader_type;
-  }
+  public:
+    Shader(SHADER_TYPE type);
+    ~Shader();
+    bool compile(std::string shaderSource);
+    unsigned int getShader()
+    {
+      return this->shader;
+    }
 
-  bool operator==(const Shader &shader);
+    SHADER_TYPE getType()
+    {
+      return this->shader_type;
+    }
 
-protected:
-  const std::string id;
-  SHADER_TYPE shader_type;
-  unsigned int shader;
+    bool operator==(const Shader &shader);
 
-private:
-  bool m_isCompiled = false;
+  protected:
+    const std::string id;
+    SHADER_TYPE shader_type;
+    unsigned int shader;
+
+  private:
+    bool m_isCompiled = false;
+  };
+
+  class ShaderProgram
+  {
+  public:
+    ShaderProgram();
+    void attachShader(Shader &shader);
+    void link();
+    void use();
+
+  private:
+    bool m_isLinked;
+    std::vector<Ref<Shader>> m_attachedShaders;
+    unsigned int m_program;
+  };
 };
-
-class ShaderProgram
-{
-public:
-  ShaderProgram();
-  void attachShader(Shader &shader);
-  void link();
-  void use();
-
-private:
-  bool m_isLinked;
-  std::vector<Ref<Shader>> m_attachedShaders;
-  unsigned int m_program;
-};
-
 #endif

@@ -17,17 +17,17 @@ local fragmentShaderSource = [[
     }
 ]]
 
-wow = require "scripts.modules.index"
+hyp = require "scripts.modules.index"
 
 ---@types Shader
-local vshader = wow.Shader.new(wow.ShaderType.VERTEX)
-local fshader = wow.Shader.new(wow.ShaderType.FRAGMENT)
+local vshader = hyp.Shader.new(hyp.ShaderType.VERTEX)
+local fshader = hyp.Shader.new(hyp.ShaderType.FRAGMENT)
 
 vshader:compile(vertexShaderSource)
 fshader:compile(fragmentShaderSource)
 
 ---@types ShaderProgram
-local program = wow.ShaderProgram.new()
+local program = hyp.ShaderProgram.new()
 program:attachShader(vshader)
 program:attachShader(fshader)
 

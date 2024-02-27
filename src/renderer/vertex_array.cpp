@@ -1,8 +1,9 @@
 #include "vertex_array.hpp"
 #include "renderer/buffer.hpp"
-#include "assert.hpp"
-#include "log.hpp"
+#include "utils/logger.hpp"
+#include "utils/assert.hpp"
 
+using namespace hyp;
 namespace Utils
 {
   static GLenum MapShaderDataTypeToOpenGL(ShaderDataType type)
@@ -33,10 +34,10 @@ namespace Utils
       return GL_BOOL;
     }
 
-    m_assert(false, "Unknown ShaderDataType!");
+    HYP_ASSERT_CORE(false, "Unknown ShaderDataType!");
     return 0;
   };
-}
+} // Utils
 
 VertexArray::VertexArray()
 {
@@ -61,7 +62,7 @@ void VertexArray::unbind()
 
 void VertexArray::addVertexBuffer(const Ref<VertexBuffer> &vbuffer)
 {
-  m_assert(vbuffer->getLayout().getAttributes().size() != 0, "vertex buffer has no layout");
+  HYP_ASSERT_CORE(vbuffer->getLayout().getAttributes().size() != 0, "vertex buffer has no layout");
 
   const auto &layout = vbuffer->getLayout();
   for (const auto &attribute : layout)
@@ -118,7 +119,7 @@ void VertexArray::addVertexBuffer(const Ref<VertexBuffer> &vbuffer)
       break;
     }
     default:
-      LOG_WARN("Unknown ShaderType");
+      HYP_WARN("Unknown ShaderType");
     }
   }
   m_vbuffers.push_back(vbuffer);

@@ -39,18 +39,14 @@ int main(int argc, char **argv)
 
 	// triangle data
 	float vertices[] = {
-			// first triangle
-			-0.9f, -0.5f, 0.0f, // left
-			-0.0f, -0.5f, 0.0f, // right
-			-0.45f, 0.5f, 0.0f, // top
-													// second triangle
-			0.0f, -0.5f, 0.0f,	// left
-			0.9f, -0.5f, 0.0f,	// right
-			0.45f, 0.5f, 0.0f		// top
+			0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,	// bottom right
+			-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
+			0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f		//
 	};
 
 	hyp::Ref<hyp::VertexBuffer> vbo = hyp::CreateRef<hyp::VertexBuffer>(vertices, sizeof(vertices));
-	hyp::BufferLayout layout({hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false)});
+	hyp::BufferLayout layout({hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
+														hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aColor", false)});
 	vbo->setLayout(layout);
 
 	hyp::Scope<hyp::VertexArray> vao = hyp::CreateScope<hyp::VertexArray>();
@@ -73,7 +69,7 @@ int main(int argc, char **argv)
 		scriptMainFunc();
 		// glBindVertexArray(VAO);
 		vao->bind();
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glfwPollEvents();
 		glfwSwapBuffers(window);

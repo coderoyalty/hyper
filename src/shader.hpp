@@ -7,7 +7,6 @@
 #include <vector>
 #include <string>
 #include "core/base.hpp"
-
 namespace hyp
 {
 
@@ -35,6 +34,9 @@ namespace hyp
 
     bool operator==(const Shader &shader);
 
+  private:
+    friend class ShaderProgram;
+
   protected:
     const std::string id;
     SHADER_TYPE shader_type;
@@ -47,6 +49,7 @@ namespace hyp
   class ShaderProgram
   {
   public:
+    ShaderProgram(const std::string &vertexPath, const std::string &fragmentPath);
     ShaderProgram();
     void attachShader(Shader &shader);
     void link();

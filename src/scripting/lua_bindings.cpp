@@ -32,7 +32,9 @@ namespace lua_bindings
     shader_type["equal"] = &Shader::operator==;
 
     // shader program
-    sol::usertype<ShaderProgram> program_type = hyp.new_usertype<ShaderProgram>("ShaderProgram", sol::constructors<ShaderProgram()>());
+    sol::usertype<ShaderProgram> program_type = hyp.new_usertype<ShaderProgram>(
+        "ShaderProgram", sol::constructors<ShaderProgram(),
+                                           ShaderProgram(const std::string &vpath, const std::string &fpath)>());
     program_type["attachShader"] = &ShaderProgram::attachShader;
     program_type["link"] = &ShaderProgram::link;
     program_type["use"] = &ShaderProgram::use;

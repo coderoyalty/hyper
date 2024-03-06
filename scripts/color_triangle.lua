@@ -2,34 +2,30 @@
 local vertexShaderSource = [[
     #version 330 core
     layout (location = 0) in vec3 aPos;
+    layout (location = 1) in vec3 aColor;
+
+    out vec4 outColor;
     void main()
     {
         gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+        outColor = vec4(aColor, 1.0);
     }
 ]]
 
 local fragmentShaderSource = [[
     #version 330 core
     out vec4 FragColor;
+    in vec4 outColor;
     void main()
     {
-        FragColor = vec4(1.0f, 1.0f, 0.2f, 1.0f);
+        FragColor = outColor;
     }
 ]]
 
 hyp = require "scripts.modules.index"
 
----@types Shader
-local vshader = hyp.Shader.new(hyp.ShaderType.VERTEX)
-local fshader = hyp.Shader.new(hyp.ShaderType.FRAGMENT)
-
-vshader:compile(vertexShaderSource)
-fshader:compile(fragmentShaderSource)
-
 ---@types ShaderProgram
-local program = hyp.ShaderProgram.new()
-program:attachShader(vshader)
-program:attachShader(fshader)
+local program = hyp.ShaderProgram.new("scripts/vertex.vert", "scripts/fragment.frag")
 
 program:link()
 

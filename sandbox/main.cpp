@@ -1,12 +1,10 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "shader.hpp"
-#include <sol/sol.hpp>
-#include "renderer/vertex_array.hpp"
-#include "renderer/vertex_buffer.hpp"
-#include "utils/logger.hpp"
-#include <glm/glm.hpp>
+#include <renderer/shader.hpp>
+#include <renderer/vertex_array.hpp>
+#include <renderer/vertex_buffer.hpp>
+#include <utils/logger.hpp>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);

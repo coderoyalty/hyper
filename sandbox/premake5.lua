@@ -1,4 +1,4 @@
-project "HyperBox"
+project "sandbox"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
@@ -17,7 +17,7 @@ project "HyperBox"
 
 	includedirs
 	{
-		"%{wks.location}/HyperEngine/include",
+		"%{wks.location}/engine/src",
 		"%{includes.GLFW}",
 		"%{includes.GLAD}",
 		"%{includes.GLM}",

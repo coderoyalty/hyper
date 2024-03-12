@@ -8,7 +8,7 @@ project "Hyper"
 	files
 	{
 		"src/**hpp", "src/**.cpp",
-		"../Dependencies/vendor/stb_image/**.cpp"
+		"../dependencies/vendor/stb_image/**.cpp"
 	}
 
 	defines
@@ -19,7 +19,7 @@ project "Hyper"
 
 	includedirs
 	{
-    "src/"
+    "src/",
 		"%{includes.GLFW}",
 		"%{includes.GLAD}",
 		"%{includes.GLM}",

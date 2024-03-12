@@ -1,3 +1,3 @@
-[submodule "dependencies/glfw"]
+[submodule "glfw"]
 	path = dependencies/glfw
-	url = https://github.com/TheCherno/glfw.git
+	url = https://github.com/positron-dev/glfw.git

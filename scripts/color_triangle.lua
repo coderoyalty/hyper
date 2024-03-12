@@ -22,6 +22,8 @@ local fragmentShaderSource = [[
     }
 ]]
 
+local math = require("math")
+
 hyp = require "scripts.modules.index"
 
 ---@types ShaderProgram
@@ -29,7 +31,12 @@ local program = hyp.ShaderProgram.new("scripts/vertex.vert", "scripts/fragment.f
 
 program:link()
 
+
 -- this function will be called in the main loop
 function main()
     program:use()
+    timeValue = hyp.time()
+    greenValue = math.sin(timeValue) / 2.0 + 0.5
+    print(greenValue)
+    program:setFloat("redValue", greenValue)
 end

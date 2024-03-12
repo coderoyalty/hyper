@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	HYP_TRACE("OpenGL Version: %.d %.d", 3, 3);
+	HYP_TRACE("OpenGL Version: %.d.%.d", 3, 3);
 
 	GLFWwindow *window = glfwCreateWindow(600, 600, "C++ Window", nullptr, nullptr);
 
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 	vao->addVertexBuffer(vbo);
 
 	sol::state lua;
-	lua.open_libraries(sol::lib::base, sol::lib::package);
+	lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::math);
 
 	hyp::binding::bindEngineClasses(lua);
 	lua.script_file(std::string(argc > 1 ? argv[1] : "scripts/color_triangle.lua"));

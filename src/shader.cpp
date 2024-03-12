@@ -113,6 +113,21 @@ void hyp::ShaderProgram::attachShader(uint32_t &shader)
   glAttachShader(m_program, shader);
 }
 
+int hyp::ShaderProgram::getLocation(const std::string &name)
+{
+  auto it = m_locations.find(name);
+
+  if (it != m_locations.end())
+  {
+    return it->second;
+  }
+
+  int32_t location = glGetUniformLocation(this->m_program, name.c_str());
+
+  m_locations.insert({name, location});
+  return location;
+}
+
 void ShaderProgram::link()
 {
   if (this->m_isLinked)
@@ -126,4 +141,16 @@ void ShaderProgram::link()
 void ShaderProgram::use()
 {
   glUseProgram(this->m_program);
+}
+
+void hyp::ShaderProgram::setInt(const std::string &name, int value)
+{
+  int location = this->getLocation(name);
+  glUniform1i(location, value);
+}
+
+void hyp::ShaderProgram::setFloat(const std::string &name, float value)
+{
+  int location = this->getLocation(name);
+  glUniform1f(location, value);
 }

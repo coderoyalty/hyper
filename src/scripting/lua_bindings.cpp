@@ -23,19 +23,10 @@ namespace lua_bindings
         "ShaderType",
         {{"VERTEX", SHADER_TYPE::VERTEX}, {"FRAGMENT", SHADER_TYPE::FRAGMENT}});
 
-    // shader
-    sol::usertype<Shader>
-        shader_type = hyp.new_usertype<Shader>("Shader", sol::constructors<Shader(SHADER_TYPE)>());
-    shader_type["compile"] = &Shader::compile;
-    shader_type["getShader"] = &Shader::getShader;
-    shader_type["getType"] = &Shader::getType;
-    shader_type["equal"] = &Shader::operator==;
-
     // shader program
     sol::usertype<ShaderProgram> program_type = hyp.new_usertype<ShaderProgram>(
         "ShaderProgram", sol::constructors<ShaderProgram(),
                                            ShaderProgram(const std::string &vpath, const std::string &fpath)>());
-    program_type["attachShader"] = &ShaderProgram::attachShader;
     program_type["link"] = &ShaderProgram::link;
     program_type["use"] = &ShaderProgram::use;
   }

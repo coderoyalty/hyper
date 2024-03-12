@@ -5,42 +5,51 @@
 
 using namespace hyp;
 
-Shader::Shader(SHADER_TYPE type) : id(generateUUID())
+namespace Helpers
 {
-  this->shader_type = type;
-  this->shader = glCreateShader(type);
-}
-
-Shader::~Shader()
-{
-  glDeleteShader(shader);
-}
-
-bool Shader::compile(std::string shaderSource)
-{
-  if (m_isCompiled)
+  bool compileShader(uint32_t &shader, const std::string &content, const SHADER_TYPE &shaderType)
   {
-    return false;
-  }
+    shader = glCreateShader(shaderType);
+    const char *source = content.c_str();
+    glShaderSource(shader, 1, &source, nullptr);
+    glCompileShader(shader);
 
-  const char *source = shaderSource.c_str();
-  glShaderSource(this->shader, 1, &source, nullptr);
-  glCompileShader(this->shader);
+    int32_t compileStatus;
 
-  this->m_isCompiled = true;
-  return true;
-}
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
 
-bool Shader::operator==(const Shader &shader)
-{
-  if (shader.id == this->id)
-  {
+    if (!compileStatus)
+    {
+      // Compilation failed
+      GLint infoLogLength;
+      glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
+      std::vector<GLchar> infoLog(infoLogLength);
+      glGetShaderInfoLog(shader, infoLogLength, NULL, infoLog.data());
+      // Print or handle the error
+      switch (shaderType)
+      {
+      case VERTEX:
+      {
+        HYP_ERROR("Vertex Shader Compilation Failed\nError:\n", infoLog.data());
+        break;
+      }
+      case FRAGMENT:
+      {
+        HYP_ERROR("Fragment Shader Compilation Failed\nError:\n", infoLog.data());
+        break;
+      }
+      default:
+        break;
+      }
+
+      return false;
+    }
+
     return true;
   }
-  return false;
 }
 
-ShaderProgram::ShaderProgram()
+ShaderProgram::ShaderProgram() : m_isLinked(false)
 {
   this->m_program = glCreateProgram();
 }
@@ -78,34 +87,22 @@ hyp::ShaderProgram::ShaderProgram(const std::string &vertexPath, const std::stri
     return;
   };
 
-  hyp::Shader vshader = Shader(hyp::SHADER_TYPE::VERTEX);
-  vshader.compile(vertexCode);
+  uint32_t vshader, fshader;
 
-  hyp::Shader fshader = Shader(hyp::SHADER_TYPE::FRAGMENT);
-  fshader.compile(fragmentCode);
+  bool vshaderStatus = Helpers::compileShader(vshader, vertexCode, SHADER_TYPE::VERTEX);
+  bool fshaderStatus = Helpers::compileShader(fshader, fragmentCode, SHADER_TYPE::FRAGMENT);
 
-  int success;
-  char infoLog[512];
-
-  glGetShaderiv(vshader.shader, GL_COMPILE_STATUS, &success);
-  if (!success)
+  if (!vshaderStatus || !fshaderStatus)
   {
-    glGetShaderInfoLog(vshader.shader, 512, NULL, infoLog);
-    HYP_ERROR("Vertex Shader Compilation Failed\nError:\n", infoLog);
-  }
-
-  glGetShaderiv(fshader.shader, GL_COMPILE_STATUS, &success);
-  if (!success)
-  {
-    glGetShaderInfoLog(fshader.shader, 512, NULL, infoLog);
-    HYP_ERROR("Fragment Shader Compilation Failed\nError:\n", infoLog);
+    HYP_WARN("Didn't create a shader program because there was a compilation error");
+    return;
   }
 
   this->attachShader(vshader);
   this->attachShader(fshader);
 }
 
-void ShaderProgram::attachShader(Shader &shader)
+void hyp::ShaderProgram::attachShader(uint32_t &shader)
 {
   if (m_isLinked)
   {
@@ -113,20 +110,7 @@ void ShaderProgram::attachShader(Shader &shader)
     return;
   }
 
-  unsigned int rawShader = shader.getShader();
-
-  for (const auto &attachedShader : m_attachedShaders)
-  {
-    if (attachedShader->getShader() == rawShader)
-    {
-      HYP_WARN("Shader is already attached to the program.");
-      return;
-    }
-  }
-
-  glAttachShader(m_program, rawShader);
-
-  m_attachedShaders.push_back(CreateRef<Shader>(shader));
+  glAttachShader(m_program, shader);
 }
 
 void ShaderProgram::link()

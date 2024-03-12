@@ -22,3 +22,7 @@ Intermediates/
 **.vcxproj.filters
 **.vcxproj.user
 **.csproj
+
+# Visual Studio Code files and folder
+
+.vscode/

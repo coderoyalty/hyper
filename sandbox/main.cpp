@@ -5,20 +5,18 @@
 #include <renderer/vertex_array.hpp>
 #include <renderer/vertex_buffer.hpp>
 #include <utils/logger.hpp>
+#include <core/device.hpp>
+#include <core/window.hpp>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 
 int main(int argc, char **argv)
 {
-  glfwInit();
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  hyp::Device::init({});
+  auto applicationWindow = hyp::Window::createWindow({});
 
-  HYP_TRACE("OpenGL Version: %.d.%.d", 3, 3);
-
-  GLFWwindow *window = glfwCreateWindow(600, 600, "C++ Window", nullptr, nullptr);
+  auto window = applicationWindow->getRawWindow();
 
   if (window == NULL)
   {
@@ -70,7 +68,7 @@ int main(int argc, char **argv)
     glfwSwapBuffers(window);
   }
 
-  glfwTerminate();
+  hyp::Device::deinit();
   return 0;
 };
 

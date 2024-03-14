@@ -1,11 +1,12 @@
 #pragma once
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <system/export.hpp>
 #ifndef GL_CONTEXT_HPP
 #define GL_CONTEXT_HPP
 
 namespace hyp {
-	class OpenglContext {
+	class HYPER_API OpenglContext {
 	public:
 		OpenglContext(GLFWwindow* window);
 	private:

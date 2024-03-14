@@ -6,32 +6,32 @@
 
 namespace hyp
 {
-  class VertexBuffer
-  {
-  public:
-    VertexBuffer(uint32_t size);
-    VertexBuffer(float *vertices, uint32_t size);
+	class VertexBuffer
+	{
+	public:
+		VertexBuffer(uint32_t size);
+		VertexBuffer(float* vertices, uint32_t size);
 
-    ~VertexBuffer();
+		~VertexBuffer();
 
-    void setData(float *vertices, uint32_t size);
+		void setData(float* vertices, uint32_t size);
 
-    void bind();
-    void unbind();
+		void bind();
+		void unbind();
 
-    const BufferLayout &getLayout() const
-    {
-      return m_layout;
-    }
-    void setLayout(const BufferLayout &layout)
-    {
-      m_layout = layout;
-    };
+		const BufferLayout& getLayout() const
+		{
+			return m_layout;
+		}
+		void setLayout(const BufferLayout& layout)
+		{
+			m_layout = layout;
+		};
 
-  private:
-    BufferLayout m_layout;
-    uint32_t m_rendererId;
-  };
+	private:
+		BufferLayout m_layout;
+		uint32_t m_rendererId;
+	};
 
 };
 #endif

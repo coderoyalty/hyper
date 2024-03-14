@@ -7,28 +7,28 @@
 
 namespace hyp
 {
-  class VertexArray
-  {
-  public:
-    VertexArray();
+	class VertexArray
+	{
+	public:
+		VertexArray();
 
-    ~VertexArray();
+		~VertexArray();
 
-    void bind();
-    void unbind();
+		void bind();
+		void unbind();
 
-    void addVertexBuffer(const Ref<VertexBuffer> &vbuffer);
+		void addVertexBuffer(const Ref<VertexBuffer>& vbuffer);
 
-    const std::vector<Ref<VertexBuffer>> &getVertexBuffers() const
-    {
-      return m_vbuffers;
-    }
+		const std::vector<Ref<VertexBuffer>>& getVertexBuffers() const
+		{
+			return m_vbuffers;
+		}
 
-  private:
-    uint32_t m_rendererID;
-    uint32_t m_vbufferIndex = 0;
-    std::vector<Ref<VertexBuffer>> m_vbuffers;
-  };
+	private:
+		uint32_t m_rendererID;
+		uint32_t m_vbufferIndex = 0;
+		std::vector<Ref<VertexBuffer>> m_vbuffers;
+	};
 
 };
 

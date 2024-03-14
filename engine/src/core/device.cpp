@@ -8,8 +8,8 @@ void hyp::Device::init(const DeviceSetting& ds)
 		HYP_ERROR("The OpenGL version used it not supported");
 		std::terminate();
 	}
-	
-	
+
+
 	int code = glfwInit();
 	if (!code) {
 		HYP_ERROR("GLFW API initialized failed");

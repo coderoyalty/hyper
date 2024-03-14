@@ -153,3 +153,40 @@ void hyp::ShaderProgram::setFloat(const std::string& name, float value)
 	int location = this->getLocation(name);
 	glUniform1f(location, value);
 }
+
+void hyp::ShaderProgram::setVec2(const std::string& name, const glm::vec2& value)
+{
+	int location = this->getLocation(name);
+	glUniform2f(location, value.x, value.y);
+}
+
+
+void hyp::ShaderProgram::setVec3(const std::string& name, const glm::vec3& value)
+{
+	int location = this->getLocation(name);
+	glUniform3f(location, value.x, value.y, value.z);
+}
+
+void hyp::ShaderProgram::setVec4(const std::string& name, const glm::vec4& value)
+{
+	int location = this->getLocation(name);
+	glUniform4f(location, value.x, value.y, value.z, value.w);
+}
+
+void hyp::ShaderProgram::setMat2(const std::string& name, const glm::mat2& value)
+{
+	int location = this->getLocation(name);
+	glUniformMatrix2fv(location, 1, false, glm::value_ptr(value));
+}
+
+void hyp::ShaderProgram::setMat3(const std::string& name, const glm::mat3& value)
+{
+	int location = this->getLocation(name);
+	glUniformMatrix3fv(location, 1, false, glm::value_ptr(value));
+}
+
+void hyp::ShaderProgram::setMat4(const std::string& name, const glm::mat4& value)
+{
+	int location = this->getLocation(name);
+	glUniformMatrix4fv(location, 1, false, glm::value_ptr(value));
+}

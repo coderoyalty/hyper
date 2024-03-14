@@ -8,6 +8,8 @@
 #include <string>
 #include "core/base.hpp"
 #include <unordered_map>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 namespace hyp
 {
 
@@ -32,7 +34,13 @@ namespace hyp
 			setInt(name, (int)value);
 		}
 
-		// TODO:
+		void setVec2(const std::string& name, const glm::vec2& value);
+		void setVec3(const std::string& name, const glm::vec3& value);
+		void setVec4(const std::string& name, const glm::vec4& value);
+
+		void setMat2(const std::string& name, const glm::mat2& value);
+		void setMat3(const std::string& name, const glm::mat3& value);
+		void setMat4(const std::string& name, const glm::mat4& value);
 
 	private:
 		void attachShader(uint32_t& shader);

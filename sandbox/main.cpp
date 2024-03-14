@@ -40,17 +40,21 @@ int main(int argc, char** argv)
 
 	hyp::ShaderProgram program("assets/vertex.vert", "assets/fragment.frag");
 
+	glm::mat4 trans = glm::mat4(1.0f);
+	trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
+	trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+
 	program.link();
 	program.use();
 	program.setFloat("redValue", 1.0);
+	program.setMat4("transform", trans);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		processInput(window);
 
-		// draw the triangle
-		// glBindVertexArray(VAO);
 		vao->bind();
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 

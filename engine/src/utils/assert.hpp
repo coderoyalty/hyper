@@ -2,6 +2,7 @@
 #define HYP_ASSERT_HPP
 
 #include <cstdint>
+#include <stdio.h>
 
 #if defined(HYPER_ASSERTION_ENABLED)
 #include <intrin.h>
@@ -10,7 +11,7 @@
 #define _DEBUG_BREAK()
 #endif
 
-void report_assert(const char *expr, const char *message, const char *filename, uint32_t line);
+void report_assert(const char* expr, const char* message, const char* filename, uint32_t line);
 
 #define HYP_ASSERT(expr)                            \
   {                                                 \

@@ -2,7 +2,7 @@
 #include <utils/logger.hpp>
 #include "window.hpp"
 
-hyp::Scope<hyp::Window> hyp::Window::createWindow(WindowProps props)
+hyp::Scope<hyp::Window> hyp::Window::create(WindowProps props)
 {
 	return hyp::CreateScope<hyp::Window>(props);
 }

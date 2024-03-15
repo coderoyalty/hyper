@@ -8,6 +8,7 @@
 #include <system/export.hpp>
 #include <core/base.hpp>
 #include <opengl/context.hpp>
+#include <utils/non_copyable.hpp>
 
 namespace hyp
 {
@@ -33,12 +34,12 @@ namespace hyp
 		}
 	};
 
-	class HYPER_API Window
+	class HYPER_API Window : public hyp::NonCopyable
 	{
 	public:
 		Window(WindowProps props);
 		~Window();
-		static hyp::Scope<Window> createWindow(WindowProps props);
+		static hyp::Scope<Window> create(WindowProps props);
 		GLFWwindow* getRawWindow() const
 		{
 			return this->m_window;
@@ -59,6 +60,8 @@ namespace hyp
 		hyp::Scope<OpenglContext> m_context;
 		WindowProps m_props;
 		GLFWwindow* m_window;
+
+		friend class Application;
 	};
 }
 

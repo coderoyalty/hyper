@@ -25,6 +25,15 @@ namespace hyp {
 		uint32_t m_width;
 		uint32_t m_height;
 	};
+
+	class WindowCloseEvent : public hyp::Event {
+	public:
+		WindowCloseEvent() {
+
+		}
+
+		EVENT_CLASS_TYPE(WindowClose);
+	};
 }
 
 #endif // !HYPER_WINDOW_EVENT_HPP

@@ -52,7 +52,16 @@ void hyp::Window::init()
 
 		WindowResizeEvent event(width, height);
 		data.event_callback(event);
-	});
+		});
+
+
+	glfwSetWindowCloseCallback(m_window,
+		[](GLFWwindow* window) {
+			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			WindowCloseEvent event;
+			data.event_callback(event);
+		}
+	);
 }
 
 void hyp::Window::deinit()

@@ -19,9 +19,9 @@ void hyp::Application::run()
 	}
 }
 
-GLFWwindow* hyp::Application::getGLFWwindow() const
+GLFWwindow* hyp::Application::getWindow() const
 {
-	return m_window->getRawWindow();
+	return m_window->getNativeWindow();
 }
 
 void hyp::Application::close()

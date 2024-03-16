@@ -1,6 +1,7 @@
 #ifndef HYPER_APPLICATION_HPP
 #define HYPER_APPLICATION_HPP
 
+#include <glad/glad.h>
 #include <core/window.hpp>
 
 namespace hyp {
@@ -12,8 +13,10 @@ namespace hyp {
 		static Application& get() {
 			return *sInstance;
 		}
+		
+		GLFWwindow* getWindow() const;
+
 	private:
-		GLFWwindow* getGLFWwindow() const;
 		void close();
 
 		void onEvent(Event& e);

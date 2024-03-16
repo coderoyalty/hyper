@@ -45,7 +45,7 @@ namespace hyp
 		Window(WindowProps props);
 		~Window();
 		static hyp::Scope<Window> create(WindowProps props = WindowProps());
-		GLFWwindow* getRawWindow() const
+		GLFWwindow* getNativeWindow() const
 		{
 			return this->m_window;
 		};

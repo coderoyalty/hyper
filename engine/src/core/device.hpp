@@ -2,7 +2,7 @@
 
 #ifndef HYPER_DEVICE_HPP
 #define HYPER_DEVICE_HPP
-
+#include <glad/glad.h>
 #include <core/base.hpp>
 #include <system/export.hpp>
 

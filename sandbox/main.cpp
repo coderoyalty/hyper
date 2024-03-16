@@ -8,23 +8,10 @@
 #include <core/device.hpp>
 #include <core/window.hpp>
 #include <renderer/texture.hpp>
+#include <core/application.hpp>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
 
-int main(int argc, char** argv)
-{
-	hyp::Device::init({});
-	hyp::WindowProps props;
-	props.maximized = true;
-	auto applicationWindow = hyp::Window::createWindow(props);
-
-	auto window = applicationWindow->getRawWindow();
-
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-	// triangle data
-	float vertices[] = {
+float vertices[] = {
 	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
 	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
@@ -66,25 +53,9 @@ int main(int argc, char** argv)
 	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
 	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-	};
+};
 
-
-	hyp::Ref<hyp::VertexBuffer> vbo = hyp::CreateRef<hyp::VertexBuffer>(
-		vertices, sizeof(vertices));
-	hyp::BufferLayout layout({
-	   hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
-	   hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec2, "aTex", false)
-		});
-	vbo->setLayout(layout);
-
-	hyp::Texture texture("assets/wall.jpg");
-
-	hyp::Scope<hyp::VertexArray> vao = hyp::CreateScope<hyp::VertexArray>();
-	vao->addVertexBuffer(vbo);
-
-	hyp::ShaderProgram program("assets/vertex.vert", "assets/fragment.frag");
-
-	glm::vec3 cubePositions[] = {
+glm::vec3 cubePositions[] = {
 	glm::vec3(0.0f,  0.0f,  0.0f),
 	glm::vec3(2.0f,  5.0f, -15.0f),
 	glm::vec3(-1.5f, -2.2f, -2.5f),
@@ -95,24 +66,46 @@ int main(int argc, char** argv)
 	glm::vec3(1.5f,  2.0f, -2.5f),
 	glm::vec3(1.5f,  0.2f, -1.5f),
 	glm::vec3(-1.3f,  1.0f, -1.5f)
-	};
+};
 
-	program.link();
-	program.use();
-	program.setInt("uTexture", 0);
+class TestLayer : public hyp::Layer {
+public:
+	TestLayer() : texture("assets/wall.jpg"), program("assets/vertex.vert", "assets/fragment.frag") {
+		hyp::BufferLayout layout{
+			hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
+			hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec2, "aTex", false)
+		};
 
-	glEnable(GL_DEPTH_TEST);
+		vbo = hyp::CreateRef<hyp::VertexBuffer>(
+			vertices, sizeof(vertices));
+		vbo->setLayout(layout);
 
-	while (!glfwWindowShouldClose(window))
+		vao = hyp::CreateScope<hyp::VertexArray>();
+		vao->addVertexBuffer(vbo);
+	}
+
+	virtual void onAttach() override
 	{
+		glEnable(GL_DEPTH_TEST);
+
+		program.link();
+		program.use();
+		program.setInt("uTexture", 0);
+	}
+
+	virtual void onUpdate(float dt) override {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		processInput(window);
 
-		glm::mat4 view = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
 		glm::mat4 projection = glm::mat4(1.0f);
-		projection = glm::perspective(glm::radians(45.0f), (float)props.windowData.width / (float)props.windowData.height, 0.1f, 100.0f);
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		projection = glm::perspective(glm::radians(45.0f), (float)600 / (float)600, 0.1f, 100.0f);
+
+		const float radius = 10.0f;
+		float camX = sin(glfwGetTime()) * radius;
+		float camZ = cos(glfwGetTime()) * radius;
+		glm::mat4 view(1.0);
+		view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+
 		// pass transformation matrices to the shader
 		program.setMat4("projection", projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
 		program.setMat4("view", view);
@@ -129,24 +122,24 @@ int main(int argc, char** argv)
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-
-		glfwPollEvents();
-		glfwSwapBuffers(window);
 	}
+private:
+	hyp::Ref<hyp::VertexBuffer> vbo;
+	hyp::Texture texture;
+	hyp::Scope<hyp::VertexArray> vao;
+	hyp::ShaderProgram program;
+	
+};
 
+int main(int argc, char** argv)
+{
+	hyp::Device::init({});
+	hyp::WindowProps props("hyper-sandbox", 600, 600);
+	props.resizable = false;
+
+	auto app = hyp::Application(props);
+	app.pushLayer(new TestLayer());
+	app.run();
 	hyp::Device::deinit();
 	return 0;
 };
-
-void framebuffer_size_callback(GLFWwindow* window, int w, int h)
-{
-	glViewport(0, 0, w, h);
-};
-
-void processInput(GLFWwindow* window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose(window, true);
-	}
-}

@@ -9,14 +9,19 @@
 #include <core/base.hpp>
 #include <opengl/context.hpp>
 #include <utils/non_copyable.hpp>
+#include <event/event.hpp>
+#include <event/win_event.hpp>
 
 namespace hyp
 {
+
+	using EventCallbackFn = std::function<void(Event&)>;
 	struct HYPER_API WindowData
 	{
 		int width;
 		int height;
 		std::string title;
+		EventCallbackFn event_callback;
 	};
 
 	struct HYPER_API WindowProps
@@ -39,7 +44,7 @@ namespace hyp
 	public:
 		Window(WindowProps props);
 		~Window();
-		static hyp::Scope<Window> create(WindowProps props);
+		static hyp::Scope<Window> create(WindowProps props = WindowProps());
 		GLFWwindow* getRawWindow() const
 		{
 			return this->m_window;
@@ -48,6 +53,8 @@ namespace hyp
 		bool isRunning() const;
 
 		void onUpdate();
+
+		void setEventCallback(const EventCallbackFn& fn);
 
 	private:
 		void init();

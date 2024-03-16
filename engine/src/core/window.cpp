@@ -44,6 +44,15 @@ void hyp::Window::init()
 		data.width = w;
 		data.height = h;
 	}
+
+	glfwSetWindowUserPointer(m_window, &m_props.windowData);
+
+	glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
+		WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+		WindowResizeEvent event(width, height);
+		data.event_callback(event);
+	});
 }
 
 void hyp::Window::deinit()
@@ -75,4 +84,9 @@ void hyp::Window::onUpdate()
 {
 	glfwPollEvents();
 	m_context->swapBuffer();
+}
+
+void hyp::Window::setEventCallback(const EventCallbackFn& fn)
+{
+	m_props.windowData.event_callback = fn;
 }

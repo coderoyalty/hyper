@@ -15,6 +15,11 @@ namespace hyp {
 	private:
 		GLFWwindow* getGLFWwindow() const;
 		void close();
+
+		void onEvent(Event& e);
+
+		bool onResize(const WindowResizeEvent&);
+
 	private:
 		bool m_minimized = false;
 		bool m_running = false;

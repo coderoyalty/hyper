@@ -11,6 +11,8 @@
 #include <utils/non_copyable.hpp>
 #include <event/event.hpp>
 #include <event/win_event.hpp>
+#include <event/key_event.hpp>
+#include <event/mouse_event.hpp>
 
 namespace hyp
 {

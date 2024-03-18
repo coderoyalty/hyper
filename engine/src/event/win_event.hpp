@@ -20,7 +20,7 @@ namespace hyp {
 			return ss.str();
 		}
 
-		EVENT_CLASS_TYPE(WindowResize);
+		EVENT_CLASS_TYPE(hyp::EventType::WindowResize);
 	private:
 		uint32_t m_width;
 		uint32_t m_height;
@@ -32,7 +32,7 @@ namespace hyp {
 
 		}
 
-		EVENT_CLASS_TYPE(WindowClose);
+		EVENT_CLASS_TYPE(hyp::EventType::WindowClose);
 	};
 }
 

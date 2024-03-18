@@ -14,7 +14,7 @@ namespace hyp {
 		MouseBtnPressed, MouseBtnReleased, MouseMoved, MouseScroll
 	};
 
-#define EVENT_CLASS_TYPE(type) static EventType getType() {return EventType::type; }\
+#define EVENT_CLASS_TYPE(type) static EventType getType() {return type; }\
 								EventType getEventType() { return getType(); }
 
 #define BIND_EVENT_FN(function) [this](auto& args) -> decltype(auto) {\

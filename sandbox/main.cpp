@@ -21,7 +21,7 @@ float vertices[] = {
 
 	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
 	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
 	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
 	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
 	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
@@ -123,12 +123,31 @@ public:
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 	}
+
+	bool onKeyPressed(hyp::KeyPressedEvent& event) {
+		if (event.getkey() == hyp::Key::SPACE && !event.isRepeat()) {
+			std::cout << "Repeated [Space]" << std::endl;
+		}
+
+		return false;
+	}
+
+	void onEvent(hyp::Event& event) {
+		hyp::EventDispatcher ed(event);
+
+		ed.dispatch<hyp::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
+	}
 private:
 	hyp::Ref<hyp::VertexBuffer> vbo;
 	hyp::Texture texture;
 	hyp::Scope<hyp::VertexArray> vao;
 	hyp::ShaderProgram program;
-	
+
+};
+
+class cout: std::ostream {
+public:
+
 };
 
 int main(int argc, char** argv)

@@ -1,6 +1,13 @@
 #include "core/window.hpp"
 #include <utils/logger.hpp>
-#include "window.hpp"
+
+namespace callback {
+	static void registerWindowSize(GLFWwindow* window, int width, int height);
+	static void registerWindowClose(GLFWwindow* window);
+	static void registerKey(GLFWwindow* window, int key, int scancode, int action, int mods);
+	static void registerCursorPos(GLFWwindow* window, double xpos, double ypos);
+	static void registerScroll(GLFWwindow* window, double xoffset, double yoffset);
+}
 
 hyp::Scope<hyp::Window> hyp::Window::create(WindowProps props)
 {
@@ -47,21 +54,11 @@ void hyp::Window::init()
 
 	glfwSetWindowUserPointer(m_window, &m_props.windowData);
 
-	glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
-		WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-
-		WindowResizeEvent event(width, height);
-		data.event_callback(event);
-		});
-
-
-	glfwSetWindowCloseCallback(m_window,
-		[](GLFWwindow* window) {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-			WindowCloseEvent event;
-			data.event_callback(event);
-		}
-	);
+	glfwSetWindowSizeCallback(m_window, callback::registerWindowSize);
+	glfwSetWindowCloseCallback(m_window, callback::registerWindowClose);
+	glfwSetKeyCallback(m_window, callback::registerKey);
+	glfwSetCursorPosCallback(m_window, callback::registerCursorPos);
+	glfwSetScrollCallback(m_window, callback::registerScroll);
 }
 
 void hyp::Window::deinit()
@@ -98,4 +95,62 @@ void hyp::Window::onUpdate()
 void hyp::Window::setEventCallback(const EventCallbackFn& fn)
 {
 	m_props.windowData.event_callback = fn;
+}
+
+// ======= callback definition =======
+
+void callback::registerWindowSize(GLFWwindow* window, int width, int height) {
+	hyp::WindowData& data = *(hyp::WindowData*)glfwGetWindowUserPointer(window);
+
+	hyp::WindowResizeEvent event(width, height);
+	data.event_callback(event);
+};
+
+void callback::registerWindowClose(GLFWwindow* window) {
+	hyp::WindowData& data = *(hyp::WindowData*)glfwGetWindowUserPointer(window);
+
+	hyp::WindowCloseEvent event;
+	data.event_callback(event);
+}
+
+void callback::registerKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	hyp::WindowData& data = *(hyp::WindowData*)glfwGetWindowUserPointer(window);
+
+	switch (action) {
+	case GLFW_PRESS:
+	{
+		hyp::KeyPressedEvent event((hyp::KeyCode)key, false);
+		data.event_callback(event);
+		break;
+	}
+	case GLFW_RELEASE:
+	{
+		hyp::KeyReleasedEvent event((hyp::KeyCode)key);
+		data.event_callback(event);
+		break;
+	}
+	case GLFW_REPEAT:
+	{
+		hyp::KeyPressedEvent event((hyp::KeyCode)key, true);
+		data.event_callback(event);
+		break;
+	}
+	default:
+		break;
+	};
+
+}
+void callback::registerCursorPos(GLFWwindow* window, double xpos, double ypos)
+{
+	hyp::WindowData& data = *(hyp::WindowData*)glfwGetWindowUserPointer(window);
+
+	hyp::MouseMovedEvent event((float)xpos, (float)ypos);
+	data.event_callback(event);
+}
+
+void callback::registerScroll(GLFWwindow* window, double xoffset, double yoffset)
+{
+	hyp::WindowData& data = *(hyp::WindowData*)glfwGetWindowUserPointer(window);
+	hyp::MouseScrolledEvent event((float)xoffset, (float)yoffset);
+	data.event_callback(event);
 }

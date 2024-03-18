@@ -1,6 +1,7 @@
 #include "input.hpp"
+#include <core/application.hpp>
 
-bool hyp::Input::isKeyPressed(KeyCode key)
+bool hyp::Input::isKeyPressed(hyp::Key key)
 {
     GLFWwindow* window = hyp::Application::get().getWindow();
     int state = glfwGetKey(window, (int)key);

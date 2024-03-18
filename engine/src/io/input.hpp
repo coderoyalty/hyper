@@ -1,14 +1,13 @@
 #ifndef HYPER_INPUT_HPP
 #define HYPER_INPUT_HPP
 
-#include <core/key_code.hpp>
-#include <core/application.hpp>
+#include <io/key_code.hpp>
 #include <glm/glm.hpp>
 
 namespace hyp {
 	class Input {
 	public:
-		static bool isKeyPressed(KeyCode key);
+		static bool isKeyPressed(hyp::Key key);
 
 		static glm::vec2 getMousePos();
 

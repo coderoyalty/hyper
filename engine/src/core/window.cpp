@@ -7,6 +7,7 @@ namespace callback {
 	static void registerKey(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void registerCursorPos(GLFWwindow* window, double xpos, double ypos);
 	static void registerScroll(GLFWwindow* window, double xoffset, double yoffset);
+	static void registerMouseBtn(GLFWwindow* window, int button, int action, int mods);
 }
 
 hyp::Scope<hyp::Window> hyp::Window::create(WindowProps props)
@@ -59,6 +60,7 @@ void hyp::Window::init()
 	glfwSetKeyCallback(m_window, callback::registerKey);
 	glfwSetCursorPosCallback(m_window, callback::registerCursorPos);
 	glfwSetScrollCallback(m_window, callback::registerScroll);
+	glfwSetMouseButtonCallback(m_window, callback::registerMouseBtn);
 }
 
 void hyp::Window::deinit()
@@ -153,4 +155,27 @@ void callback::registerScroll(GLFWwindow* window, double xoffset, double yoffset
 	hyp::WindowData& data = *(hyp::WindowData*)glfwGetWindowUserPointer(window);
 	hyp::MouseScrolledEvent event((float)xoffset, (float)yoffset);
 	data.event_callback(event);
+}
+
+void callback::registerMouseBtn(GLFWwindow* window, int button, int action, int mods)
+{
+	hyp::WindowData& data = *(hyp::WindowData*)glfwGetWindowUserPointer(window);
+
+	switch (action)
+	{
+	case GLFW_PRESS:
+	{
+		hyp::MouseBtnPressedEvent event(button);
+		data.event_callback(event);
+		break;
+	}
+	case GLFW_RELEASE:
+	{
+		hyp::MouseBtnReleasedEvent event(button);
+		data.event_callback(event);
+		break;
+	}
+	default:
+		break;
+	}
 }

@@ -132,10 +132,18 @@ public:
 		return false;
 	}
 
+	bool onMouseBtnPressed(hyp::MouseBtnPressedEvent& event) {
+		if (event.getButton() == hyp::Mouse::BUTTON_LEFT) {
+			std::cout << "Left Button Clicked" << std::endl;
+		}
+		return false;
+	}
+
 	void onEvent(hyp::Event& event) {
 		hyp::EventDispatcher ed(event);
 
 		ed.dispatch<hyp::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
+		ed.dispatch<hyp::MouseBtnPressedEvent>(BIND_EVENT_FN(onMouseBtnPressed));
 	}
 private:
 	hyp::Ref<hyp::VertexBuffer> vbo;

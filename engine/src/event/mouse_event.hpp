@@ -2,6 +2,7 @@
 #define HYPER_MOUSE_EVENT_HPP
 
 #include <event/event.hpp>
+#include <io/mouse_code.hpp>
 
 
 namespace hyp {
@@ -29,6 +30,28 @@ namespace hyp {
 		EVENT_CLASS_TYPE(hyp::EventType::MouseScroll);
 	private:
 		float x, y;
+	};
+
+	class HYPER_API MouseBtnEvent : public Event {
+	public:
+		hyp::Mouse getButton() const { return m_button; }
+	protected:
+		MouseBtnEvent(const hyp::MouseCode mouse): m_button((hyp::Mouse)mouse) {}
+		hyp::Mouse m_button;
+	};
+
+	class HYPER_API MouseBtnPressedEvent : public MouseBtnEvent {
+	public:
+		MouseBtnPressedEvent(const hyp::MouseCode button): MouseBtnEvent(button) {}
+
+		EVENT_CLASS_TYPE(hyp::EventType::MouseBtnPressed);
+	};
+
+	class HYPER_API MouseBtnReleasedEvent : public MouseBtnEvent {
+	public:
+		MouseBtnReleasedEvent(const hyp::MouseCode button) : MouseBtnEvent(button) {}
+
+		EVENT_CLASS_TYPE(hyp::EventType::MouseBtnReleased);
 	};
 }
 

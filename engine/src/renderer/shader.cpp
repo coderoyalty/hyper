@@ -29,12 +29,15 @@ namespace Helpers
 			{
 			case VERTEX:
 			{
-				HYP_ERROR("Vertex Shader Compilation Failed\nError:\n", infoLog.data());
+				HYP_ERROR("Vertex Shader Compilation Failed\nError:\n");
+				HYP_ERROR(std::string(infoLog.data(), infoLog.size()));
 				break;
 			}
 			case FRAGMENT:
 			{
-				HYP_ERROR("Fragment Shader Compilation Failed\nError:\n", infoLog.data());
+				HYP_ERROR("Fragment Shader Compilation Failed\nError:\n");
+				HYP_ERROR(std::string(infoLog.data(), infoLog.size()));
+
 				break;
 			}
 			default:
@@ -69,6 +72,29 @@ hyp::ShaderProgram::ShaderProgram(const std::string& vertexPath, const std::stri
 	{
 		vertexFile.open(vertexPath);
 		fragmentFile.open(fragmentPath);
+
+		if (!vertexFile.is_open() || !fragmentFile.is_open()) {
+			HYP_ERROR("Failed to open shader files");
+			return;
+		}
+
+		vertexFile.seekg(0, std::ios::end);
+		std::streampos vertexFileSize = vertexFile.tellg();
+		vertexFile.seekg(0, std::ios::beg);
+
+		if (vertexFileSize == 0) {
+			HYP_ERROR("Vertex Shader File is Empty");
+			return;
+		}
+
+		fragmentFile.seekg(0, std::ios::end);
+		std::streampos fragmentFileSize = fragmentFile.tellg();
+		fragmentFile.seekg(0, std::ios::beg);
+
+		if (fragmentFileSize == 0) {
+			HYP_ERROR("Fragment Shader File is Empty");
+			return;
+		}
 
 		std::stringstream vShaderStream, fShaderStream;
 

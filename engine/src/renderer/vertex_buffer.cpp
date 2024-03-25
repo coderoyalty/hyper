@@ -22,7 +22,7 @@ namespace hyp
 		glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
 	}
 
-	void VertexBuffer::setData(float* vertices, uint32_t size)
+	void VertexBuffer::setData(void* vertices, uint32_t size)
 	{
 		this->bind();
 		glBufferSubData(GL_ARRAY_BUFFER, 0, size, vertices);

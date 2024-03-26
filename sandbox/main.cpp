@@ -51,7 +51,7 @@ public:
 	bool onMouseBtnPressed(hyp::MouseBtnPressedEvent& event) {
 		if (event.getButton() == hyp::Mouse::BUTTON_LEFT) {
 			camera.hideCursor = true;
-			glfwSetInputMode(hyp::Application::get().getWindow(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			glfwSetInputMode(hyp::Application::get().getWindow()->getNativeWindow(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 		}
 		return false;
 	}
@@ -59,7 +59,7 @@ public:
 	bool onMouseBtnReleased(hyp::MouseBtnReleasedEvent& event) {
 		if (event.getButton() == hyp::Mouse::BUTTON_LEFT) {
 			camera.hideCursor = false;
-			glfwSetInputMode(hyp::Application::get().getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			glfwSetInputMode(hyp::Application::get().getWindow()->getNativeWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
 		return false;
 	}

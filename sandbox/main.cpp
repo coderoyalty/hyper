@@ -9,153 +9,76 @@
 #include <core/window.hpp>
 #include <renderer/texture.hpp>
 #include <core/application.hpp>
+#include "camera.hpp"
+#include <renderer/renderer2d.hpp>
 
 
-float vertices[] = {
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-};
-
-glm::vec3 cubePositions[] = {
-	glm::vec3(0.0f,  0.0f,  0.0f),
-	glm::vec3(2.0f,  5.0f, -15.0f),
-	glm::vec3(-1.5f, -2.2f, -2.5f),
-	glm::vec3(-3.8f, -2.0f, -12.3f),
-	glm::vec3(2.4f, -0.4f, -3.5f),
-	glm::vec3(-1.7f,  3.0f, -7.5f),
-	glm::vec3(1.3f, -2.0f, -2.5f),
-	glm::vec3(1.5f,  2.0f, -2.5f),
-	glm::vec3(1.5f,  0.2f, -1.5f),
-	glm::vec3(-1.3f,  1.0f, -1.5f)
-};
 
 class TestLayer : public hyp::Layer {
 public:
-	TestLayer() : texture("assets/wall.jpg"), program("assets/vertex.vert", "assets/fragment.frag") {
-		hyp::BufferLayout layout{
-			hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
-			hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec2, "aTex", false)
-		};
-
-		vbo = hyp::CreateRef<hyp::VertexBuffer>(
-			vertices, sizeof(vertices));
-		vbo->setLayout(layout);
-
-		vao = hyp::CreateScope<hyp::VertexArray>();
-		vao->addVertexBuffer(vbo);
+	TestLayer(){
+		
 	}
 
 	virtual void onAttach() override
 	{
 		glEnable(GL_DEPTH_TEST);
+	}
 
-		program.link();
-		program.use();
-		program.setInt("uTexture", 0);
+	virtual void onDetach() override {
 	}
 
 	virtual void onUpdate(float dt) override {
+		camera.onUpdate();
+
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
 		glm::mat4 projection = glm::mat4(1.0f);
-		projection = glm::perspective(glm::radians(45.0f), (float)600 / (float)600, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(45.0f), (float)600 / (float)600, 0.1f, 1000.0f);
 
 		const float radius = 10.0f;
 		float camX = sin(glfwGetTime()) * radius;
 		float camZ = cos(glfwGetTime()) * radius;
-		glm::mat4 view(1.0);
-		view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
 
-		// pass transformation matrices to the shader
-		program.setMat4("projection", projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
-		program.setMat4("view", view);
-
-		texture.bind();
-		vao->bind();
-		for (unsigned int i = 0; i < 10; i++)
-		{
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, cubePositions[i]);
-			float angle = 20.0f * i;
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-			program.setMat4("model", model);
-
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
-	}
-
-	bool onKeyPressed(hyp::KeyPressedEvent& event) {
-		if (event.getkey() == hyp::Key::SPACE && !event.isRepeat()) {
-			std::cout << "Repeated [Space]" << std::endl;
-		}
-
-		return false;
+		hyp::Renderer2D::beginScene(projection * camera.getViewMatrix());
+		hyp::Renderer2D::drawQuad({ camX, 0.f,camZ }, { 50.f, 10.f }, { 0.f, 1.f, 0.f, 1.f });
+		hyp::Renderer2D::drawQuad({0.f, 10.f,0.f}, {50.f, 10.f}, {0.f, 1.f, 0.5f, 1.f});
+		hyp::Renderer2D::endScene();
 	}
 
 	bool onMouseBtnPressed(hyp::MouseBtnPressedEvent& event) {
 		if (event.getButton() == hyp::Mouse::BUTTON_LEFT) {
-			std::cout << "Left Button Clicked" << std::endl;
+			camera.hideCursor = true;
+			glfwSetInputMode(hyp::Application::get().getWindow(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 		}
 		return false;
+	}
+
+	bool onMouseBtnReleased(hyp::MouseBtnReleasedEvent& event) {
+		if (event.getButton() == hyp::Mouse::BUTTON_LEFT) {
+			camera.hideCursor = false;
+			glfwSetInputMode(hyp::Application::get().getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+		return false;
+	}
+
+	bool onMouseMoved(hyp::MouseMovedEvent& event) {
+		return camera.onMouseMoved(event);
 	}
 
 	void onEvent(hyp::Event& event) {
 		hyp::EventDispatcher ed(event);
 
-		ed.dispatch<hyp::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
 		ed.dispatch<hyp::MouseBtnPressedEvent>(BIND_EVENT_FN(onMouseBtnPressed));
+		ed.dispatch<hyp::MouseBtnReleasedEvent>(BIND_EVENT_FN(onMouseBtnReleased));
+		ed.dispatch<hyp::MouseMovedEvent>(BIND_EVENT_FN(onMouseMoved));
 	}
+
+
 private:
-	hyp::Ref<hyp::VertexBuffer> vbo;
-	hyp::Texture texture;
-	hyp::Scope<hyp::VertexArray> vao;
-	hyp::ShaderProgram program;
-
-};
-
-class cout: std::ostream {
-public:
-
+	Camera camera;
 };
 
 int main(int argc, char** argv)
@@ -165,8 +88,12 @@ int main(int argc, char** argv)
 	props.resizable = false;
 
 	auto app = hyp::Application(props);
+	hyp::Renderer2D::init();
+
 	app.pushLayer(new TestLayer());
 	app.run();
+
+	hyp::Renderer2D::deinit();
 	hyp::Device::deinit();
 	return 0;
 };

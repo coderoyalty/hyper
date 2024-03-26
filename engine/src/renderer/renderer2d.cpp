@@ -58,11 +58,15 @@ namespace hyp {
 		renderer.vertexPos[3] = { 0.0f, 0.0f, 0.0, 1.f };
 		renderer.vertexPos[4] = { +1.0, 0.0f, 0.0, 1.f };
 		renderer.vertexPos[5] = { +1.0, +1.0, 0.0, 1.f };
+
+		HYP_INFO("Initialize 2D Renderer");
 	}
 
 	void Renderer2D::deinit()
 	{
 		renderer.data.clear();
+		HYP_INFO("Destroyed 2D Renderer");
+
 	};
 
 

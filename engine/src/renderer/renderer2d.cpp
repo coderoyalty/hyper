@@ -26,8 +26,7 @@ namespace hyp {
 		Vertex* vptr = nullptr;*/
 		std::vector<Vertex> data;
 
-		glm::vec4 vertexPos[6];
-
+		glm::vec4 vertexPos[6] = {};
 	};
 
 
@@ -52,12 +51,12 @@ namespace hyp {
 
 		renderer.program->link();
 
-		renderer.vertexPos[0] = { +1.0, +1.0, 0.0, 1.f };
-		renderer.vertexPos[1] = { 0.0f, +1.0, 0.0, 1.f };
-		renderer.vertexPos[2] = { 0.0f, 0.0f, 0.0, 1.f };
-		renderer.vertexPos[3] = { 0.0f, 0.0f, 0.0, 1.f };
-		renderer.vertexPos[4] = { +1.0, 0.0f, 0.0, 1.f };
-		renderer.vertexPos[5] = { +1.0, +1.0, 0.0, 1.f };
+		renderer.vertexPos[0] = { +0.5f, +0.5f, 0.0, 1.f };
+		renderer.vertexPos[1] = { -0.5f, +0.5f, 0.0, 1.f };
+		renderer.vertexPos[2] = { -0.5f, -0.5f, 0.0, 1.f };
+		renderer.vertexPos[3] = { -0.5f, -0.5f, 0.0, 1.f };
+		renderer.vertexPos[4] = { +0.5f, -0.5f, 0.0, 1.f };
+		renderer.vertexPos[5] = { +0.5f, +0.5f, 0.0, 1.f };
 
 		HYP_INFO("Initialize 2D Renderer");
 	}

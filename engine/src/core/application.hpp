@@ -18,7 +18,7 @@ namespace hyp {
 			return *sInstance;
 		}
 		
-		GLFWwindow* getWindow() const;
+		const hyp::Unique<Window>& getWindow() const;
 
 		void onEvent(Event& e);
 
@@ -33,7 +33,7 @@ namespace hyp {
 	private:
 		bool m_minimized = false;
 		bool m_running = false;
-		std::unique_ptr<Window> m_window;
+		hyp::Scope<Window> m_window;
 	private:
 		friend int ::main(int, char**);
 		static hyp::Application* sInstance;

@@ -5,6 +5,7 @@
 #include <renderer/renderer2d.hpp>
 #include <io/input.hpp>
 #include <renderer/orthographic_controller.hpp>
+#include <imgui.h>
 
 
 class TestLayer : public hyp::Layer {
@@ -80,6 +81,29 @@ public:
 	}
 
 	bool toggleWireframe = false;
+
+	bool show_demo_window = false;
+	bool show_another_window = false;
+	int counter = 0;
+
+	virtual void onUIRender() override {
+
+		auto& io = ImGui::GetIO();
+
+		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+		ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+		ImGui::Checkbox("Another Window", &show_another_window);
+
+		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+			counter++;
+		ImGui::SameLine();
+		ImGui::Text("counter = %d", counter);
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+		ImGui::End();
+	}
 
 private:
 	hyp::OrthoGraphicCameraController camera;

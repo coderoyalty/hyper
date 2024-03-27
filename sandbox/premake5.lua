@@ -22,6 +22,7 @@ project "sandbox"
 		"%{includes.GLAD}",
 		"%{includes.GLM}",
 		"%{includes.STBIMAGE}",
+		"%{includes.IMGUI}"
 	}
 	links
 	{

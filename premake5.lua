@@ -18,6 +18,7 @@ DependDir = "dependencies/"
 group "Dependencies"
 	include "dependencies/glad"
 	include "dependencies/glfw"
+	include "dependencies/imgui"
 
 group "Hyper"
 	include "engine"

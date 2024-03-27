@@ -24,10 +24,11 @@ project "Hyper"
 		"%{includes.GLAD}",
 		"%{includes.GLM}",
 		"%{includes.STBIMAGE}",
+		"%{includes.IMGUI}"
 	}
 	links
 	{
-		"GLFW", "GLAD", "opengl32.lib",
+		"GLFW", "GLAD", "IMGUI", "opengl32.lib"
 	}
 
 	flags {"NoPCH"}

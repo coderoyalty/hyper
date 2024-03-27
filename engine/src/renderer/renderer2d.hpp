@@ -17,6 +17,7 @@ namespace hyp
 
 	public:
 		static void drawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color);
+		static void drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color = glm::vec4(1.0));
 	private:
 		static void startBatch();
 		static void nextBatch();

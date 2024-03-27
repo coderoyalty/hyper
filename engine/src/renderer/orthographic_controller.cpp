@@ -22,10 +22,10 @@ void hyp::OrthoGraphicCameraController::onUpdate(float dt)
 	glm::vec3 cameraPos = m_camera.getPosition();
 
 	if (hyp::Input::isKeyPressed(hyp::Key::W)) {
-		cameraPos += glm::vec3(0.0f, m_cameraSpeed * dt, 0.0f);
+		cameraPos -= glm::vec3(0.0f, m_cameraSpeed * dt, 0.0f);
 	}
 	else if (hyp::Input::isKeyPressed(hyp::Key::S)) {
-		cameraPos -= glm::vec3(0.0f, m_cameraSpeed * dt, 0.0f);
+		cameraPos += glm::vec3(0.0f, m_cameraSpeed * dt, 0.0f);
 	}
 
 	if (hyp::Input::isKeyPressed(hyp::Key::A)) {

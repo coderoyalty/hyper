@@ -53,6 +53,13 @@ public:
 			hyp::Renderer2D::drawQuad({ i * (600.f / num_rows), 0.f, 0.f }, { 600.f / num_rows, 600.f / num_rows }, { red, green, blue, 1.0f });
 		}
 
+		float factor = 600.f / num_rows;
+
+		hyp::Renderer2D::drawLine({ 0.f, 0.f, 0.f }, { factor, 0.f, 0.f }, glm::vec4(0.28, 0.75f, 0.f, 1.f));
+		hyp::Renderer2D::drawLine({ factor, 0.f, 0.f }, { factor, factor, 0.f }, glm::vec4(1.f, 1.f, 0.f, 1.f));
+		hyp::Renderer2D::drawLine({ 0.f, factor, 0.f }, { factor, factor, 0.f }, glm::vec4(0.f, 1.f, 1.f, 1.f));
+		hyp::Renderer2D::drawLine({ 0.f, 0.f, 0.f }, {0.f, factor, 0.f}, glm::vec4(1.f, 0.f, 1.f, 1.f));
+
 		hyp::Renderer2D::endScene();
 	}
 

@@ -14,7 +14,7 @@ namespace hyp
 
 		~VertexBuffer();
 
-		void setData(float* vertices, uint32_t size);
+		void setData(void* vertices, uint32_t size);
 
 		void bind();
 		void unbind();

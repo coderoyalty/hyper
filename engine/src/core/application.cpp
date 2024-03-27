@@ -15,12 +15,13 @@ hyp::Application::Application(const WindowProps& ws)
 
 void hyp::Application::run()
 {
-	float m_lastTime = 0.f;
+	float last_frame = 0.f;
 	while (m_running && m_window->isRunning()) {
 
 		//TODO: get delta-time
-		float dt = m_lastTime;
-
+		float current_frame = glfwGetTime();
+		float dt = current_frame - last_frame;
+		last_frame = current_frame;
 
 		if (!this->m_minimized) {
 			for (auto layer : m_layerStack) {
@@ -31,9 +32,9 @@ void hyp::Application::run()
 	}
 }
 
-GLFWwindow* hyp::Application::getWindow() const
+const hyp::Unique<hyp::Window>& hyp::Application::getWindow() const
 {
-	return m_window->getNativeWindow();
+	return m_window;
 }
 
 void hyp::Application::close()

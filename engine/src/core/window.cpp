@@ -25,6 +25,19 @@ hyp::Window::~Window()
 	this->close();
 	this->deinit();
 }
+
+void hyp::Window::setVSync(bool enable)
+{
+	if (enable) {
+		glfwSwapInterval(1);
+	}
+	else {
+		glfwSwapInterval(0);
+	}
+
+	m_props.vsync = enable;
+}
+
 void hyp::Window::init()
 {
 	glfwWindowHint(GLFW_RESIZABLE, this->m_props.resizable);
@@ -103,6 +116,9 @@ void hyp::Window::setEventCallback(const EventCallbackFn& fn)
 
 void callback::registerWindowSize(GLFWwindow* window, int width, int height) {
 	hyp::WindowData& data = *(hyp::WindowData*)glfwGetWindowUserPointer(window);
+
+	data.width = width;
+	data.height = height;
 
 	hyp::WindowResizeEvent event(width, height);
 	data.event_callback(event);

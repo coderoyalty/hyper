@@ -4,18 +4,26 @@
 #include <iostream>
 #include <renderer/renderer2d.hpp>
 #include <io/input.hpp>
+#include <renderer/orthographic_controller.hpp>
 
 
 class TestLayer : public hyp::Layer {
 public:
+
+	TestLayer(float x, float y): camera(x,y) {
+
+	}
+
 	virtual void onEvent(hyp::Event& e) override {
 		hyp::EventDispatcher ed(e);
+
+		camera.onEvent(e);
+
 		ed.dispatch<hyp::WindowResizeEvent>(BIND_EVENT_FN(onResize));
 		ed.dispatch<hyp::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
 	}
 
 	virtual void onAttach() override {
-		viewProjMat = glm::ortho(0.f, (float)600.f, (float)600.f, 0.f, -1.f, 1.f);
 	}
 
 	virtual void onDetach() override {
@@ -25,6 +33,8 @@ public:
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		camera.onUpdate(dt);
+
 		if (toggleWireframe) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		}
@@ -32,7 +42,7 @@ public:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
-		hyp::Renderer2D::beginScene(viewProjMat);
+		hyp::Renderer2D::beginScene(camera.getCamera().getViewProjectionMatrix());
 		int num_rows = 5;
 
 		for (int i = 0; i < num_rows; i++) {
@@ -55,9 +65,9 @@ public:
 	}
 
 	bool onResize(hyp::WindowResizeEvent& event) {
-		glViewport(0, 0, event.getWidth(), event.getHeight());
-
-		viewProjMat = glm::ortho(0.f, (float)event.getWidth(), (float)event.getHeight(), 0.f, -1.f, 1.f);
+		float w = (float)event.getWidth();
+		float h = (float)event.getHeight();
+		glViewport(0, 0, w, h);
 
 		return false;
 	}
@@ -65,7 +75,7 @@ public:
 	bool toggleWireframe = false;
 
 private:
-	glm::mat4 viewProjMat = glm::mat4(1.0);
+	hyp::OrthoGraphicCameraController camera;
 };
 
 int main(int argc, char** argv) {
@@ -76,7 +86,7 @@ int main(int argc, char** argv) {
 	hyp::Application app(props);
 	hyp::Renderer2D::init();
 
-	hyp::Layer* layer = new TestLayer();
+	hyp::Layer* layer = new TestLayer(600.f, 600.f);
 
 	app.pushLayer(layer);
 

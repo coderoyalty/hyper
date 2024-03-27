@@ -62,11 +62,11 @@ namespace hyp
 		void setEventCallback(const EventCallbackFn& fn);
 
 		uint32_t getWidth() const {
-			this->m_props.windowData.width;
+			return this->m_props.windowData.width;
 		}
 
 		uint32_t getHeight() const {
-			this->m_props.windowData.height;
+			return this->m_props.windowData.height;
 		}
 
 		void setVSync(bool active);

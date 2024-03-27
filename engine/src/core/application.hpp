@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <core/window.hpp>
 #include <core/layer_stack.hpp>
+#include <ui/imgui_layer.hpp>
 
 int main(int argc, char** argv);
 
@@ -34,6 +35,8 @@ namespace hyp {
 		bool m_minimized = false;
 		bool m_running = false;
 		hyp::Scope<Window> m_window;
+
+		hyp::ImGuiLayer* m_uiLayer;
 	private:
 		friend int ::main(int, char**);
 		static hyp::Application* sInstance;

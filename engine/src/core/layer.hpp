@@ -10,11 +10,13 @@ namespace hyp {
 		Layer(const std::string& name = "layer") : m_layerName(name) {}
 
 		virtual ~Layer() = default;
-		virtual void onEvent(hyp::Event& event) {};
+		virtual void onEvent(hyp::Event& event) = 0;
 		virtual void onUpdate(float dt) {};
 
 		virtual void onAttach() {}
 		virtual void onDetach() {}
+
+		virtual void onUIRender() {}
 
 		std::string getName() { return m_layerName; }
 	private:

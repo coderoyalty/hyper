@@ -26,3 +26,7 @@ Intermediates/
 # Visual Studio Code files and folder
 
 .vscode/
+
+# imgui dialect
+
+*imgui.ini

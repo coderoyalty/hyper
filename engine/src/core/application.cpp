@@ -11,6 +11,10 @@ hyp::Application::Application(const WindowProps& ws)
 	m_window = hyp::Window::create(ws);
 	m_running = true;
 	m_window->setEventCallback(BIND_EVENT_FN(Application::onEvent));
+
+	this->m_uiLayer = new hyp::ImGuiLayer();
+
+	pushLayer(this->m_uiLayer);
 }
 
 void hyp::Application::run()
@@ -28,6 +32,17 @@ void hyp::Application::run()
 				layer->onUpdate(dt);
 			}
 		}
+
+		m_uiLayer->begin();
+
+		{
+			for (auto layer : m_layerStack) {
+				layer->onUIRender();
+			}
+		}
+
+		m_uiLayer->end();
+
 		m_window->onUpdate();
 	}
 }

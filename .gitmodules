@@ -1,3 +1,7 @@
 [submodule "glfw"]
 	path = dependencies/glfw
 	url = https://github.com/positron-dev/glfw.git
+[submodule "dependencies/imgui"]
+	path = dependencies/imgui
+	url = https://github.com/positron-dev/imgui.git
+	branch = docking

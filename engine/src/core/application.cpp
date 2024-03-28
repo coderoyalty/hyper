@@ -1,5 +1,6 @@
 #include <core/application.hpp>
 #include <utils/logger.hpp>
+#include <core/timer.hpp>
 
 hyp::Application* hyp::Application::sInstance = nullptr;
 
@@ -21,11 +22,9 @@ void hyp::Application::run()
 {
 	float last_frame = 0.f;
 	while (m_running && m_window->isRunning()) {
+		hyp::Timer::postTick();
 
-		//TODO: get delta-time
-		float current_frame = glfwGetTime();
-		float dt = current_frame - last_frame;
-		last_frame = current_frame;
+		float dt = hyp::Timer::getDeltaTime();
 
 		if (!this->m_minimized) {
 			for (auto layer : m_layerStack) {
@@ -44,6 +43,7 @@ void hyp::Application::run()
 		m_uiLayer->end();
 
 		m_window->onUpdate();
+
 	}
 }
 

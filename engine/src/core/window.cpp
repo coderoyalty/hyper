@@ -1,5 +1,6 @@
 #include "core/window.hpp"
 #include <utils/logger.hpp>
+#include "timer.hpp"
 
 namespace callback {
 	static void registerWindowSize(GLFWwindow* window, int width, int height);
@@ -53,6 +54,12 @@ void hyp::Window::init()
 	{
 		HYP_ERROR("Unable to create window");
 		throw std::runtime_error("failed to create window");
+	}
+
+	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+	if (mode) {
+		hyp::Timer::setFPS(mode->refreshRate);
 	}
 
 	m_context = hyp::CreateScope<hyp::OpenglContext>(m_window);

@@ -2,6 +2,7 @@
 #include <renderer/vertex_array.hpp>
 #include <renderer/vertex_buffer.hpp>
 #include <renderer/shader.hpp>
+#include "uniform_buffer.hpp"
 
 const uint32_t maxQuad = 500;
 const uint32_t maxVertices = maxQuad * 4;
@@ -19,7 +20,7 @@ namespace hyp {
 	{
 		glm::vec3 pos = glm::vec3(0.0);
 		glm::vec4 color = glm::vec4(1.0);
-		glm::vec2 uv;
+		glm::vec2 uv{};
 	};
 
 	struct LineVertex {
@@ -52,6 +53,13 @@ namespace hyp {
 
 		glm::vec4 vertexPos[6] = {};
 
+		struct CameraData {
+			glm::mat4 viewProjection;
+		};
+
+		CameraData cameraBuffer{};
+		hyp::Shared<hyp::UniformBuffer> cameraUniformBuffer;
+
 	};
 
 
@@ -63,6 +71,7 @@ namespace hyp {
 
 		HYP_INFO("Initialize 2D Renderer");
 
+		renderer.cameraUniformBuffer = hyp::CreateRef<hyp::UniformBuffer>(sizeof(RendererData::CameraData), 0);
 		glEnable(GL_LINE_SMOOTH);
 	}
 
@@ -109,7 +118,6 @@ namespace hyp {
 		renderer.line.vertices.clear();
 	}
 
-
 	void Renderer2D::flush() {
 		utils::flush_quad();
 		utils::flush_line();
@@ -125,11 +133,8 @@ namespace hyp {
 	{
 		startBatch();
 
-		renderer.quad.program->use();
-		renderer.quad.program->setMat4("viewProj", viewProjectionMatrix);
-
-		renderer.line.program->use();
-		renderer.line.program->setMat4("viewProj", viewProjectionMatrix);
+		renderer.cameraBuffer.viewProjection = viewProjectionMatrix;
+		renderer.cameraUniformBuffer->setData(&renderer.cameraBuffer, sizeof(RendererData::CameraData));
 	}
 
 	void Renderer2D::endScene() {
@@ -139,6 +144,7 @@ namespace hyp {
 
 void hyp::utils::init_quad() {
 	auto& quad = renderer.quad;
+
 	quad.vao = hyp::CreateRef<hyp::VertexArray>();
 	quad.vbo = hyp::CreateRef<hyp::VertexBuffer>(maxVertices * sizeof(QuadVertex));
 	quad.vbo->setLayout({
@@ -153,6 +159,8 @@ void hyp::utils::init_quad() {
 
 	quad.program = hyp::CreateRef<hyp::ShaderProgram>("assets/shaders/quad.vert",
 		"assets/shaders/quad.frag");
+	quad.program->setBlockBinding("Camera", 0);
+
 
 	quad.program->link();
 
@@ -166,6 +174,8 @@ void hyp::utils::init_quad() {
 
 void hyp::utils::init_line() {
 	auto& line = renderer.line;
+
+
 	line.vao = hyp::CreateRef<hyp::VertexArray>();
 	line.vbo = hyp::CreateRef<hyp::VertexBuffer>(maxVertices * sizeof(LineVertex));
 
@@ -180,6 +190,8 @@ void hyp::utils::init_line() {
 
 	line.program = hyp::CreateRef<hyp::ShaderProgram>(
 		"assets/shaders/line.vert", "assets/shaders/line.frag");
+	line.program->setBlockBinding("Camera", 0);
+
 
 	line.program->link();
 }

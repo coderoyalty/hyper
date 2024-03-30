@@ -42,10 +42,12 @@ namespace hyp
 		void setMat3(const std::string& name, const glm::mat3& value);
 		void setMat4(const std::string& name, const glm::mat4& value);
 
+		void setBlockBinding(const std::string& name, uint32_t bindingIndex);
+
 	private:
 		void attachShader(uint32_t& shader);
 		int getLocation(const std::string& name);
-
+		int getBlockIndex(const std::string& name);
 	private:
 		std::unordered_map<std::string, int> m_locations;
 		bool m_isLinked = false;

@@ -6,7 +6,9 @@ layout (location = 2) in vec2 aUV;
 
 out vec4 oColor;
 
-uniform mat4 viewProj;
+layout (std140) uniform Camera {
+  mat4 viewProj;
+};
 
 void main() {
   gl_Position = viewProj * vec4(aPos, 1.f);

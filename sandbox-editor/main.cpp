@@ -6,6 +6,7 @@
 #include <io/input.hpp>
 #include <renderer/orthographic_controller.hpp>
 #include <imgui.h>
+#include <glm/gtc/type_ptr.hpp>
 
 
 class TestLayer : public hyp::Layer {
@@ -90,18 +91,21 @@ public:
 
 		auto& io = ImGui::GetIO();
 
-		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-		ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-		ImGui::Checkbox("Another Window", &show_another_window);
-
-		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-			counter++;
-		ImGui::SameLine();
+		ImGui::Begin("Renderer2D Stats");                          // Create a window called "Hello, world!" and append into it.
 		ImGui::Text("counter = %d", counter);
-
+		ImGui::Text("Draw Calls: %d", hyp::Renderer2D::getStats().drawCalls);
+		ImGui::Text("No. of Quads: %d", hyp::Renderer2D::getStats().getQuadCount());
+		ImGui::Text("No. of Lines: %d", hyp::Renderer2D::getStats().getLineCount());
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+		ImGui::BeginChild("Camera");
+		static float* position = new float[3];
+		position[0] = camera.getCamera().getPosition().x;
+		position[1] = camera.getCamera().getPosition().y;
+		position[2] = camera.getCamera().getPosition().z;
+		ImGui::InputFloat3("Position", position);
+
+		camera.getCamera().setPosition({position[0], position[1], position[2]});
+		ImGui::EndChild();
 		ImGui::End();
 	}
 

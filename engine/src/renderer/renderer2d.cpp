@@ -43,6 +43,8 @@ namespace hyp {
 		std::vector<glm::mat4> transforms;
 		hyp::Shared<hyp::UniformBuffer> uniformBuffer;
 
+		glm::vec4 vertexPos[6] = {};
+		glm::vec2 uvCoords[6] = {};
 		int indexCount = 0;
 	};
 
@@ -58,8 +60,6 @@ namespace hyp {
 		Quad quad;
 		Line line;
 
-		glm::vec4 vertexPos[6] = {};
-
 		struct CameraData {
 			glm::mat4 viewProjection;
 		};
@@ -68,6 +68,10 @@ namespace hyp {
 		hyp::Shared<hyp::UniformBuffer> cameraUniformBuffer;
 
 		Renderer2D::Stats stats;
+
+		bool lighting = false;
+
+		Light light;
 	};
 
 
@@ -76,6 +80,8 @@ namespace hyp {
 	void hyp::Renderer2D::init() {
 		utils::init_quad();
 		utils::init_line();
+
+		std::memset(&s_renderer.light, 0, sizeof(s_renderer.light));
 
 		HYP_INFO("Initialize 2D Renderer");
 
@@ -89,7 +95,16 @@ namespace hyp {
 		s_renderer.line.vertices.clear();
 		HYP_INFO("Destroyed 2D Renderer");
 
+	}
+	void Renderer2D::enableLighting(bool value)
+	{
+		s_renderer.lighting = value;
 	};
+
+	void Renderer2D::addLight(const Light& light)
+	{
+		std::memcpy(&s_renderer.light, &light, sizeof(light));
+	}
 
 	void Renderer2D::startBatch()
 	{
@@ -103,23 +118,24 @@ namespace hyp {
 
 	void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
 	{
+		auto& quad = s_renderer.quad;
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, position);
 		model = glm::scale(model, glm::vec3(size, 0.f));
 
 		for (int i = 0; i < 6; i++) {
 			QuadVertex vertex;
-			vertex.pos = s_renderer.vertexPos[i];
+			vertex.pos = quad.vertexPos[i];
 			vertex.color = color;
-			vertex.uv = { 0.f, 0.f };
-			vertex.index = s_renderer.quad.indexCount;
+			vertex.uv = quad.uvCoords[i];
+			vertex.index = quad.indexCount;
 
-			s_renderer.quad.vertices.push_back(vertex);
+			quad.vertices.push_back(vertex);
 		}
 
 
-		s_renderer.quad.transforms.push_back(model);
-		s_renderer.quad.indexCount++;
+		quad.transforms.push_back(model);
+		quad.indexCount++;
 	}
 
 	void Renderer2D::drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color) {
@@ -185,12 +201,19 @@ void hyp::utils::init_quad() {
 
 	quad.uniformBuffer = hyp::CreateRef<hyp::UniformBuffer>(sizeof(glm::mat4) * maxQuad, 1);
 
-	s_renderer.vertexPos[0] = { +0.5f, +0.5f, 0.0, 1.f };
-	s_renderer.vertexPos[1] = { -0.5f, +0.5f, 0.0, 1.f };
-	s_renderer.vertexPos[2] = { -0.5f, -0.5f, 0.0, 1.f };
-	s_renderer.vertexPos[3] = { -0.5f, -0.5f, 0.0, 1.f };
-	s_renderer.vertexPos[4] = { +0.5f, -0.5f, 0.0, 1.f };
-	s_renderer.vertexPos[5] = { +0.5f, +0.5f, 0.0, 1.f };
+	quad.vertexPos[0] = { +0.5f, +0.5f, 0.0, 1.f };
+	quad.vertexPos[1] = { -0.5f, +0.5f, 0.0, 1.f };
+	quad.vertexPos[2] = { -0.5f, -0.5f, 0.0, 1.f };
+	quad.vertexPos[3] = { -0.5f, -0.5f, 0.0, 1.f };
+	quad.vertexPos[4] = { +0.5f, -0.5f, 0.0, 1.f };
+	quad.vertexPos[5] = { +0.5f, +0.5f, 0.0, 1.f };
+
+	quad.uvCoords[0] = { 1, 1 };
+	quad.uvCoords[1] = { 0, 1 };
+	quad.uvCoords[2] = { 0, 0 };
+	quad.uvCoords[3] = { 0, 0 };
+	quad.uvCoords[4] = { 1, 0 };
+	quad.uvCoords[5] = { 1, 1 };
 }
 
 void hyp::utils::flush_quad()
@@ -206,6 +229,14 @@ void hyp::utils::flush_quad()
 
 
 	quad.program->use();
+	quad.program->setBool("enableLighting", s_renderer.lighting);
+
+	if (s_renderer.lighting) {
+		quad.program->setVec3("lightPos", s_renderer.light.position);
+		quad.program->setVec3("viewPos", s_renderer.light.viewPos);
+		quad.program->setVec3("lightColor", s_renderer.light.color);
+	}
+
 	quad.uniformBuffer->setData(quad.transforms.data(), quad.transforms.size() * sizeof(glm::mat4));
 	glDrawArrays(GL_TRIANGLES, 0, size);
 

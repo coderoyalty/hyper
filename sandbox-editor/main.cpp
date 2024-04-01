@@ -12,7 +12,7 @@
 class TestLayer : public hyp::Layer {
 public:
 
-	TestLayer(float x, float y): camera(x,y) {
+	TestLayer(float x, float y) : camera(x, y) {
 
 	}
 
@@ -26,10 +26,15 @@ public:
 	}
 
 	virtual void onAttach() override {
+		hyp::Renderer2D::enableLighting(true);
+		lightPos = glm::vec3(0.f);
 	}
 
 	virtual void onDetach() override {
 	}
+
+	glm::vec3 lightPos;
+
 
 	virtual void onUpdate(float dt) override {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -44,6 +49,14 @@ public:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
+
+		hyp::Renderer2D::addLight({
+			lightPos,
+			this->camera.getCamera().getPosition(), {
+			1.0f, 1.0f, 1.0f}
+			}
+		);
+
 		hyp::Renderer2D::beginScene(camera.getCamera().getViewProjectionMatrix());
 		int num_rows = 5;
 
@@ -52,15 +65,17 @@ public:
 			float green = 0.5f;
 			float blue = 1.0f - red;
 
-			hyp::Renderer2D::drawQuad({ i * (600.f / num_rows), 0.f, 0.f }, { 600.f / num_rows, 600.f / num_rows }, { red, green, blue, 1.0f });
+			hyp::Renderer2D::drawQuad({ i * (600.f / num_rows), i * 600.f / num_rows, 0.f }, { 600.f, 600.f }, { red, green, blue, 1.0f });
 		}
 
 		float factor = 600.f / num_rows;
 
+		//hyp::Renderer2D::drawQuad(lightPos, { 50.f, 50.f }, glm::vec4(1.f));
+
 		hyp::Renderer2D::drawLine({ 0.f, 0.f, 0.f }, { factor, 0.f, 0.f }, glm::vec4(0.28, 0.75f, 0.f, 1.f));
 		hyp::Renderer2D::drawLine({ factor, 0.f, 0.f }, { factor, factor, 0.f }, glm::vec4(1.f, 1.f, 0.f, 1.f));
 		hyp::Renderer2D::drawLine({ 0.f, factor, 0.f }, { factor, factor, 0.f }, glm::vec4(0.f, 1.f, 1.f, 1.f));
-		hyp::Renderer2D::drawLine({ 0.f, 0.f, 0.f }, {0.f, factor, 0.f}, glm::vec4(1.f, 0.f, 1.f, 1.f));
+		hyp::Renderer2D::drawLine({ 0.f, 0.f, 0.f }, { 0.f, factor, 0.f }, glm::vec4(1.f, 0.f, 1.f, 1.f));
 
 		hyp::Renderer2D::endScene();
 	}
@@ -104,7 +119,9 @@ public:
 		position[2] = camera.getCamera().getPosition().z;
 		ImGui::InputFloat3("Position", position);
 
-		camera.getCamera().setPosition({position[0], position[1], position[2]});
+		ImGui::DragFloat3("light position", static_cast<float*>(&lightPos.x));
+
+		camera.getCamera().setPosition({ position[0], position[1], position[2] });
 		ImGui::EndChild();
 		ImGui::End();
 	}

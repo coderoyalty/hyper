@@ -4,7 +4,7 @@
 #include <renderer/shader.hpp>
 #include "uniform_buffer.hpp"
 
-const uint32_t maxQuad = 500;
+const uint32_t maxQuad = 1000;
 const uint32_t maxVertices = maxQuad * 6;
 
 namespace hyp {
@@ -120,8 +120,9 @@ namespace hyp {
 	{
 		auto& quad = s_renderer.quad;
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, position);
+		model = glm::translate(model, position + glm::vec3(size / 2.f, 0.f));
 		model = glm::scale(model, glm::vec3(size, 0.f));
+
 
 		for (int i = 0; i < 6; i++) {
 			QuadVertex vertex;
@@ -133,9 +134,13 @@ namespace hyp {
 			quad.vertices.push_back(vertex);
 		}
 
-
 		quad.transforms.push_back(model);
 		quad.indexCount++;
+
+		if (quad.transforms.size() == maxQuad) {
+			utils::flush_quad();
+			utils::reset_quad();
+		}
 	}
 
 	void Renderer2D::drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color) {

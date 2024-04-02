@@ -9,7 +9,7 @@ layout (std140) uniform Camera {
   mat4 viewProj;
 };
 
-#define MAX_TRANSFORM 500
+#define MAX_TRANSFORM 1000
 
 layout (std140) uniform Transform {
   mat4 transforms[MAX_TRANSFORM];

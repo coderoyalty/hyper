@@ -34,6 +34,7 @@ public:
 	}
 
 	glm::vec3 lightPos;
+	float angle = 0.f;
 
 
 	virtual void onUpdate(float dt) override {
@@ -49,6 +50,13 @@ public:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
+		float radius = 20.f;
+
+		lightPos.x += 0.f + radius * glm::cos(angle);
+		lightPos.y += 0.f + radius * glm::sin(angle);
+
+		angle += glm::pi<float>() / 180.f;
+
 
 		hyp::Renderer2D::addLight({
 			lightPos,
@@ -58,17 +66,26 @@ public:
 		);
 
 		hyp::Renderer2D::beginScene(camera.getCamera().getViewProjectionMatrix());
-		int num_rows = 5;
 
-		for (int i = 0; i < num_rows; i++) {
-			float red = i / static_cast<float>(num_rows);
-			float green = 0.5f;
-			float blue = 1.0f - red;
+		int num_rows = 10; // Set the number of rows
+		int num_cols = 10; // Set the number of columns
+		float tile_size = 60.0f; // Set the size of each tile
+		float spacing = 0.0f; // Set the spacing between tiles
 
-			hyp::Renderer2D::drawQuad({ i * (600.f / num_rows), i * 600.f / num_rows, 0.f }, { 600.f, 600.f }, { red, green, blue, 1.0f });
+		for (int row = 0; row < num_rows; row++) {
+			for (int col = 0; col < num_cols; col++) {
+				float red = row / static_cast<float>(num_rows);
+				float green = 0.5f;
+				float blue = 1.0f - red;
+
+				float x = col * (tile_size + spacing);
+				float y = row * (tile_size + spacing);
+
+				hyp::Renderer2D::drawQuad({ x, y, 0.0f }, { tile_size, tile_size }, { red, green, blue, 1.0f });
+			}
 		}
 
-		float factor = 600.f / num_rows;
+		float factor = 300.f / num_rows;
 
 		//hyp::Renderer2D::drawQuad(lightPos, { 50.f, 50.f }, glm::vec4(1.f));
 

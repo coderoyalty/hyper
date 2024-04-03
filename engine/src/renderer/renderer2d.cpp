@@ -85,7 +85,7 @@ namespace hyp {
 
 		HYP_INFO("Initialize 2D Renderer");
 
-		s_renderer.cameraUniformBuffer = hyp::CreateRef<hyp::UniformBuffer>(sizeof(RendererData::CameraData), 0);
+		s_renderer.cameraUniformBuffer = hyp::UniformBuffer::create(sizeof(RendererData::CameraData), 0);
 		glEnable(GL_LINE_SMOOTH);
 	}
 
@@ -184,8 +184,8 @@ namespace hyp {
 void hyp::utils::init_quad() {
 	auto& quad = s_renderer.quad;
 
-	quad.vao = hyp::CreateRef<hyp::VertexArray>();
-	quad.vbo = hyp::CreateRef<hyp::VertexBuffer>(maxVertices * sizeof(QuadVertex));
+	quad.vao = hyp::VertexArray::create();
+	quad.vbo = hyp::VertexBuffer::create(maxVertices * sizeof(QuadVertex));
 	quad.vbo->setLayout({
 			hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
 			hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec4, "aColor", false),
@@ -261,8 +261,8 @@ void hyp::utils::init_line() {
 	auto& line = s_renderer.line;
 
 
-	line.vao = hyp::CreateRef<hyp::VertexArray>();
-	line.vbo = hyp::CreateRef<hyp::VertexBuffer>(maxVertices * sizeof(LineVertex));
+	line.vao = hyp::VertexArray::create();
+	line.vbo = hyp::VertexBuffer::create(maxVertices * sizeof(LineVertex));
 
 	line.vbo->setLayout({
 		hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),

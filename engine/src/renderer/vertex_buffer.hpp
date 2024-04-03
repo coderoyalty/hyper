@@ -11,9 +11,12 @@ namespace hyp
 	public:
 		VertexBuffer(uint32_t size);
 		VertexBuffer(float* vertices, uint32_t size);
-
+		
 		~VertexBuffer();
-
+	public:
+		static hyp::Shared<hyp::VertexBuffer> create(uint32_t size);
+		static hyp::Shared<hyp::VertexBuffer> create(float* vertices, uint32_t size);
+	public:
 		void setData(void* vertices, uint32_t size);
 
 		void bind();
@@ -27,7 +30,6 @@ namespace hyp
 		{
 			m_layout = layout;
 		};
-
 	private:
 		BufferLayout m_layout;
 		uint32_t m_rendererId;

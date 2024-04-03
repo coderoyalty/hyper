@@ -14,6 +14,10 @@ namespace hyp
 
 		~VertexArray();
 
+	public:
+		static hyp::Shared<VertexArray> create();
+	public:
+
 		void bind();
 		void unbind();
 

@@ -8,10 +8,10 @@
 namespace hyp
 {
 	struct Light {
-		glm::vec3 position;
-		glm::vec3 viewPos;
-		glm::vec3 color;
+		glm::vec4 position;
+		glm::vec4 color;
 	};
+
 
 	class Renderer2D
 	{

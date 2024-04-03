@@ -6,6 +6,7 @@
 
 const uint32_t maxQuad = 1000;
 const uint32_t maxVertices = maxQuad * 6;
+const uint32_t maxLight = 32;
 
 namespace hyp {
 	namespace utils {
@@ -38,7 +39,7 @@ namespace hyp {
 		hyp::Ref<hyp::ShaderProgram> program;
 	};
 
-	struct Quad : public RenderEntity {
+	struct QuadData : public RenderEntity {
 		std::vector<QuadVertex> vertices;
 		std::vector<glm::mat4> transforms;
 		hyp::Shared<hyp::UniformBuffer> uniformBuffer;
@@ -48,17 +49,27 @@ namespace hyp {
 		int indexCount = 0;
 	};
 
-	struct Line : public RenderEntity {
+	struct LineData : public RenderEntity {
 		std::vector<LineVertex> vertices;
 		float lineWidth = 2.f;
 	};
 
+	///TODO: support for other lighting settings such as:
+	/// 1. the constant, linear and quadratic value when calculation attenuation
+	/// 2. providing ambient, diffuse and specular color for each light
+	struct LightingData {
+		std::vector<hyp::Light> lights;
+		hyp::Shared<hyp::UniformBuffer> uniformBuffer;
+		int lightCount = 0;
+		bool enabled = false;
+	};
 
 	struct RendererData {
 
 		// entity
-		Quad quad;
-		Line line;
+		QuadData quad;
+		LineData line;
+		LightingData lighting;
 
 		struct CameraData {
 			glm::mat4 viewProjection;
@@ -68,12 +79,7 @@ namespace hyp {
 		hyp::Shared<hyp::UniformBuffer> cameraUniformBuffer;
 
 		Renderer2D::Stats stats;
-
-		bool lighting = false;
-
-		Light light;
 	};
-
 
 	static RendererData s_renderer;
 
@@ -81,11 +87,10 @@ namespace hyp {
 		utils::init_quad();
 		utils::init_line();
 
-		std::memset(&s_renderer.light, 0, sizeof(s_renderer.light));
-
 		HYP_INFO("Initialize 2D Renderer");
 
 		s_renderer.cameraUniformBuffer = hyp::UniformBuffer::create(sizeof(RendererData::CameraData), 0);
+		s_renderer.lighting.uniformBuffer = hyp::UniformBuffer::create(sizeof(Light) * maxLight, 2);
 		glEnable(GL_LINE_SMOOTH);
 	}
 
@@ -98,12 +103,17 @@ namespace hyp {
 	}
 	void Renderer2D::enableLighting(bool value)
 	{
-		s_renderer.lighting = value;
+		s_renderer.lighting.enabled = value;
 	};
 
 	void Renderer2D::addLight(const Light& light)
 	{
-		std::memcpy(&s_renderer.light, &light, sizeof(light));
+		auto& lighting = s_renderer.lighting;
+
+		if (lighting.lightCount >= maxLight) return;
+
+		lighting.lights.push_back(light);
+		lighting.lightCount++;
 	}
 
 	void Renderer2D::startBatch()
@@ -114,6 +124,10 @@ namespace hyp {
 		s_renderer.stats.drawCalls = 0;
 		s_renderer.stats.lineCount = 0;
 		s_renderer.stats.quadCount = 0;
+
+		// lightings
+		s_renderer.lighting.lights.clear();
+		s_renderer.lighting.lightCount = 0;
 	}
 
 	void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
@@ -203,8 +217,9 @@ void hyp::utils::init_quad() {
 	quad.program->link();
 	quad.program->setBlockBinding("Camera", 0);
 	quad.program->setBlockBinding("Transform", 1);
+	quad.program->setBlockBinding("Lights", 2);
 
-	quad.uniformBuffer = hyp::CreateRef<hyp::UniformBuffer>(sizeof(glm::mat4) * maxQuad, 1);
+	quad.uniformBuffer = hyp::UniformBuffer::create(sizeof(glm::mat4) * maxQuad, 1);
 
 	quad.vertexPos[0] = { +0.5f, +0.5f, 0.0, 1.f };
 	quad.vertexPos[1] = { -0.5f, +0.5f, 0.0, 1.f };
@@ -232,17 +247,20 @@ void hyp::utils::flush_quad()
 	quad.vao->bind();
 	quad.vbo->setData(quad.vertices.data(), size * sizeof(QuadVertex));
 
+	auto& lighting = s_renderer.lighting;
 
 	quad.program->use();
-	quad.program->setBool("enableLighting", s_renderer.lighting);
+	quad.uniformBuffer->setData(quad.transforms.data(), quad.transforms.size() * sizeof(glm::mat4));
 
-	if (s_renderer.lighting) {
-		quad.program->setVec3("lightPos", s_renderer.light.position);
-		quad.program->setVec3("viewPos", s_renderer.light.viewPos);
-		quad.program->setVec3("lightColor", s_renderer.light.color);
+	quad.program->setBool("enableLighting", lighting.enabled);
+	if (lighting.enabled) {
+		quad.program->setInt("noLights", lighting.lightCount);
+		lighting.uniformBuffer->setData(lighting.lights.data(), lighting.lights.size() * sizeof(Light));
+	}
+	else {
+		quad.program->setInt("noLights", 0);
 	}
 
-	quad.uniformBuffer->setData(quad.transforms.data(), quad.transforms.size() * sizeof(glm::mat4));
 	glDrawArrays(GL_TRIANGLES, 0, size);
 
 	s_renderer.stats.quadCount += size / 6;

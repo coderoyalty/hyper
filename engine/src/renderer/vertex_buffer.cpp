@@ -15,6 +15,16 @@ namespace hyp
 		glDeleteBuffers(1, &m_rendererId);
 	}
 
+	hyp::Shared<hyp::VertexBuffer> VertexBuffer::create(uint32_t size)
+	{
+		return hyp::CreateRef<hyp::VertexBuffer>(size);
+	}
+
+	hyp::Shared<hyp::VertexBuffer> VertexBuffer::create(float* vertices, uint32_t size)
+	{
+		return hyp::CreateRef<hyp::VertexBuffer>(vertices, size);
+	}
+
 	VertexBuffer::VertexBuffer(float* vertices, uint32_t size)
 	{
 		glGenBuffers(1, &m_rendererId);

@@ -50,6 +50,11 @@ VertexArray::~VertexArray()
 	glDeleteVertexArrays(1, &m_rendererID);
 }
 
+hyp::Shared<VertexArray> hyp::VertexArray::create()
+{
+	return hyp::CreateRef<VertexArray>();
+}
+
 void VertexArray::bind()
 {
 	glBindVertexArray(m_rendererID);

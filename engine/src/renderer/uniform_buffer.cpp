@@ -14,6 +14,11 @@ hyp::UniformBuffer::~UniformBuffer()
 	glDeleteBuffers(1, &m_bufferId);
 }
 
+hyp::Shared<hyp::UniformBuffer> hyp::UniformBuffer::create(uint32_t size, uint32_t binding)
+{
+	return hyp::CreateRef<UniformBuffer>(size, binding);
+}
+
 void hyp::UniformBuffer::setData(const void* data, uint32_t size, uint32_t offset)
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, m_bufferId);

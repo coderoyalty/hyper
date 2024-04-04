@@ -6,6 +6,7 @@
 #include <io/input.hpp>
 #include <renderer/orthographic_controller.hpp>
 #include <imgui.h>
+#include <renderer/render_command.hpp>
 
 
 class TestLayer : public hyp::Layer {
@@ -31,8 +32,8 @@ public:
 	}
 
 	virtual void onUpdate(float dt) override {
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		hyp::RenderCommand::setClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		hyp::RenderCommand::clear();
 
 		camera.onUpdate(dt);
 

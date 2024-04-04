@@ -46,8 +46,7 @@ namespace hyp {
 
 	struct Line : public RenderEntity {
 		std::vector<LineVertex> vertices;
-		float lineWidth = 2.f;
-
+		
 		void reset() {
 			vertices.clear();
 		}
@@ -86,7 +85,7 @@ namespace hyp {
 		HYP_INFO("Initialize 2D Renderer");
 
 		renderer.cameraUniformBuffer = hyp::UniformBuffer::create(sizeof(RendererData::CameraData), 0);
-		glEnable(GL_LINE_SMOOTH);
+		
 	}
 
 	void Renderer2D::deinit()
@@ -199,7 +198,6 @@ void hyp::utils::init_quad() {
 		"assets/shaders/quad.frag");
 	quad.program->setBlockBinding("Camera", 0);
 
-
 	quad.program->link();
 
 	renderer.vertexPos[0] = { +0.5f, +0.5f, 0.0, 1.f };
@@ -242,8 +240,9 @@ void hyp::utils::flush_quad()
 
 	quad.vao->bind();
 	quad.vbo->setData(quad.vertices.data(), size * sizeof(QuadVertex));
+
 	quad.program->use();
-	glDrawElements(GL_TRIANGLES, quad.indexCount, GL_UNSIGNED_INT, nullptr);
+	hyp::RenderCommand::drawIndexed(quad.vao, quad.indexCount);
 }
 
 void hyp::utils::flush_line() {
@@ -257,6 +256,5 @@ void hyp::utils::flush_line() {
 	line.vbo->setData(&line.vertices[0], size * sizeof(LineVertex));
 	line.program->use();
 
-	glLineWidth(line.lineWidth);
-	glDrawArrays(GL_LINES, 0, size);
+	hyp::RenderCommand::drawLines(line.vao, size);
 }

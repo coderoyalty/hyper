@@ -13,11 +13,9 @@ namespace hyp {
 	namespace utils {
 		static void init_quad();
 		static void flush_quad();
-		static void reset_quad();
 
 		static void init_line();
 		static void flush_line();
-		static void reset_line();
 	}
 
 	struct QuadVertex
@@ -135,8 +133,8 @@ namespace hyp {
 
 	void Renderer2D::startBatch()
 	{
-		utils::reset_quad();
-		utils::reset_line();
+		s_renderer.quad.reset();
+		s_renderer.line.reset();
 
 		s_renderer.stats.drawCalls = 0;
 		s_renderer.stats.lineCount = 0;
@@ -170,8 +168,7 @@ namespace hyp {
 		quad.entityIndexCount++;
 
 		if (quad.transforms.size() == RendererData::maxQuad) {
-			utils::flush_quad();
-			utils::reset_quad();
+			nextBatch();
 		}
 
 		s_renderer.quad.indexCount += 6;
@@ -298,17 +295,9 @@ void hyp::utils::flush_quad()
 
 	hyp::RenderCommand::drawIndexed(quad.vao, quad.indexCount);
 
-	s_renderer.stats.quadCount += size / 6;
+	s_renderer.stats.quadCount += quad.entityIndexCount;
 	s_renderer.stats.drawCalls++;
 }
-
-void hyp::utils::reset_quad() {
-	s_renderer.quad.vertices.clear();
-	s_renderer.quad.transforms.clear();
-	s_renderer.quad.indexCount = 0;
-	s_renderer.quad.entityIndexCount = 0;
-}
-
 
 /*Line Data*/
 void hyp::utils::init_line() {
@@ -349,11 +338,6 @@ void hyp::utils::flush_line() {
 
 	s_renderer.stats.lineCount += size / 2;
 	s_renderer.stats.drawCalls++;
-}
-
-void hyp::utils::reset_line()
-{
-	s_renderer.line.vertices.clear();
 }
 
 hyp::Renderer2D::Stats hyp::Renderer2D::getStats() {

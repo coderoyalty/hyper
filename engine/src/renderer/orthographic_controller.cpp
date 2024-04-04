@@ -3,7 +3,7 @@
 
 hyp::OrthoGraphicCameraController::OrthoGraphicCameraController(float vx, float vy)
 	: m_aspectRatio(vx / vy),
-	m_camera(-vx / 2.f, vx / 2.f, vy / 2.f, -vy / 2.f),
+	m_camera(0, vx, vy, 0),
 	m_width(vx), m_height(vy)
 {
 	m_camera.setPosition(glm::vec3(0.f));
@@ -66,10 +66,7 @@ void hyp::OrthoGraphicCameraController::onResize(float width, float height)
 	m_aspectRatio = width / height;
 	m_width = width;
 	m_height = height;
-	float half_width = m_width / 2.f;
-	float half_height = m_height / 2.f;
-	m_camera.setProjection(-half_width * m_zoomLevel, half_width * m_zoomLevel,
-		half_height * m_zoomLevel, -half_height * m_zoomLevel);
+	m_camera.setProjection(0, width, height, 0);
 }
 
 bool hyp::OrthoGraphicCameraController::onMouseScrolled(hyp::MouseScrolledEvent& event)
@@ -81,8 +78,8 @@ bool hyp::OrthoGraphicCameraController::onMouseScrolled(hyp::MouseScrolledEvent&
 
 	float half_width = m_width / 2.f;
 	float half_height = m_height / 2.f;
-	m_camera.setProjection(-half_width * m_zoomLevel, half_width * m_zoomLevel,
-		half_height * m_zoomLevel, -half_height * m_zoomLevel);
+	m_camera.setProjection(0.f, m_width * m_zoomLevel, m_height * m_zoomLevel, 0.f);
+
 	return false;
 }
 

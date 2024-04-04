@@ -3,9 +3,10 @@
 #include <renderer/vertex_buffer.hpp>
 #include <renderer/shader.hpp>
 #include "uniform_buffer.hpp"
+#include "renderer/element_buffer.hpp"
+#include "renderer/render_command.hpp"
 
-const uint32_t maxQuad = 1000;
-const uint32_t maxVertices = maxQuad * 6;
+
 const uint32_t maxLight = 32;
 
 namespace hyp {
@@ -44,14 +45,25 @@ namespace hyp {
 		std::vector<glm::mat4> transforms;
 		hyp::Shared<hyp::UniformBuffer> uniformBuffer;
 
-		glm::vec4 vertexPos[6] = {};
+		glm::vec4 vertexPos[4] = {};
 		glm::vec2 uvCoords[6] = {};
-		int indexCount = 0;
+		int entityIndexCount = 0;
+
+		uint32_t indexCount = 0;
+
+		void reset() {
+			vertices.clear();
+			indexCount = 0;
+			entityIndexCount = 0;
+		}
 	};
 
 	struct LineData : public RenderEntity {
 		std::vector<LineVertex> vertices;
-		float lineWidth = 2.f;
+		
+		void reset() {
+			vertices.clear();
+		}
 	};
 
 	///TODO: support for other lighting settings such as:
@@ -65,7 +77,12 @@ namespace hyp {
 	};
 
 	struct RendererData {
+		//
 
+		static const uint32_t maxQuad = 1000;
+		static const uint32_t maxVertices = maxQuad * 4;
+		static const uint32_t maxIndices = maxQuad * 6;
+		
 		// entity
 		QuadData quad;
 		LineData line;
@@ -74,6 +91,7 @@ namespace hyp {
 		struct CameraData {
 			glm::mat4 viewProjection;
 		};
+
 
 		CameraData cameraBuffer{};
 		hyp::Shared<hyp::UniformBuffer> cameraUniformBuffer;
@@ -90,8 +108,7 @@ namespace hyp {
 		HYP_INFO("Initialize 2D Renderer");
 
 		s_renderer.cameraUniformBuffer = hyp::UniformBuffer::create(sizeof(RendererData::CameraData), 0);
-		s_renderer.lighting.uniformBuffer = hyp::UniformBuffer::create(sizeof(Light) * maxLight, 2);
-		glEnable(GL_LINE_SMOOTH);
+		s_renderer.lighting.uniformBuffer = hyp::UniformBuffer::create(sizeof(Light) * maxLight, 2);	
 	}
 
 	void Renderer2D::deinit()
@@ -137,24 +154,27 @@ namespace hyp {
 		model = glm::translate(model, position + glm::vec3(size / 2.f, 0.f));
 		model = glm::scale(model, glm::vec3(size, 0.f));
 
+		int quadVertexCount = 4;
 
-		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < quadVertexCount; i++) {
 			QuadVertex vertex;
 			vertex.pos = quad.vertexPos[i];
 			vertex.color = color;
 			vertex.uv = quad.uvCoords[i];
-			vertex.index = quad.indexCount;
+			vertex.index = quad.entityIndexCount;
 
 			quad.vertices.push_back(vertex);
 		}
 
 		quad.transforms.push_back(model);
-		quad.indexCount++;
+		quad.entityIndexCount++;
 
-		if (quad.transforms.size() == maxQuad) {
+		if (quad.transforms.size() == RendererData::maxQuad) {
 			utils::flush_quad();
 			utils::reset_quad();
 		}
+
+		s_renderer.quad.indexCount += 6;
 	}
 
 	void Renderer2D::drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color) {
@@ -168,6 +188,7 @@ namespace hyp {
 		s_renderer.line.vertices.push_back(v0);
 		s_renderer.line.vertices.push_back(v1);
 	}
+
 
 	void Renderer2D::flush() {
 		utils::flush_quad();
@@ -199,7 +220,8 @@ void hyp::utils::init_quad() {
 	auto& quad = s_renderer.quad;
 
 	quad.vao = hyp::VertexArray::create();
-	quad.vbo = hyp::VertexBuffer::create(maxVertices * sizeof(QuadVertex));
+	quad.vbo = hyp::VertexBuffer::create(RendererData::maxVertices * sizeof(QuadVertex));
+
 	quad.vbo->setLayout({
 			hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
 			hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec4, "aColor", false),
@@ -209,31 +231,44 @@ void hyp::utils::init_quad() {
 
 	quad.vao->addVertexBuffer(s_renderer.quad.vbo);
 	quad.vertices.clear();
-	quad.vertices.resize(maxVertices);
+	quad.vertices.resize(RendererData::maxVertices);
+
+	uint32_t* quadIndices = new uint32_t[RendererData::maxIndices];
+
+	int offset = 0;
+	int i = 0;
+	for (i = 0; i < RendererData::maxIndices; i += 6) {
+		quadIndices[i + 0] = offset + 0;
+		quadIndices[i + 1] = offset + 1;
+		quadIndices[i + 2] = offset + 2;
+
+		quadIndices[i + 3] = offset + 2;
+		quadIndices[i + 4] = offset + 3;
+		quadIndices[i + 5] = offset + 0;
+
+		offset += 4;
+	}
+	hyp::Ref<hyp::ElementBuffer> elementBuffer = hyp::CreateRef<hyp::ElementBuffer>(quadIndices, RendererData::maxIndices);
+	quad.vao->setIndexBuffer(elementBuffer);
+
+	delete[] quadIndices;
 
 	quad.program = hyp::CreateRef<hyp::ShaderProgram>("assets/shaders/quad.vert",
 		"assets/shaders/quad.frag");
+	quad.program->setBlockBinding("Camera", 0);
 
 	quad.program->link();
 	quad.program->setBlockBinding("Camera", 0);
 	quad.program->setBlockBinding("Transform", 1);
 	quad.program->setBlockBinding("Lights", 2);
 
-	quad.uniformBuffer = hyp::UniformBuffer::create(sizeof(glm::mat4) * maxQuad, 1);
+
+	quad.uniformBuffer = hyp::UniformBuffer::create(sizeof(glm::mat4) * RendererData::maxQuad, 1);
 
 	quad.vertexPos[0] = { +0.5f, +0.5f, 0.0, 1.f };
 	quad.vertexPos[1] = { -0.5f, +0.5f, 0.0, 1.f };
 	quad.vertexPos[2] = { -0.5f, -0.5f, 0.0, 1.f };
-	quad.vertexPos[3] = { -0.5f, -0.5f, 0.0, 1.f };
-	quad.vertexPos[4] = { +0.5f, -0.5f, 0.0, 1.f };
-	quad.vertexPos[5] = { +0.5f, +0.5f, 0.0, 1.f };
-
-	quad.uvCoords[0] = { 1, 1 };
-	quad.uvCoords[1] = { 0, 1 };
-	quad.uvCoords[2] = { 0, 0 };
-	quad.uvCoords[3] = { 0, 0 };
-	quad.uvCoords[4] = { 1, 0 };
-	quad.uvCoords[5] = { 1, 1 };
+	quad.vertexPos[3] = { +0.5f, -0.5f, 0.0, 1.f };
 }
 
 void hyp::utils::flush_quad()
@@ -261,7 +296,7 @@ void hyp::utils::flush_quad()
 		quad.program->setInt("noLights", 0);
 	}
 
-	glDrawArrays(GL_TRIANGLES, 0, size);
+	hyp::RenderCommand::drawIndexed(quad.vao, quad.indexCount);
 
 	s_renderer.stats.quadCount += size / 6;
 	s_renderer.stats.drawCalls++;
@@ -271,6 +306,7 @@ void hyp::utils::reset_quad() {
 	s_renderer.quad.vertices.clear();
 	s_renderer.quad.transforms.clear();
 	s_renderer.quad.indexCount = 0;
+	s_renderer.quad.entityIndexCount = 0;
 }
 
 
@@ -280,7 +316,7 @@ void hyp::utils::init_line() {
 
 
 	line.vao = hyp::VertexArray::create();
-	line.vbo = hyp::VertexBuffer::create(maxVertices * sizeof(LineVertex));
+	line.vbo = hyp::VertexBuffer::create(RendererData::maxVertices * sizeof(LineVertex));
 
 	line.vbo->setLayout({
 		hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
@@ -289,12 +325,11 @@ void hyp::utils::init_line() {
 
 	line.vao->addVertexBuffer(s_renderer.line.vbo);
 	line.vertices.clear();
-	line.vertices.resize(maxVertices);
+	line.vertices.resize(RendererData::maxVertices);
 
 	line.program = hyp::CreateRef<hyp::ShaderProgram>(
 		"assets/shaders/line.vert", "assets/shaders/line.frag");
 	line.program->setBlockBinding("Camera", 0);
-
 
 	line.program->link();
 }
@@ -310,8 +345,7 @@ void hyp::utils::flush_line() {
 	line.vbo->setData(&line.vertices[0], size * sizeof(LineVertex));
 	line.program->use();
 
-	glLineWidth(line.lineWidth);
-	glDrawArrays(GL_LINES, 0, size);
+	hyp::RenderCommand::drawLines(line.vao, size);
 
 	s_renderer.stats.lineCount += size / 2;
 	s_renderer.stats.drawCalls++;

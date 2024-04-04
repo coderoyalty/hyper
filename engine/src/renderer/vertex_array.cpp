@@ -129,3 +129,11 @@ void VertexArray::addVertexBuffer(const Ref<VertexBuffer>& vbuffer)
 	}
 	m_vbuffers.push_back(vbuffer);
 }
+
+void hyp::VertexArray::setIndexBuffer(const Ref<hyp::ElementBuffer>& element_buffer)
+{
+	this->bind();
+	element_buffer->bind();
+
+	m_elementBuffer = element_buffer;
+}

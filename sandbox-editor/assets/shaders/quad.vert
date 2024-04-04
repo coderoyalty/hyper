@@ -3,7 +3,7 @@
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec4 aColor;
 layout (location = 2) in vec2 aUV;
-layout (location = 3) in int aIndex;
+layout (location = 3) in int aTransformIndex;
 
 layout (std140) uniform Camera {
   mat4 viewProj;
@@ -23,7 +23,7 @@ out vec2 inTexCoord;
 out vec3 inNormal;
 
 void main() {
-  mat4 model = transforms[aIndex];
+  mat4 model = transforms[aTransformIndex];
   
   inColor = aColor;
 

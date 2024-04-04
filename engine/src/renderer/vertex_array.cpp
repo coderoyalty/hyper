@@ -50,6 +50,11 @@ VertexArray::~VertexArray()
 	glDeleteVertexArrays(1, &m_rendererID);
 }
 
+hyp::Shared<VertexArray> hyp::VertexArray::create()
+{
+	return hyp::CreateRef<VertexArray>();
+}
+
 void VertexArray::bind()
 {
 	glBindVertexArray(m_rendererID);
@@ -123,4 +128,12 @@ void VertexArray::addVertexBuffer(const Ref<VertexBuffer>& vbuffer)
 		}
 	}
 	m_vbuffers.push_back(vbuffer);
+}
+
+void hyp::VertexArray::setIndexBuffer(const Ref<hyp::ElementBuffer>& element_buffer)
+{
+	this->bind();
+	element_buffer->bind();
+
+	m_elementBuffer = element_buffer;
 }

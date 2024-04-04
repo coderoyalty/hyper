@@ -153,6 +153,20 @@ int hyp::ShaderProgram::getLocation(const std::string& name)
 	return location;
 }
 
+int hyp::ShaderProgram::getBlockIndex(const std::string& name)
+{
+	auto it = m_locations.find(name);
+
+	if (it != m_locations.end()) {
+		return it->second;
+	}
+
+	int32_t location = glGetUniformBlockIndex(m_program, name.c_str());
+
+	m_locations.insert({ name, location });
+	return location;
+}
+
 void ShaderProgram::link()
 {
 	if (this->m_isLinked)
@@ -215,4 +229,9 @@ void hyp::ShaderProgram::setMat4(const std::string& name, const glm::mat4& value
 {
 	int location = this->getLocation(name);
 	glUniformMatrix4fv(location, 1, false, glm::value_ptr(value));
+}
+
+void hyp::ShaderProgram::setBlockBinding(const std::string& name, uint32_t blockBinding)
+{
+	glUniformBlockBinding(m_program, getBlockIndex(name), blockBinding);
 }

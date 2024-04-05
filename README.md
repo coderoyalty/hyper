@@ -1,5 +1,7 @@
 # 🔗 Hyper 🚂
 
+![Under Construction](https://img.shields.io/badge/Hyper_🚂-under_construction-orange.svg?)
+
 > Bear with me...
 
 Hyper is a 2D game engine developed as a hobby project, aimed at providing a ~~flexible~~ and efficient platform for creating 2D games.
@@ -25,3 +27,13 @@ Hyper is a 2D game engine developed as a hobby project, aimed at providing a ~~f
 - **An Editor where the magics happens**
 
 > Note: my strikethroughs are just sarcastic expressions of the idea those meaning conveys (e.g ~~flexible~~, meaning it wasn't during development). When used on nouns, (e.g ~~3D mesh~~) it could mean not yet supported.
+
+An example of what I ([check the version here](commit/2e76db73784a2e2fb02441073ec16f38c79f991e)) built using Hyper during development
+
+> At the time this snapshot was taken, hyper capabilities weren't there yet... (couldn't render texts and sprites etc.)
+
+> The example code here: ./sandbox
+
+![](./screenshots/pong1.png)
+
+![](./screenshots/pong2.png)

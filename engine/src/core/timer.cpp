@@ -37,9 +37,12 @@ namespace hyp {
 
 	void hyp::Timer::postTick()
 	{
-		if (last_tick.time_since_epoch() != chrono::steady_clock::duration::zero()) {
-			delta_time = static_cast<float>(chrono::duration<float, milli>(chrono::steady_clock::now() - last_tick).count());
+		if (last_tick.time_since_epoch() == chrono::steady_clock::duration::zero()) {
+			last_tick = chrono::steady_clock::now();
+			return;
 		}
+
+		delta_time = static_cast<float>(chrono::duration<float, milli>(chrono::steady_clock::now() - last_tick).count());
 
 		double target_limit = 1000.f / m_fps;
 

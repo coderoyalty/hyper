@@ -1,5 +1,6 @@
 #include <iostream>
 #include <glad/glad.h>
+#include "game_layer.hpp"
 #include <GLFW/glfw3.h>
 #include <renderer/shader.hpp>
 #include <renderer/vertex_array.hpp>
@@ -11,7 +12,6 @@
 #include <core/application.hpp>
 #include "camera.hpp"
 #include <renderer/renderer2d.hpp>
-
 
 
 class TestLayer : public hyp::Layer {
@@ -84,13 +84,14 @@ private:
 int main(int argc, char** argv)
 {
 	hyp::Device::init({});
-	hyp::WindowProps props("hyper-sandbox", 600, 600);
+	hyp::WindowProps props("hyper-sandbox: phong", 600, 600);
 	props.resizable = false;
 
 	auto app = hyp::Application(props);
+	hyp::RenderCommand::init();
 	hyp::Renderer2D::init();
 
-	app.pushLayer(new TestLayer());
+	app.pushLayer(new GameLayer({300.f, 300.f}));
 	app.run();
 
 	hyp::Renderer2D::deinit();

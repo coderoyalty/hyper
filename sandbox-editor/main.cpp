@@ -79,24 +79,34 @@ public:
 
 			for (int col = 0; col < num_cols; col++)
 			{
-				float x = col * (tile_size + spacing);
-				float y = row * (tile_size + spacing);
+				float x = col * (tile_size + spacing) + 600.f;
+				float y = row * (tile_size + spacing) + 600.f;
 
 				hyp::Renderer2D::drawQuad({x, y, 0.0f}, {tile_size, tile_size}, {red, green, blue, 1.0f});
 			}
-			float center = 300.f - (tile_size / 2.f);
+			float center = 300.f - (tile_size / 2.f) + 600.f;
 			hyp::Renderer2D::addLight({glm::vec4(center + row * tile_size * glm::cos(angle), center + row * tile_size * glm::sin(angle), 0.f, 0.f),
 																 glm::vec4(green, blue, red, 1.0f)});
 		}
 
 		float factor = 300.f / num_rows;
 
-		// hyp::Renderer2D::drawQuad(lightPos, { 50.f, 50.f }, glm::vec4(1.f));
-
 		hyp::Renderer2D::drawLine({0.f, 0.f, 0.f}, {factor, 0.f, 0.f}, glm::vec4(0.28, 0.75f, 0.f, 1.f));
 		hyp::Renderer2D::drawLine({factor, 0.f, 0.f}, {factor, factor, 0.f}, glm::vec4(1.f, 1.f, 0.f, 1.f));
 		hyp::Renderer2D::drawLine({0.f, factor, 0.f}, {factor, factor, 0.f}, glm::vec4(0.f, 1.f, 1.f, 1.f));
 		hyp::Renderer2D::drawLine({0.f, 0.f, 0.f}, {0.f, factor, 0.f}, glm::vec4(1.f, 0.f, 1.f, 1.f));
+
+
+		for (int row = 0; row < num_rows; row++) {
+			glm::mat4 transform(1.f);
+			radius = 300.f;
+			transform = glm::translate(glm::mat4(1.f), glm::vec3(row * radius + (radius / 2.f), (radius / 2.f), 0.f));
+			transform *= glm::scale(glm::mat4(1.0), glm::vec3(radius, radius, 0.f));
+
+			hyp::Renderer2D::drawCircle(transform, 1.0 - static_cast<float>(row) / num_rows, static_cast<float>(row) / num_rows, glm::vec4(1.0, 0.5, 0.5, 1.0));
+		}
+
+		
 
 		hyp::Renderer2D::endScene();
 	}
@@ -162,6 +172,7 @@ int main(int argc, char **argv)
 	hyp::WindowProps props("hyper-editor", 600, 600);
 
 	hyp::Application app(props);
+	hyp::RenderCommand::init();
 	hyp::Renderer2D::init();
 
 	hyp::Layer *layer = new TestLayer(600.f, 600.f);

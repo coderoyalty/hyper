@@ -24,6 +24,7 @@ namespace hyp
 	public:
 		ShaderProgram(const std::string& vertexPath, const std::string& fragmentPath);
 		ShaderProgram();
+		~ShaderProgram();
 
 		static hyp::Ref<ShaderProgram> create(const std::string& vertexPath, const std::string& fragmentPath);
 

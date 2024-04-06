@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <renderer/render_command.hpp>
+#include <renderer/texture.hpp>
+
 
 namespace hyp
 {
@@ -37,6 +39,9 @@ namespace hyp
 		static void addLight(const Light& light);
 	public:
 		static void drawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color);
+		static void drawQuad(const glm::vec3& position, const glm::vec2& size,
+			hyp::Ref<hyp::Texture2D>& texture, const glm::vec4& color = glm::vec4(1.0));
+	public:
 		static void drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color = glm::vec4(1.0));
 		static void drawCircle(const glm::mat4& transform, float thickness, float fade, const glm::vec4& color = glm::vec4(1.f));
 	public:

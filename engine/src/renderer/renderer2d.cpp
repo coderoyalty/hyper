@@ -1,134 +1,8 @@
+#define RENDERER_2D_DATA_STRUCTURES
 #include <renderer/renderer2d.hpp>
-#include <renderer/vertex_array.hpp>
-#include <renderer/vertex_buffer.hpp>
-#include <renderer/shader.hpp>
-#include "uniform_buffer.hpp"
-#include "renderer/element_buffer.hpp"
-#include "renderer/render_command.hpp"
 #include <array>
 
 using namespace hyp;
-
-const uint32_t maxLight = 32;
-
-namespace utils {
-	static void initQuad();
-	static void flushQuad();
-	static void nextQuadBatch();
-
-	static void initLine();
-	static void flushLine();
-	static void nextLineBatch();
-
-	static void initCircle();
-	static void flushCircle();
-}
-
-struct QuadVertex
-{
-	glm::vec3 pos = glm::vec3(0.0);
-	glm::vec4 color = glm::vec4(1.0);
-	glm::vec2 uv{};
-	int transformIndex = 0;
-	float textureIndex = 0;
-};
-
-struct LineVertex {
-	glm::vec3 position = { 0.f, 0.f, 0.f };
-	glm::vec4 color = glm::vec4(1.f);
-};
-
-struct CircleVertex {
-	glm::vec3 worldPosition;
-	glm::vec3 localPosition;
-	glm::vec4 color;
-	float thickness;
-	float fade;
-};
-
-
-struct RenderEntity {
-	hyp::Ref<hyp::VertexBuffer> vbo;
-	hyp::Ref<hyp::VertexArray> vao;
-	hyp::Ref<hyp::ShaderProgram> program;
-};
-
-struct QuadData : public RenderEntity {
-	std::vector<QuadVertex> vertices;
-	std::vector<glm::mat4> transforms;
-	hyp::Shared<hyp::UniformBuffer> uniformBuffer;
-
-	glm::vec4 vertexPos[4] = {};
-	glm::vec2 uvCoords[4] = {};
-	int transformIndexCount = 0;
-
-	uint32_t indexCount = 0;
-
-	void reset() {
-		vertices.clear();
-		transforms.clear();
-		indexCount = 0;
-		transformIndexCount = 0;
-	}
-};
-
-struct LineData : public RenderEntity {
-	std::vector<LineVertex> vertices;
-	virtual void reset() {
-		vertices.clear();
-	}
-};
-
-struct CircleData : public RenderEntity {
-	std::vector<CircleVertex> vertices;
-	uint32_t indexCount = 0;
-
-	virtual void reset() {
-		vertices.clear();
-		indexCount = 0;
-	}
-};
-
-///TODO: support for other lighting settings such as:
-/// 1. the constant, linear and quadratic value when calculation attenuation
-/// 2. providing ambient, diffuse and specular color for each light
-struct LightingData {
-	std::vector<hyp::Light> lights;
-	hyp::Shared<hyp::UniformBuffer> uniformBuffer;
-	int lightCount = 0;
-	bool enabled = false;
-};
-
-struct RendererData {
-	//
-
-	static const uint32_t maxQuad = 1000;
-	static const uint32_t maxVertices = maxQuad * 4;
-	static const uint32_t maxIndices = maxQuad * 6;
-
-	static const uint32_t maxTextureSlots = 32;
-
-	std::array<hyp::Ref<hyp::Texture2D>, maxTextureSlots> textureSlots;
-
-	hyp::Ref<hyp::Texture2D> defaultTexture;
-	uint32_t textureSlotIndex = 1; // 1 instead of 0 because there's already an existing texture -- defaultTexture --
-
-	// entity
-	QuadData quad;
-	LineData line;
-	CircleData circle;
-	LightingData lighting;
-
-	struct CameraData {
-		glm::mat4 viewProjection;
-	};
-
-
-	CameraData cameraBuffer{};
-	hyp::Shared<hyp::UniformBuffer> cameraUniformBuffer;
-
-	Renderer2D::Stats stats;
-};
 
 static RendererData s_renderer;
 
@@ -139,15 +13,8 @@ void hyp::Renderer2D::init() {
 	utils::initLine();
 	utils::initCircle();
 
-	s_renderer.defaultTexture = hyp::Texture2D::create(TextureSpecification());
-
-	uint32_t whiteColor = 0xFFffFFff;
-	s_renderer.defaultTexture->setData(&whiteColor, sizeof(uint32_t));
-
-	s_renderer.textureSlots[0] = s_renderer.defaultTexture;
-
 	s_renderer.cameraUniformBuffer = hyp::UniformBuffer::create(sizeof(RendererData::CameraData), 0);
-	s_renderer.lighting.uniformBuffer = hyp::UniformBuffer::create(sizeof(Light) * maxLight, 2);
+	s_renderer.lighting.uniformBuffer = hyp::UniformBuffer::create(sizeof(Light) * MaxLight, 2);
 }
 
 void Renderer2D::deinit()
@@ -156,7 +23,6 @@ void Renderer2D::deinit()
 	s_renderer.line.vertices.clear();
 	s_renderer.circle.vertices.clear();
 	HYP_INFO("Destroyed 2D Renderer");
-
 }
 
 /*
@@ -184,9 +50,6 @@ void Renderer2D::startBatch()
 	s_renderer.lighting.lights.clear();
 	s_renderer.lighting.lightCount = 0;
 
-	// textures
-
-	s_renderer.textureSlotIndex = 1;
 }
 
 /*
@@ -219,7 +82,7 @@ void Renderer2D::addLight(const Light& light)
 {
 	auto& lighting = s_renderer.lighting;
 
-	if (lighting.lightCount >= maxLight) return;
+	if (lighting.lightCount >= MaxLight) return;
 
 	lighting.lights.push_back(light);
 	lighting.lightCount++;
@@ -227,17 +90,30 @@ void Renderer2D::addLight(const Light& light)
 
 void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
 {
-	auto& quad = s_renderer.quad;
-
-	if (quad.transforms.size() == RendererData::maxQuad) {
-		// we've exceeded the maximum batch for a quad at the point,
-		// so we have to push it..
-		utils::nextQuadBatch();
-	}
-
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, position + glm::vec3(size / 2.f, 0.f));
 	model = glm::scale(model, glm::vec3(size, 0.f));
+	drawQuad(model, color);
+}
+
+void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, hyp::Ref<hyp::Texture2D>& texture, const glm::vec4& color)
+{
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::translate(model, position + glm::vec3(size / 2.f, 0.f));
+	model = glm::scale(model, glm::vec3(size, 0.f));
+
+	drawQuad(model, texture, color);
+}
+
+void Renderer2D::drawQuad(const glm::mat4& transform, const glm::vec4& color)
+{
+	auto& quad = s_renderer.quad;
+
+	if (quad.transforms.size() == MaxQuad) {
+		// we've exceeded the Maximum batch for a quad at the point,
+		// so we have to push it..
+		utils::nextQuadBatch();
+	}
 
 	int quadVertexCount = 4;
 
@@ -252,21 +128,22 @@ void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, cons
 		quad.vertices.push_back(vertex);
 	}
 
-	quad.transforms.push_back(model);
+	quad.transforms.push_back(transform);
 	quad.transformIndexCount++;
 	s_renderer.quad.indexCount += 6;
 }
 
 /*
-* @brief for rendering textured quads
+* @brief for rendering textured-quad
 */
-void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, hyp::Ref<hyp::Texture2D>& texture, const glm::vec4& color)
+void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture2D>& texture, const glm::vec4& color)
 {
-	float textureIndex = 0.0;
+	auto& quad = s_renderer.quad;
 
+	float textureIndex = 0.0;
 	// find texture in slots
-	for (int i = 1; i < s_renderer.textureSlotIndex; i++) {
-		if (*s_renderer.textureSlots[i] == *texture) {
+	for (int i = 1; i < quad.textureSlotIndex; i++) {
+		if (*quad.textureSlots[i] == *texture) {
 			textureIndex = (float)i;
 			break;
 		}
@@ -274,19 +151,17 @@ void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, hyp:
 
 	if (textureIndex == 0.0) {
 		// texture is a new texture
-		if (s_renderer.textureSlotIndex == RendererData::maxTextureSlots)
+		if (quad.textureSlotIndex == MaxTextureSlots)
 			utils::nextQuadBatch(); // dispatch the current batch
 
-		/// the texture slot index will never be = to maxTextureSlots
+		/// the texture slot index will never be = to MaxTextureSlots
 		/// this logic above avoids this scenario, and is presumed to reset the slot index
-		HYP_ASSERT_CORE(s_renderer.textureSlotIndex != RendererData::maxTextureSlots, "texture slot limits exceeded");
-		s_renderer.textureSlots[s_renderer.textureSlotIndex] = texture;
-		textureIndex = s_renderer.textureSlotIndex++;
+		HYP_ASSERT_CORE(quad.textureSlotIndex != MaxTextureSlots, "texture slot limits exceeded");
+		quad.textureSlots[quad.textureSlotIndex] = texture;
+		textureIndex = quad.textureSlotIndex++;
 	}
 
 	int quadVertexCount = 4;
-
-	auto& quad = s_renderer.quad;
 
 	for (int i = 0; i < quadVertexCount; i++) {
 		QuadVertex vertex;
@@ -299,11 +174,7 @@ void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, hyp:
 		quad.vertices.push_back(vertex);
 	}
 
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::translate(model, position + glm::vec3(size / 2.f, 0.f));
-	model = glm::scale(model, glm::vec3(size, 0.f));
-
-	quad.transforms.push_back(model);
+	quad.transforms.push_back(transform);
 	quad.transformIndexCount++;
 	s_renderer.quad.indexCount += 6;
 }
@@ -319,7 +190,7 @@ void Renderer2D::drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::v
 	s_renderer.line.vertices.push_back(v0);
 	s_renderer.line.vertices.push_back(v1);
 
-	if (s_renderer.line.vertices.size() == RendererData::maxQuad)
+	if (s_renderer.line.vertices.size() == MaxQuad)
 		utils::nextLineBatch();
 }
 
@@ -348,8 +219,14 @@ void Renderer2D::drawCircle(const glm::mat4& transform, float thickness, float f
 void utils::initQuad() {
 	auto& quad = s_renderer.quad;
 
+	// initialize texture slots
+	quad.defaultTexture = hyp::Texture2D::create(TextureSpecification());
+	uint32_t whiteColor = 0xFFffFFff;
+	quad.defaultTexture->setData(&whiteColor, sizeof(uint32_t));
+	quad.textureSlots[0] = quad.defaultTexture;
+
 	quad.vao = hyp::VertexArray::create();
-	quad.vbo = hyp::VertexBuffer::create(RendererData::maxVertices * sizeof(QuadVertex));
+	quad.vbo = hyp::VertexBuffer::create(MaxVertices * sizeof(QuadVertex));
 
 	quad.vbo->setLayout({
 			hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
@@ -361,13 +238,12 @@ void utils::initQuad() {
 
 	quad.vao->addVertexBuffer(s_renderer.quad.vbo);
 	quad.vertices.clear();
-	quad.vertices.resize(RendererData::maxVertices);
+	quad.vertices.resize(MaxVertices);
 
-	uint32_t* quadIndices = new uint32_t[RendererData::maxIndices];
-
+	uint32_t* quadIndices = new uint32_t[MaxIndices];
 	int offset = 0;
 	int i = 0;
-	for (i = 0; i < RendererData::maxIndices; i += 6) {
+	for (i = 0; i < MaxIndices; i += 6) {
 		quadIndices[i + 0] = offset + 0;
 		quadIndices[i + 1] = offset + 1;
 		quadIndices[i + 2] = offset + 2;
@@ -378,9 +254,8 @@ void utils::initQuad() {
 
 		offset += 4;
 	}
-	hyp::Ref<hyp::ElementBuffer> elementBuffer = hyp::CreateRef<hyp::ElementBuffer>(quadIndices, RendererData::maxIndices);
+	hyp::Ref<hyp::ElementBuffer> elementBuffer = hyp::CreateRef<hyp::ElementBuffer>(quadIndices, MaxIndices);
 	quad.vao->setIndexBuffer(elementBuffer);
-
 	delete[] quadIndices;
 
 	quad.program = hyp::CreateRef<hyp::ShaderProgram>("assets/shaders/quad.vert",
@@ -392,14 +267,14 @@ void utils::initQuad() {
 	quad.program->setBlockBinding("Lights", 2);
 
 
-	// initialize the texture sampler slots
+	// initialize the texture sampler slots in shader
 	quad.program->use();
-	for (int i = 0; i < RendererData::maxTextureSlots; i++) {
+	for (int i = 0; i < MaxTextureSlots; i++) {
 		std::string name = "textures[" + std::to_string(i) + "]";
 		quad.program->setInt(name, i);
 	}
 
-	quad.uniformBuffer = hyp::UniformBuffer::create(sizeof(glm::mat4) * RendererData::maxQuad, 1);
+	quad.transformBuffer = hyp::UniformBuffer::create(sizeof(glm::mat4) * MaxQuad, 1);
 
 	quad.vertexPos[0] = { +0.5f, +0.5f, 0.0, 1.f };
 	quad.vertexPos[1] = { -0.5f, +0.5f, 0.0, 1.f };
@@ -423,7 +298,7 @@ void utils::flushQuad()
 	quad.vbo->setData(quad.vertices.data(), size * sizeof(QuadVertex));
 
 	auto& lighting = s_renderer.lighting;
-	quad.uniformBuffer->setData(quad.transforms.data(), quad.transforms.size() * sizeof(glm::mat4));
+	quad.transformBuffer->setData(quad.transforms.data(), quad.transforms.size() * sizeof(glm::mat4));
 
 	quad.program->use();
 	quad.program->setBool("enableLighting", lighting.enabled);
@@ -435,9 +310,9 @@ void utils::flushQuad()
 		quad.program->setInt("noLights", 0);
 	}
 
-	for (uint32_t i = 0; i < s_renderer.textureSlotIndex; i++)
+	for (uint32_t i = 0; i < quad.textureSlotIndex; i++)
 	{
-		s_renderer.textureSlots[i]->bind(i);
+		quad.textureSlots[i]->bind(i);
 	}
 	hyp::RenderCommand::drawIndexed(quad.vao, quad.indexCount);
 
@@ -449,7 +324,6 @@ void utils::nextQuadBatch()
 {
 	utils::flushQuad();
 	s_renderer.quad.reset();
-	s_renderer.textureSlotIndex = 1;
 }
 
 /*Line Data*/
@@ -457,7 +331,7 @@ void utils::initLine() {
 	auto& line = s_renderer.line;
 
 	line.vao = hyp::VertexArray::create();
-	line.vbo = hyp::VertexBuffer::create(RendererData::maxVertices * sizeof(LineVertex));
+	line.vbo = hyp::VertexBuffer::create(MaxVertices * sizeof(LineVertex));
 
 	line.vbo->setLayout({
 		hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
@@ -466,7 +340,7 @@ void utils::initLine() {
 
 	line.vao->addVertexBuffer(s_renderer.line.vbo);
 	line.vertices.clear();
-	line.vertices.resize(RendererData::maxVertices);
+	line.vertices.resize(MaxVertices);
 
 	line.program = hyp::CreateRef<hyp::ShaderProgram>(
 		"assets/shaders/line.vert", "assets/shaders/line.frag");
@@ -487,7 +361,7 @@ void utils::flushLine() {
 
 	hyp::RenderCommand::drawLines(line.vao, size);
 
-	s_renderer.stats.lineCount += float(size) / 2.f;
+	s_renderer.stats.lineCount += size * 0.5;
 	s_renderer.stats.drawCalls++;
 }
 
@@ -503,11 +377,11 @@ void utils::initCircle()
 	auto& circle = s_renderer.circle;
 
 	circle.vertices.clear();
-	circle.vertices.resize(RendererData::maxVertices);
+	circle.vertices.resize(MaxVertices);
 
 	circle.vao = hyp::VertexArray::create();
 
-	circle.vbo = hyp::VertexBuffer::create(RendererData::maxVertices * sizeof(CircleVertex));
+	circle.vbo = hyp::VertexBuffer::create(MaxVertices * sizeof(CircleVertex));
 	auto& layout = hyp::BufferLayout({
 		{ hyp::ShaderDataType::Vec3, "aWorldPosition" },
 		{ hyp::ShaderDataType::Vec3, "aLocalPosition" },
@@ -518,11 +392,11 @@ void utils::initCircle()
 	circle.vbo->setLayout(layout);
 
 
-	uint32_t* indices = new uint32_t[RendererData::maxIndices];
+	uint32_t* indices = new uint32_t[MaxIndices];
 
 	int offset = 0;
 	int i = 0;
-	for (i = 0; i < RendererData::maxIndices; i += 6) {
+	for (i = 0; i < MaxIndices; i += 6) {
 		indices[i + 0] = offset + 0;
 		indices[i + 1] = offset + 1;
 		indices[i + 2] = offset + 2;
@@ -534,7 +408,7 @@ void utils::initCircle()
 		offset += 4;
 	}
 
-	auto& circleIndexBuffer = hyp::CreateRef<hyp::ElementBuffer>(indices, RendererData::maxIndices);
+	auto& circleIndexBuffer = hyp::CreateRef<hyp::ElementBuffer>(indices, MaxIndices);
 	circle.vao->addVertexBuffer(circle.vbo);
 	circle.vao->setIndexBuffer(circleIndexBuffer);
 

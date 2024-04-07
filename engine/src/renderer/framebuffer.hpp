@@ -52,6 +52,10 @@ namespace hyp {
 		void resize(uint32_t width, uint32_t height);
 
 		void reset();
+
+		const FramebufferSpecification& getSpecification() const {
+			return m_spec;
+		}
 	private:
 		uint32_t m_fbo;
 		FramebufferSpecification m_spec;

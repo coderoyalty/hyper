@@ -7,6 +7,7 @@
 #include <renderer/shader.hpp>
 #include <renderer/renderer2d.hpp>
 #include <renderer/framebuffer.hpp>
+#include <imgui.h>
 
 class TexturedQuadLayer : public hyp::Layer {
 public:
@@ -77,19 +78,15 @@ public:
 		hyp::Renderer2D::drawQuad({ 0.0, 0.f, 0.f }, { 200.f, 200.f }, wallTexture, glm::vec4(1.f));
 		hyp::Renderer2D::endScene();
 		framebuffer->unbind();
+	}
 
-		hyp::RenderCommand::setClearColor(0.3f, 0.3f, 0.3f, 1.f);
-		hyp::RenderCommand::clear();
-
-		hyp::Renderer2D::beginScene(controller.getCamera().getViewProjectionMatrix());
-		hyp::Renderer2D::drawQuad({ 0.0, 0.f, 0.f }, { 200.f, 200.f }, wallTexture, glm::vec4(1.f));
-		hyp::Renderer2D::endScene();
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, framebuffer->getColorAttachmentId());
-		program->use();
-		vao->bind();
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+	virtual void onUIRender() override {
+		ImGui::Begin("Offscreen rendering");
+		auto textureId = framebuffer->getColorAttachmentId();
+		auto spec = framebuffer->getSpecification();
+		ImGui::Image((void*)(uintptr_t)textureId, ImVec2(spec.width, spec.height),
+			ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+		ImGui::End();
 	}
 
 	hyp::Ref<hyp::Texture> wallTexture;

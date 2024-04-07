@@ -6,6 +6,7 @@
 #include <renderer/texture.hpp>
 #include <renderer/shader.hpp>
 #include <renderer/renderer2d.hpp>
+#include <renderer/framebuffer.hpp>
 
 class TexturedQuadLayer : public hyp::Layer {
 public:
@@ -13,13 +14,21 @@ public:
 		: controller(600.f, 600.f)
 	{
 
+		hyp::FramebufferSpecification fbSpec;
+		fbSpec.attachment = hyp::FbAttachmentSpecification({
+			{hyp::FbTextureFormat::RGBA}
+		});
+		fbSpec.width = 600;
+		fbSpec.height = 600;
+		framebuffer = hyp::Framebuffer::create(fbSpec);
+
 		float vertices[6 * 5] = {
-			-0.5f, -0.5f, 0.f, 0.f, 0.f,
-			-0.5f, +0.5f, 0.f, 0.f, 1.f,
-			+0.5f, +0.5f, 0.f, 1.f, 1.f,
-			+0.5f, +0.5f, 0.f, 1.f, 1.f,
-			+0.5f, -0.5f, 0.f, 1.f, 0.f,
-			-0.5f, -0.5f, 0.f, 0.f, 0.f,
+			-0.0f, -0.0f, 0.f, 0.f, 0.f,
+			-0.0f, +1.0f, 0.f, 0.f, 1.f,
+			+1.0f, +1.0f, 0.f, 1.f, 1.f,
+			+1.0f, +1.0f, 0.f, 1.f, 1.f,
+			+1.0f, -0.0f, 0.f, 1.f, 0.f,
+			-0.0f, -0.0f, 0.f, 0.f, 0.f,
 		};
 		vao = hyp::VertexArray::create();
 		auto& vbo = hyp::VertexBuffer::create(vertices, sizeof(vertices));
@@ -30,14 +39,20 @@ public:
 		vao->addVertexBuffer(vbo);
 
 		wallTexture = hyp::CreateRef<hyp::Texture>("assets/wall.jpg");
-		redTexture = hyp::CreateRef<hyp::Texture>(hyp::TextureSpecification());
-
-		uint32_t redColor = 0xff0000ff;
-		redTexture->setData(&redColor, sizeof(uint32_t));
 
 		program = hyp::ShaderProgram::create("assets/vertex.vert", "assets/fragment.frag");
 		program->link();
+
+		glm::mat4 model(1.f);
+		float size = 150.f;
+		model = glm::translate(model, glm::vec3(600.f - size, 600.f - size, 0.f));
+		model = glm::scale(model, glm::vec3(size, size, 0.f));
+
+		glm::mat4 viewProj = glm::ortho(0.f, 600.f, 600.f, 0.f, -1.f, +1.f);
+		
 		program->use();
+		program->setMat4("uViewProj", viewProj);
+		program->setMat4("model", model);
 	}
 
 	virtual void onAttach() override {
@@ -53,18 +68,34 @@ public:
 
 	virtual void onUpdate(float dt) override {
 		controller.onUpdate(dt);
+
+		framebuffer->bind();
 		hyp::RenderCommand::setClearColor(0.3f, 0.3f, 0.3f, 1.f);
 		hyp::RenderCommand::clear();
 
 		hyp::Renderer2D::beginScene(controller.getCamera().getViewProjectionMatrix());
-		hyp::Renderer2D::drawQuad({ 0.0, 0.f, 0.f }, { 20.f, 20.f }, wallTexture, glm::vec4(1.f));
-		hyp::Renderer2D::drawQuad({ 20.0, 20.f, 0.f }, { 20.f, 20.f }, redTexture, glm::vec4(1.f));
+		hyp::Renderer2D::drawQuad({ 0.0, 0.f, 0.f }, { 200.f, 200.f }, wallTexture, glm::vec4(1.f));
 		hyp::Renderer2D::endScene();
+		framebuffer->unbind();
+
+		hyp::RenderCommand::setClearColor(0.3f, 0.3f, 0.3f, 1.f);
+		hyp::RenderCommand::clear();
+
+		hyp::Renderer2D::beginScene(controller.getCamera().getViewProjectionMatrix());
+		hyp::Renderer2D::drawQuad({ 0.0, 0.f, 0.f }, { 200.f, 200.f }, wallTexture, glm::vec4(1.f));
+		hyp::Renderer2D::endScene();
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, framebuffer->getColorAttachmentId());
+		program->use();
+		vao->bind();
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
 	hyp::Ref<hyp::Texture> wallTexture;
-	hyp::Ref<hyp::Texture> redTexture;
 	hyp::Ref<hyp::ShaderProgram> program;
 	hyp::Ref<hyp::VertexArray> vao;
 	hyp::OrthoGraphicCameraController controller;
+
+	hyp::Ref<hyp::Framebuffer> framebuffer;
 };

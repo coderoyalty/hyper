@@ -25,64 +25,62 @@ namespace hyp
 	};
 
 	template <typename... Types>
-	void log_output(hyp::LOG_TYPE type, const std::string& message, Types... args)
+	void log_output(hyp::LOG_TYPE type, const std::string &message, Types... args)
 	{
-		HANDLE stdOutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+		std::stringstream ss;
+		int attribute;
 		switch (type)
 		{
 		case hyp::LOG_TYPE::DEBUG:
 		{
-			SetConsoleTextAttribute(stdOutHandle, 5);
-			std::stringstream ss;
-			ss << "[DEBUG]: " << message << "\n";
-			printf(ss.str().c_str(), args...);
+			attribute = 5;
+			ss << "[DEBUG]: ";
 		}
 		break;
 		case hyp::LOG_TYPE::WARN:
 		{
-			SetConsoleTextAttribute(stdOutHandle, 6);
-			std::stringstream ss;
-			ss << "[WARN]:  " << message << "\n";
-			printf(ss.str().c_str(), args...);
+			attribute = 6;
+			ss << "[WARN]: ";
 		}
 		break;
 		case hyp::LOG_TYPE::FATAL:
 		{
-			SetConsoleTextAttribute(stdOutHandle, 4);
-			std::stringstream ss;
-			ss << "[FATAL]: " << message << "\n";
-			printf(ss.str().c_str(), args...);
+			attribute = 4;
+			ss << "[FATAL]: ";
 		}
 		break;
 		case hyp::LOG_TYPE::TRACE:
 		{
-			SetConsoleTextAttribute(stdOutHandle, 2);
-			std::stringstream ss;
-			ss << "[TRACE]: " << message << "\n";
-			printf(ss.str().c_str(), args...);
+			attribute = 2;
+			ss << "[TRACE]: ";
 		}
 		break;
 		case hyp::LOG_TYPE::INFO:
 		{
-			SetConsoleTextAttribute(stdOutHandle, 10);
-			std::stringstream ss;
-			ss << "[INFO]:  " << message << "\n";
-			printf(ss.str().c_str(), args...);
+			attribute = 10;
+			ss << "[INFO]:  ";
 		}
 		break;
 		case hyp::LOG_TYPE::H_ERROR:
 		{
-			SetConsoleTextAttribute(stdOutHandle, 4);
-			std::stringstream ss;
-			ss << "[ERROR]: " << message << "\n";
-			printf(ss.str().c_str(), args...);
+			attribute = 4;
+			ss << "[ERROR]: ";
 		}
 		break;
 		default:
+			attribute = 7;
 			break;
 		}
 
+		ss << message << "\n";
+#ifdef _WIN32
+		HANDLE stdOutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+		SetConsoleTextAttribute(stdOutHandle, attribute);
+		printf(ss.str().c_str(), args...);
 		SetConsoleTextAttribute(stdOutHandle, 7);
+#else
+		printf(ss.str().c_str(), args...);
+#endif
 	}
 
 #if defined(HYPER_DEBUG)

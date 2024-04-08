@@ -56,6 +56,11 @@ ShaderProgram::ShaderProgram() : m_isLinked(false)
 	this->m_program = glCreateProgram();
 }
 
+hyp::ShaderProgram::~ShaderProgram()
+{
+	glDeleteProgram(m_program);
+}
+
 hyp::Ref<ShaderProgram> hyp::ShaderProgram::create(const std::string& vertexPath, const std::string& fragmentPath)
 {
 	return hyp::CreateRef<ShaderProgram>(vertexPath, fragmentPath);

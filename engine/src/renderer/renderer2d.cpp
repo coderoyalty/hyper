@@ -96,13 +96,13 @@ void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, cons
 	drawQuad(model, color);
 }
 
-void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, hyp::Ref<hyp::Texture2D>& texture, const glm::vec4& color)
+void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, hyp::Ref<hyp::Texture2D>& texture, float tilingFactor, const glm::vec4& color)
 {
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, position + glm::vec3(size / 2.f, 0.f));
 	model = glm::scale(model, glm::vec3(size, 0.f));
 
-	drawQuad(model, texture, color);
+	drawQuad(model, texture, tilingFactor, color);
 }
 
 void Renderer2D::drawQuad(const glm::mat4& transform, const glm::vec4& color)
@@ -124,6 +124,7 @@ void Renderer2D::drawQuad(const glm::mat4& transform, const glm::vec4& color)
 		vertex.uv = quad.uvCoords[i];
 		vertex.textureIndex = 0.0; // use default texture
 		vertex.transformIndex = quad.transformIndexCount;
+		vertex.tilingFactor = 1.f;
 
 		quad.vertices.push_back(vertex);
 	}
@@ -136,7 +137,7 @@ void Renderer2D::drawQuad(const glm::mat4& transform, const glm::vec4& color)
 /*
 * @brief for rendering textured-quad
 */
-void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture2D>& texture, const glm::vec4& color)
+void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture2D>& texture, float tilingFactor, const glm::vec4& color)
 {
 	auto& quad = s_renderer.quad;
 
@@ -170,6 +171,7 @@ void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture
 		vertex.uv = quad.uvCoords[i];
 		vertex.textureIndex = textureIndex;
 		vertex.transformIndex = quad.transformIndexCount;
+		vertex.tilingFactor = tilingFactor;
 
 		quad.vertices.push_back(vertex);
 	}
@@ -234,6 +236,7 @@ void utils::initQuad() {
 			hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec2, "aUV", false),
 			hyp::VertexAttribDescriptor(hyp::ShaderDataType::Int, "aTransformIndex", false),
 			hyp::VertexAttribDescriptor(hyp::ShaderDataType::Float, "aTextureIndex", false),
+			hyp::VertexAttribDescriptor(hyp::ShaderDataType::Float, "aTilingFactor", false),
 		});
 
 	quad.vao->addVertexBuffer(s_renderer.quad.vbo);

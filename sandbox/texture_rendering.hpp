@@ -75,7 +75,7 @@ public:
 		hyp::RenderCommand::clear();
 
 		hyp::Renderer2D::beginScene(controller.getCamera().getViewProjectionMatrix());
-		hyp::Renderer2D::drawQuad({ 0.0, 0.f, 0.f }, { 200.f, 200.f }, wallTexture, glm::vec4(1.f));
+		hyp::Renderer2D::drawQuad({ 0.0, 0.f, 0.f }, { 200.f, 200.f }, wallTexture, 1.f, glm::vec4(1.f));
 		hyp::Renderer2D::endScene();
 		framebuffer->unbind();
 	}

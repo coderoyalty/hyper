@@ -5,6 +5,7 @@ layout (location = 1) in vec4 aColor;
 layout (location = 2) in vec2 aUV;
 layout (location = 3) in int aTransformIndex;
 layout (location = 4) in float aTextureIndex;
+layout (location = 5) in float aTilingFactor;
 
 layout (std140) uniform Camera {
   mat4 viewProj;
@@ -23,12 +24,14 @@ out vec3 inFragPos;
 out vec2 inTexCoord;
 out vec3 inNormal;
 flat out float textureIndex;
+flat out float inTilingFactor;
 
 void main() {
   mat4 model = transforms[aTransformIndex];
 
   inColor = aColor;
   textureIndex = aTextureIndex;
+  inTilingFactor = aTilingFactor;
 
   if (enableLighting) {
     inFragPos = vec3(model * vec4(aPos, 1.0));

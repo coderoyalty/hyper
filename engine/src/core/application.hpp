@@ -25,6 +25,7 @@ public:
 	void close();
 
 	void pushLayer(Layer* layer);
+	void pushOverlay(Layer* overlay);
 
 	hyp::ImGuiLayer* getUILayer() { return m_uiLayer; }
 private:

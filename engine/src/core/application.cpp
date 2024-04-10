@@ -14,7 +14,7 @@ hyp::Application::Application(const WindowProps& ws) {
 
 	this->m_uiLayer = new hyp::ImGuiLayer();
 
-	pushLayer(this->m_uiLayer);
+	pushOverlay(this->m_uiLayer);
 }
 
 void hyp::Application::run() {
@@ -56,6 +56,11 @@ void hyp::Application::close() {
 void hyp::Application::pushLayer(Layer* layer) {
 	m_layerStack.pushLayer(layer);
 	layer->onAttach();
+}
+
+void hyp::Application::pushOverlay(Layer* overlay) {
+	m_layerStack.pushOverlay(overlay);
+	overlay->onAttach();
 }
 
 void hyp::Application::onEvent(Event& e) {

@@ -14,8 +14,15 @@ namespace hyp {
 		MouseBtnPressed, MouseBtnReleased, MouseMoved, MouseScroll
 	};
 
-#define EVENT_CLASS_TYPE(type) static EventType getType() {return type; }\
+	enum EventCategory {
+		None = 0,
+		WindowCategory, InputCategory, KeyboardCategory, MouseCategory, MouseBtnCategory
+	};
+
+#define EVENT_CLASS_TYPE(type) static EventType getType() {return type; };\
 								EventType getEventType() { return getType(); }
+
+#define EVENT_CLASS_CATEGORY(category) virtual int getCategoryFlags() const override { return category; }
 
 #define BIND_EVENT_FN(function) [this](auto& args) -> decltype(auto) {\
 		return this->function(args);\
@@ -32,13 +39,18 @@ namespace hyp {
 			return EventType::None;
 		}
 
+		virtual int getCategoryFlags() const = 0;
+
+		bool belongsToCategory(EventCategory category) const {
+			return getCategoryFlags() & static_cast<int>(category);
+		}
+
 		bool handled = false;
 	};
 
 	class HYPER_API EventDispatcher {
 	public:
-		EventDispatcher(Event& event): m_event(event) {
-
+		EventDispatcher(Event& event) : m_event(event) {
 		}
 
 		template <typename T, typename F>

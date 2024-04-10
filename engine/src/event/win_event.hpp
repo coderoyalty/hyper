@@ -21,6 +21,7 @@ namespace hyp {
 		}
 
 		EVENT_CLASS_TYPE(hyp::EventType::WindowResize);
+		EVENT_CLASS_CATEGORY(hyp::EventCategory::WindowCategory);
 	private:
 		uint32_t m_width;
 		uint32_t m_height;
@@ -33,6 +34,7 @@ namespace hyp {
 		}
 
 		EVENT_CLASS_TYPE(hyp::EventType::WindowClose);
+		EVENT_CLASS_CATEGORY(hyp::EventCategory::WindowCategory);
 	};
 }
 

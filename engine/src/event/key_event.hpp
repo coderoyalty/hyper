@@ -8,6 +8,8 @@ namespace hyp {
 	class HYPER_API KeyEvent : public hyp::Event {
 	public:
 		hyp::Key getkey() const { return m_key; }
+
+		EVENT_CLASS_CATEGORY(EventCategory::InputCategory | EventCategory::KeyboardCategory);
 	protected:
 		KeyEvent(const KeyCode key) : m_key((Key)key) {};
 		Key m_key;

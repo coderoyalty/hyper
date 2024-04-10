@@ -1,6 +1,7 @@
 #include "EditorLayer.hpp"
 #include <imgui.h>
 #include <renderer/renderer2d.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 EditorLayer::EditorLayer()
 	: Layer("editor-layer") {
@@ -14,6 +15,13 @@ EditorLayer::EditorLayer()
 	m_framebuffer = hyp::Framebuffer::create(fbSpec);
 
 	m_cameraController = hyp::CreateRef<hyp::OrthoGraphicCameraController>(600.f, 600.f);
+
+	m_scene = hyp::CreateScope<hyp::Scene>();
+
+	m_entity = m_scene->createEntity("Square");
+
+	m_entity.get<hyp::TransformComponent>().size = {100.f, 100.f};
+	m_entity.add<hyp::SpriteComponent>();
 }
 
 void EditorLayer::onEvent(hyp::Event& event) {
@@ -30,7 +38,7 @@ void EditorLayer::onUpdate(float dt) {
 	hyp::RenderCommand::clear();
 
 	hyp::Renderer2D::beginScene(m_cameraController->getCamera().getViewProjectionMatrix());
-	hyp::Renderer2D::drawQuad(glm::vec3(0.f), glm::vec2(300.f, 300.f), glm::vec4(1.0));
+	m_scene->onUpdate(dt);
 	hyp::Renderer2D::endScene();
 
 	m_framebuffer->unbind();
@@ -71,4 +79,19 @@ void EditorLayer::onUIRender() {
 	ImGui::End();
 	ImGui::PopStyleVar();
 	ImGui::ShowDemoWindow(&demo);
+
+	ImGui::Begin("Entity");
+	if (m_entity) {
+		ImGui::Separator();
+		auto& tag = m_entity.get<hyp::TagComponent>().name;
+		ImGui::Text("%s", tag.c_str());
+		auto& pos = m_entity.get<hyp::TransformComponent>().position;
+		auto& size = m_entity.get<hyp::TransformComponent>().size;
+		auto& color = m_entity.get<hyp::SpriteComponent>().color;
+		ImGui::DragFloat3("Position", glm::value_ptr(pos));
+		ImGui::DragFloat2("Size", glm::value_ptr(size));
+		ImGui::ColorEdit4("Color", glm::value_ptr(color));
+		ImGui::Separator();
+	}
+	ImGui::End();
 }

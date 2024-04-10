@@ -20,7 +20,6 @@ ConstructorInitializerAllOnOneLineOrOnePerLine : false
 ContinuationIndentWidth : 4
 FixNamespaceComments : true
 IndentCaseLabels : true
-IndentPPDirectives : BeforeHash
 IndentWidth : 4
 KeepEmptyLinesAtTheStartOfBlocks  : true
 MaxEmptyLinesToKeep : 2

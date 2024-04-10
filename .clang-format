@@ -1,4 +1,4 @@
-BasedOnStyle: LLVM
+BasedOnStyle: Microsoft
 
 AlignAfterOpenBracket : false
 AlignEscapedNewlinesLeft : true
@@ -34,9 +34,9 @@ SpaceBeforeParens : true
 SpaceInEmptyParentheses : false
 SpacesBeforeTrailingComments : 1
 SpacesInAngles : false
-SpacesInCStyleCastParentheses : false
+SpacesInCStyleCastParentheses : true
 SpacesInParentheses : false
-SpacesInSquareBrackets : false
+SpacesInSquareBrackets : true
 Standard : Cpp11
 TabWidth : 4
 UseTab : true

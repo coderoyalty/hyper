@@ -3,6 +3,7 @@
 #define HYP_COMPONENTS_HPP
 
 #include <glm/glm.hpp>
+#include <renderer/texture.hpp>
 #include <string>
 
 namespace hyp {
@@ -23,10 +24,25 @@ struct TransformComponent {
 	}
 };
 
-struct SpriteComponent {
+struct SpriteRendererComponent {
 	glm::vec4 color;
+	hyp::Ref<hyp::Texture2D> texture;
+	float tilingFactor = 1.f;
 
-	SpriteComponent() { color = glm::vec4(1.0); }
+	SpriteRendererComponent(const glm::vec4& color = glm::vec4(1.0))
+		: color(color) {}
+};
+
+struct CircleRendererComponent {
+	glm::vec4 color;
+	float thickness; // 0.1 - 1.0
+	float fade;		 // 0.1 - 1.0
+
+	CircleRendererComponent(const glm::vec4& color = glm::vec4(1.0))
+		: color(color) {
+		thickness = 1.f;
+		fade = 0.f;
+	}
 };
 
 } // namespace hyp

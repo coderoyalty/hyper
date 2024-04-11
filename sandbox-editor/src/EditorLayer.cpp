@@ -21,7 +21,7 @@ EditorLayer::EditorLayer()
 	m_entity = m_scene->createEntity("Square");
 
 	m_entity.get<hyp::TransformComponent>().size = {100.f, 100.f};
-	m_entity.add<hyp::SpriteComponent>();
+	m_entity.add<hyp::SpriteRendererComponent>(glm::vec4(1.0));
 }
 
 void EditorLayer::onEvent(hyp::Event& event) {
@@ -87,7 +87,7 @@ void EditorLayer::onUIRender() {
 		ImGui::Text("%s", tag.c_str());
 		auto& pos = m_entity.get<hyp::TransformComponent>().position;
 		auto& size = m_entity.get<hyp::TransformComponent>().size;
-		auto& color = m_entity.get<hyp::SpriteComponent>().color;
+		auto& color = m_entity.get<hyp::SpriteRendererComponent>().color;
 		ImGui::DragFloat3("Position", glm::value_ptr(pos));
 		ImGui::DragFloat2("Size", glm::value_ptr(size));
 		ImGui::ColorEdit4("Color", glm::value_ptr(color));

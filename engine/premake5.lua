@@ -8,7 +8,10 @@ project "Hyper"
 	files
 	{
 		"src/**hpp", "src/**.cpp",
-		"../dependencies/vendor/stb_image/**.cpp"
+		"../dependencies/vendor/stb_image/**.cpp",
+
+		"vendor/imguizmo/ImGuizmo.h",
+		"vendor/imguizmo/ImGuizmo.cpp"
 	}
 
 	defines
@@ -19,19 +22,22 @@ project "Hyper"
 
 	includedirs
 	{
-    "src/",
+    	"src/",
 		"%{includes.GLFW}",
 		"%{includes.GLAD}",
 		"%{includes.GLM}",
 		"%{includes.STBIMAGE}",
 		"%{includes.IMGUI}",
-		"%{includes.ENTT}"
+		"%{includes.ENTT}",
+		"%{includes.IMGUIZMO}"
 	}
+	
 	links
 	{
 		"GLFW", "GLAD", "IMGUI", "opengl32.lib"
 	}
 
+	filter "files:vendor/imguizmo/**.cpp"
 	flags {"NoPCH"}
 
 	filter "system:windows"

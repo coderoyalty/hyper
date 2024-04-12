@@ -2,7 +2,8 @@ includes = {}
 
 includes["GLFW"] = "%{wks.location}/dependencies/glad/include"
 includes["GLAD"] = "%{wks.location}/dependencies/glfw/include"
-includes["IMGUI"] = "%{wks.location}/dependencies/imgui" 
+includes["IMGUI"] = "%{wks.location}/dependencies/imgui"
+includes["IMGUIZMO"] = "%{wks.location}/dependencies/imguizmo"
 
 -- vendor
 includes["GLM"] = "%{wks.location}/dependencies/vendor/glm/include"

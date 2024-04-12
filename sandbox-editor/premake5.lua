@@ -22,7 +22,9 @@ project "hyper-editor"
 		"%{includes.GLM}",
 		"%{includes.STBIMAGE}",
 		"%{includes.IMGUI}",
-		"%{includes.ENTT}"
+		"%{includes.ENTT}",
+		"%{includes.IMGUIZMO}"
+		
 	}
 	links
 	{

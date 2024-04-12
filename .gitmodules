@@ -5,3 +5,6 @@
 	path = dependencies/imgui
 	url = https://github.com/positron-dev/imgui.git
 	branch = docking
+[submodule "dependencies/imguizmo"]
+	path = dependencies/imguizmo
+	url = https://github.com/positron-dev/ImGuizmo.git

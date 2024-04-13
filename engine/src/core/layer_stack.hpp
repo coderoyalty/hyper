@@ -19,6 +19,9 @@ namespace hyp {
 		void pushLayer(hyp::Layer* layer);
 		void popLayer(hyp::Layer* layer);
 
+
+		void pushOverlay(hyp::Layer* overlay);
+		void popOverlay(hyp::Layer* overlay);
 	public:
 		Layers::iterator begin() {
 			return m_layers.begin();

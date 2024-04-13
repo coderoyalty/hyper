@@ -46,7 +46,11 @@ void hyp::ImGuiLayer::onDetach()
 
 void hyp::ImGuiLayer::onEvent(hyp::Event& e)
 {
-	
+	if (m_blockEvents) {
+		auto& io = ImGui::GetIO();
+		e.handled |= e.belongsToCategory(hyp::EventCategory::MouseCategory) & io.WantCaptureMouse;
+		e.handled |= e.belongsToCategory(hyp::EventCategory::KeyboardCategory) & io.WantCaptureKeyboard;
+	}
 }
 
 void hyp::ImGuiLayer::begin()
@@ -76,6 +80,10 @@ void hyp::ImGuiLayer::end()
 		glfwMakeContextCurrent(backup_current_context);
 	}
 
+}
+
+void hyp::ImGuiLayer::blockEvent(bool value) {
+	m_blockEvents = value;
 }
 
 

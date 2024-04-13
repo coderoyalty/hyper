@@ -1,237 +1,145 @@
 #include "game_layer.hpp"
-#include <imgui.h>
+#include <chrono>
+#include <random>
 
-GameLayer::GameLayer(const glm::vec2& viewport)
-{
-	v_width = viewport.x;
-	v_height = viewport.y;
+static const int row = 50;
+static const int col = 50;
 
-	glm::vec2 size(10.f, 125.f);
+int board[row][col] = { 0 };
 
-	m_controller = hyp::CreateRef<hyp::OrthoGraphicCameraController>(v_width, v_height);
+static const float sizeX = WIDTH / row;
+static const float sizeY = HEIGHT / col;
+static const float space = 0.f;
 
-	float centerX = v_width / 2.f;
-	float centerY = v_height / 2.f;
+static float timeToUpdate = 0.f;
 
-	this->paddleLeft.size = size;
-	this->paddleRight.size = size;
+static unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+std::default_random_engine generator(seed);
 
-
-	this->paddleLeft.position.x = space;
-	this->paddleLeft.position.y = centerY - size.y / 2.f;
-
-	this->paddleRight.position.x = v_width - size.x - space;
-	this->paddleRight.position.y = centerY - size.y / 2.f;
-
-	this->ball.radius = 10.f;
-	this->ball.velocity = INITIAL_VELOCITY;
-	this->ball.position.x = centerX - this->ball.radius / 2.f;
-	this->ball.position.y = centerY - this->ball.radius / 2.f;
-
-	hyp::RenderCommand::setLineWidth(2.f);
+static void init_board() {
+	std::uniform_int_distribution<int> distribution(0, 1);
+	int i, j;
+	for (i = 0; i < col; i++)
+	{
+		for (j = 0; j < row; j++)
+		{
+			board[j][i] = distribution(generator);
+		}
+	}
 }
 
-void GameLayer::onUpdate(float dt)
-{
-	if (!isPaused) {
-		ball.update(dt);
-		handleCollision();
-		movePlayers(dt);
-	}
-	else {
-		m_controller->onUpdate(dt);
+static bool is_cell_alive(int i, int j) {
+	HYP_ASSERT(i < row && j < col);
+
+	int live = 0;
+
+	for (int x = -1; x <= 1; x++)
+	{
+		for (int y = -1; y <= 1; y++)
+		{
+			// skip the cell itself
+			if (x == 0 && y == 0)
+			{
+				continue;
+			}
+
+			int ni = x + i;
+			int nj = y + j;
+
+			if (ni >= 0 && ni < row && nj >= 0 && nj < col && board[ni][nj] == 1)
+			{
+				live++;
+			}
+		}
 	}
 
-	onRender();
+	// against the odds
+
+	// Rules:
+	// 1. Any live cell with fewer than two live neighbors dies, as if by underpopulation.
+	// 2. Any live cell with two or three live neighbors lives on to the next generation.
+	// 3. Any live cell with more than three live neighbors dies, as if by overpopulation.
+	// 4. Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
+	//
+
+	bool is_alive = bool(board[i][j]);
+
+	if (is_alive)
+	{
+		if (live < 2)
+			return false;
+		else if (live == 2 || live == 3)
+			return true;
+		else
+			return false;
+	}
+	else if (live == 3)
+	{
+		return true;
+	}
+
+	return false;
 }
 
-void GameLayer::onUIRender()
-{
-	ImGui::Begin("Application");
-	ImGui::Text("Draw Calls: %d", hyp::Renderer2D::getStats().drawCalls);
-	ImGui::Text("No. Quads: %d", hyp::Renderer2D::getStats().getQuadCount());
-	ImGui::Text("No. Lines: %d", hyp::Renderer2D::getStats().getLineCount());
-	// unfortunately the current hyper API is does not have stats for circle's created..
-
-	//game stats
-	ImGui::Text("Player 1 Score: %d", stat.score1);
-	ImGui::Text("Player 2 Score: %d", stat.score2);
-	if (ImGui::Button("Reset Stats")) {
-		stat.reset();
+static void update_board() {
+	for (int j = 0; j < col; j++)
+	{
+		for (int i = 0; i < row; i++)
+		{
+			board[i][j] = is_cell_alive(i, j);
+		}
 	}
-
-	// toggle the game state
-	if (ImGui::Button("Toggle Game Pause")) {
-		isPaused = !isPaused;
-
-		ImGui::SameLine();
-		ImGui::Text(isPaused ? "Click to Play" : "Click to Pause");
-	}
-
-	float size[2] = { paddleLeft.size.x, paddleLeft.size.y };
-
-	// adjust paddle size
-
-	ImGui::DragFloat2("Paddle Size", size, 0.1, 5.0, 100);
-
-	paddleLeft.size = { size[0], size[1] };
-	paddleRight.size = { size[0], size[1]};
-
-	// adjust ball parameters
-	ImGui::Text("Ball Info");
-	ImGui::DragFloat("Ball Radius", &ball.radius, 0.1, 10.0, 30.f);
-	ImGui::DragFloat("Ball Fade", &ball.fade, 0.01, 0.0, 1.0);
-	ImGui::DragFloat("Ball Thickness", &ball.thickness, 0.01, 0.0, 1.0);
-
-	// tweak viewport here!
-	if (ImGui::DragFloat("Viewport Width", &v_width, 0.1, 200.f, 1000.f)) {
-		m_controller->onResize(v_width, v_height);
-		
-		// update the right paddle to the end of the viewport
-		this->paddleRight.position.x = v_width - paddleRight.size.x - space;
-	}
-	if (ImGui::DragFloat("Viewport Height", &v_height, 0.1, 300.f, 9000.f)) {
-		m_controller->onResize(v_width, v_height);
-	}
-	
-	ImGui::End();
 }
 
-void GameLayer::onRender()
-{
+static void draw_board() {
+	for (int j = 0; j < col; j++)
+	{
+		for (int i = 0; i < row; i++)
+		{
+			glm::vec3 pos {};
+			pos.x = ((sizeX + space) * i);
+			pos.y = ((sizeY + space) * j);
+
+			glm::mat4 model(1.0);
+
+			model = glm::translate(model, pos);
+			model = glm::scale(model, glm::vec3(sizeX, sizeY, 1.f));
+
+			int val = board[i][j];
+			if (val == 1)
+			{
+				hyp::Renderer2D::drawQuad(pos, { sizeX, sizeY }, glm::vec4(1.f));
+			}
+			else
+			{
+				hyp::Renderer2D::drawQuad(pos, { sizeX, sizeY }, glm::vec4(0.f, 0.f, 0.f, 1.f));
+			}
+		}
+	}
+}
+
+void GameLayer::onAttach() {
+	init_board();
+
+	m_cameraController = hyp::CreateRef<hyp::OrthoGraphicCameraController>(600.f, 600.f);
+}
+
+void GameLayer::onUpdate(float dt) {
+
+	timeToUpdate += dt;
+
+	if (timeToUpdate >= 0.5f)
+	{
+		update_board();
+		timeToUpdate = 0.f;
+	}
+
+
+	hyp::RenderCommand::setClearColor(0.3, 0.4, 0.1, 1.f);
 	hyp::RenderCommand::clear();
-	hyp::RenderCommand::setClearColor(0.3, 0.3, 0.3, 1.f);
 
-	hyp::Renderer2D::beginScene(m_controller->getCamera().getViewProjectionMatrix());
-
-	// draw the paddles
-	hyp::Renderer2D::drawQuad(glm::vec3(paddleLeft.position, 0.f), paddleLeft.size, glm::vec4(1.f, 0.f, 1.f, 1.f));
-	hyp::Renderer2D::drawQuad(glm::vec3(paddleRight.position, 0.f), paddleRight.size, glm::vec4(0.f, 0.f, 1.f, 1.f));
-
-
-	// draw the camera viewport here
-	glm::vec3 pos = m_controller->getCamera().getPosition();
-	drawRect(glm::vec3(v_width * 0.5f, v_height * 0.5f, 0.f), { v_width, v_height }, glm::vec4(1.0, 0.0, 0.0, 1.f));
-
-	/* Draw the Nets */
-	
-	int length = 10;
-	int spacing = 5;
-	int numLines = v_height / (length + 2 * spacing);
-	for (int i = 0; i < numLines; i++) {
-		glm::vec3 p1 = glm::vec3(v_width / 2.f, i * (length + 2 * spacing) + spacing, 0.f);
-		glm::vec3 p2 = glm::vec3(0.f, length, 0.f);
-		hyp::Renderer2D::drawLine(p1, p1 + p2, glm::vec4(1.0, 1.0, 0.f, 1.f));
-	}
-
-	glm::vec2 halfWindow = { v_width * 0.5f, v_height };
-
-	// viewport background
-	hyp::Renderer2D::drawQuad(glm::vec3(0.f, 0.f, -0.5f), halfWindow, glm::vec4(1.f));
-	hyp::Renderer2D::drawQuad(glm::vec3(halfWindow.x, 0.f, -0.5f), halfWindow, glm::vec4(0.f, 0.f, 0.f, 1.f));
-
-	if (ball.position.x >= halfWindow.x) {
-		ball.draw(glm::vec4(1.f));
-	}
-	else {
-		ball.draw(glm::vec4(0.f, 0.f, 0.f, 1.f));
-	}
+	hyp::Renderer2D::beginScene(m_cameraController->getCamera().getViewProjectionMatrix());
+	draw_board();
 
 	hyp::Renderer2D::endScene();
 }
-
-bool GameLayer::checkPaddleCollision(const Ball& ball, const Paddle& paddle) const
-{
-	float ballLeft = ball.position.x;
-	float ballRight = ball.position.x + ball.radius;
-	float ballTop = ball.position.y;
-	float ballBottom = ball.position.y + ball.radius;
-
-	float paddleLeft = paddle.position.x;
-	float paddleRight = paddle.position.x + paddle.size.x;
-	float paddleTop = paddle.position.y;
-	float paddleBottom = paddle.position.y + paddle.size.y;
-
-	return ballLeft <= paddleRight &&
-		ballRight >= paddleLeft &&
-		ballTop <= paddleBottom &&
-		ballBottom >= paddleTop;
-}
-
-void GameLayer::movePlayers(float dt)
-{
-	float delta_distance = INITIAL_VELOCITY * dt;
-	if (hyp::Input::isKeyPressed(hyp::Key::W) && paddleLeft.position.y - delta_distance > space) {
-		paddleLeft.position.y -= delta_distance;
-	}
-	else if (hyp::Input::isKeyPressed(hyp::Key::S) &&
-		paddleLeft.position.y + delta_distance < v_height - paddleLeft.size.y - space) {
-		paddleLeft.position.y += delta_distance;
-	};
-
-	if (hyp::Input::isKeyPressed(hyp::Key::UP) && paddleRight.position.y - delta_distance > space) {
-		paddleRight.position.y -= delta_distance;
-
-	}
-	else if (hyp::Input::isKeyPressed(hyp::Key::DOWN) &&
-		paddleRight.position.y + delta_distance < v_height - paddleLeft.size.y - space
-		) {
-		paddleRight.position.y += delta_distance;
-	};
-}
-
-void GameLayer::handleCollision(Paddle& paddle, Ball& ball)
-{
-	float t = ((ball.position.y - paddle.position.y) / paddle.size.y) - 0.5f;
-	ball.dir.y = t;
-}
-
-void GameLayer::handleWallCollision()
-{
-	float ballLeft = ball.position.x;
-	float ballRight = ball.position.x + ball.radius;
-	float ballTop = ball.position.y;
-	float ballBottom = ball.position.y + ball.radius;
-
-	if (ballTop <= space) {
-		ball.dir.y = fabs(ball.dir.x);
-	}
-
-	if (ballBottom >= v_height - space) {
-		ball.dir.y = -fabs(ball.dir.x);
-	}
-
-	if (ballLeft <= space) {
-		ball.position.x = v_width * 0.5f - ball.radius * 0.5f;
-		ball.position.y = v_height * 0.5f - ball.radius * 0.5f;
-		ball.dir.x = fabs(ball.dir.x);
-		ball.dir.y = 0;
-		stat.score2++;
-	}
-
-	if (ballRight >= v_height - space) {
-		ball.position.x = v_width * 0.5f - ball.radius * 0.5f;
-		ball.position.y = v_height * 0.5f - ball.radius * 0.5f;
-		ball.dir.x = -fabs(ball.dir.x);
-		ball.dir.y = 0;
-
-		stat.score1++;
-	}
-}
-
-void GameLayer::handleCollision()
-{
-	handleWallCollision();
-	if (checkPaddleCollision(ball, paddleLeft)) {
-		ball.dir.x = fabs(ball.dir.x);
-		handleCollision(paddleLeft, ball);
-	}
-
-	if (checkPaddleCollision(ball, paddleRight)) {
-		ball.dir.x = -fabs(ball.dir.x);
-		handleCollision(paddleRight, ball);
-	}
-
-	ball.dir = glm::normalize(ball.dir);
-}
-

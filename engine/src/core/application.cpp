@@ -1,11 +1,10 @@
 #include <core/application.hpp>
-#include <utils/logger.hpp>
 #include <core/timer.hpp>
+#include <utils/logger.hpp>
 
 hyp::Application* hyp::Application::sInstance = nullptr;
 
-hyp::Application::Application(const WindowProps& ws)
-{
+hyp::Application::Application(const WindowProps& ws) {
 	HYP_ASSERT_CORE(sInstance == nullptr, "application already exists");
 	sInstance = this;
 
@@ -15,11 +14,10 @@ hyp::Application::Application(const WindowProps& ws)
 
 	this->m_uiLayer = new hyp::ImGuiLayer();
 
-	pushLayer(this->m_uiLayer);
+	pushOverlay(this->m_uiLayer);
 }
 
-void hyp::Application::run()
-{
+void hyp::Application::run() {
 	float last_frame = 0.f;
 	while (m_running && m_window->isRunning()) {
 		hyp::Timer::postTick();
@@ -43,29 +41,29 @@ void hyp::Application::run()
 		m_uiLayer->end();
 
 		m_window->onUpdate();
-
 	}
 }
 
-const hyp::Unique<hyp::Window>& hyp::Application::getWindow() const
-{
+const hyp::Unique<hyp::Window>& hyp::Application::getWindow() const {
 	return m_window;
 }
 
-void hyp::Application::close()
-{
+void hyp::Application::close() {
 	m_window->close();
 	m_running = false;
 }
 
-void hyp::Application::pushLayer(Layer* layer)
-{
+void hyp::Application::pushLayer(Layer* layer) {
 	m_layerStack.pushLayer(layer);
 	layer->onAttach();
 }
 
-void hyp::Application::onEvent(Event& e)
-{
+void hyp::Application::pushOverlay(Layer* overlay) {
+	m_layerStack.pushOverlay(overlay);
+	overlay->onAttach();
+}
+
+void hyp::Application::onEvent(Event& e) {
 	hyp::EventDispatcher ed(e);
 	ed.dispatch<hyp::WindowResizeEvent>(BIND_EVENT_FN(Application::onResize));
 	ed.dispatch<hyp::WindowCloseEvent>(BIND_EVENT_FN(Application::onWindowClose));
@@ -79,10 +77,8 @@ void hyp::Application::onEvent(Event& e)
 	}
 }
 
-bool hyp::Application::onResize(const WindowResizeEvent& event)
-{
-	if (event.getWidth() == 0 || event.getHeight() == 0)
-	{
+bool hyp::Application::onResize(const WindowResizeEvent& event) {
+	if (event.getWidth() == 0 || event.getHeight() == 0) {
 		m_minimized = true;
 		return false;
 	}
@@ -90,10 +86,7 @@ bool hyp::Application::onResize(const WindowResizeEvent& event)
 	return false;
 }
 
-bool hyp::Application::onWindowClose(const WindowCloseEvent&)
-{
+bool hyp::Application::onWindowClose(const WindowCloseEvent&) {
 	m_running = false;
 	return false;
 }
-
-

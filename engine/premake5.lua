@@ -10,8 +10,8 @@ project "Hyper"
 		"src/**hpp", "src/**.cpp",
 		"../dependencies/vendor/stb_image/**.cpp",
 
-		"vendor/imguizmo/ImGuizmo.h",
-		"vendor/imguizmo/ImGuizmo.cpp"
+		"../dependencies/imguizmo/ImGuizmo.h",
+		"../dependencies/imguizmo/ImGuizmo.cpp"
 	}
 
 	defines

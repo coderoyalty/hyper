@@ -5,7 +5,7 @@
 #include <utils/logger.hpp>
 #include <core/device.hpp>
 #include <core/window.hpp>
-#include "texture_rendering.hpp"
+#include "game_layer.hpp"
 
 int main(int argc, char** argv)
 {
@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 	hyp::RenderCommand::init();
 	hyp::Renderer2D::init();
 
-	app.pushLayer(new TexturedQuadLayer());
+	app.pushLayer(new GameLayer());
 	app.run();
 
 	hyp::Renderer2D::deinit();

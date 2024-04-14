@@ -1,14 +1,15 @@
 #pragma once
 #ifndef HYPER_MOUSE_CODE_HPP
-#define HYPER_MOUSE_CODE_HPP
+	#define HYPER_MOUSE_CODE_HPP
 
-#include <GLFW/glfw3.h>
-#include <cstdint>
+	#include <GLFW/glfw3.h>
+	#include <cstdint>
 
 namespace hyp {
 	using MouseCode = uint8_t;
 
-	enum Mouse : MouseCode {
+	enum Mouse : MouseCode
+	{
 		// From glfw3.h
 		BUTTON0 = GLFW_MOUSE_BUTTON_1,
 		BUTTON2 = GLFW_MOUSE_BUTTON_2,

@@ -19,13 +19,16 @@ hyp::Application::Application(const WindowProps& ws) {
 
 void hyp::Application::run() {
 	float last_frame = 0.f;
-	while (m_running && m_window->isRunning()) {
+	while (m_running && m_window->isRunning())
+	{
 		hyp::Timer::postTick();
 
 		float dt = hyp::Timer::getDeltaTime();
 
-		if (!this->m_minimized) {
-			for (auto layer : m_layerStack) {
+		if (!this->m_minimized)
+		{
+			for (auto layer : m_layerStack)
+			{
 				layer->onUpdate(dt);
 			}
 		}
@@ -33,7 +36,8 @@ void hyp::Application::run() {
 		m_uiLayer->begin();
 
 		{
-			for (auto layer : m_layerStack) {
+			for (auto layer : m_layerStack)
+			{
 				layer->onUIRender();
 			}
 		}
@@ -68,8 +72,10 @@ void hyp::Application::onEvent(Event& e) {
 	ed.dispatch<hyp::WindowResizeEvent>(BIND_EVENT_FN(Application::onResize));
 	ed.dispatch<hyp::WindowCloseEvent>(BIND_EVENT_FN(Application::onWindowClose));
 
-	for (auto it = m_layerStack.rbegin(); it != m_layerStack.rend(); it++) {
-		if (e.handled) {
+	for (auto it = m_layerStack.rbegin(); it != m_layerStack.rend(); it++)
+	{
+		if (e.handled)
+		{
 			break;
 		}
 
@@ -78,7 +84,8 @@ void hyp::Application::onEvent(Event& e) {
 }
 
 bool hyp::Application::onResize(const WindowResizeEvent& event) {
-	if (event.getWidth() == 0 || event.getHeight() == 0) {
+	if (event.getWidth() == 0 || event.getHeight() == 0)
+	{
 		m_minimized = true;
 		return false;
 	}

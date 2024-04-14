@@ -8,10 +8,9 @@
 namespace hyp {
 	class LayerStack {
 		using Layers = std::vector<hyp::Layer*>;
+
 	public:
-
 		LayerStack() {
-
 		}
 
 		~LayerStack();
@@ -19,9 +18,9 @@ namespace hyp {
 		void pushLayer(hyp::Layer* layer);
 		void popLayer(hyp::Layer* layer);
 
-
 		void pushOverlay(hyp::Layer* overlay);
 		void popOverlay(hyp::Layer* overlay);
+
 	public:
 		Layers::iterator begin() {
 			return m_layers.begin();
@@ -46,12 +45,12 @@ namespace hyp {
 
 		Layers::const_reverse_iterator rbegin() const {
 			return m_layers.rbegin();
-
 		}
 
 		Layers::const_reverse_iterator rend() const {
 			return m_layers.rend();
 		}
+
 	private:
 		Layers m_layers;
 		unsigned int m_layerInsertIndex = 0;

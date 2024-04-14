@@ -9,9 +9,8 @@
 class Camera {
 public:
 	Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = -90.0f, float pitch = 0.0f)
-		: position(position), worldUp(up), yaw(yaw), pitch(pitch),
-		front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(0.05f), mouseSensitivity(0.1f), zoom(45.0f)
-	{
+	    : position(position), worldUp(up), yaw(yaw), pitch(pitch),
+	      front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(0.05f), mouseSensitivity(0.1f), zoom(45.0f) {
 		update();
 	}
 
@@ -25,7 +24,6 @@ public:
 	}
 
 	bool onUpdate() {
-
 		if (hyp::Input::isKeyPressed(hyp::Key::W))
 			position += movementSpeed * front;
 		else if (hyp::Input::isKeyPressed(hyp::Key::S))
@@ -39,12 +37,12 @@ public:
 	}
 
 	bool onMouseMoved(hyp::MouseMovedEvent& event) {
-
 		float xpos = event.getX();
 		float ypos = event.getY();
 
 		static float lastX = xpos, lastY = ypos;
-		if (!hideCursor) {
+		if (!hideCursor)
+		{
 			return false;
 		}
 
@@ -68,6 +66,7 @@ public:
 
 		return true;
 	}
+
 public:
 	glm::vec3 position;
 	glm::vec3 front;
@@ -84,10 +83,8 @@ public:
 
 	bool hideCursor = false;
 
-
-
 	void update() {
-		glm::vec3 newFront{};
+		glm::vec3 newFront {};
 		newFront.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 		newFront.y = sin(glm::radians(pitch));
 		newFront.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));

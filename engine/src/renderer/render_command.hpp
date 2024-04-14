@@ -1,9 +1,9 @@
 #pragma once
 #ifndef HYP_RENDER_COMMAND
-#define HYP_RENDER_COMMAND
+	#define HYP_RENDER_COMMAND
 
-#include <glm/glm.hpp>
-#include <renderer/vertex_array.hpp>
+	#include <glm/glm.hpp>
+	#include <renderer/vertex_array.hpp>
 
 namespace hyp {
 	class RenderCommand {

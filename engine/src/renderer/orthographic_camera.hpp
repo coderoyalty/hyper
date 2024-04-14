@@ -1,8 +1,8 @@
 #pragma once
 #ifndef HYP_ORTHOGRAPHIC_CAMERA_HPP
-#define HYP_ORTHOGRAPHIC_CAMERA_HPP
+	#define HYP_ORTHOGRAPHIC_CAMERA_HPP
 
-#include <renderer/camera.hpp>
+	#include <renderer/camera.hpp>
 
 namespace hyp {
 	class OrthoGraphicCamera : public hyp::Camera {
@@ -36,7 +36,6 @@ namespace hyp {
 		}
 
 	private:
-
 		void recalculateViewMatrix();
 
 		glm::mat4 m_viewMatrix;

@@ -1,20 +1,18 @@
 #pragma once
 #ifndef HYP_ORTHOGRAPHIC_CONTROLLER
 
-#define HYP_ORTHOGRAPHIC_CONTROLLER 
+	#define HYP_ORTHOGRAPHIC_CONTROLLER
 
-#include <event/event.hpp>
-#include <event/mouse_event.hpp>
-#include <event/key_event.hpp>
-#include <event/win_event.hpp>
-#include <io/input.hpp>
-#include <renderer/orthographic_camera.hpp>
-
+	#include <event/event.hpp>
+	#include <event/mouse_event.hpp>
+	#include <event/key_event.hpp>
+	#include <event/win_event.hpp>
+	#include <io/input.hpp>
+	#include <renderer/orthographic_camera.hpp>
 
 namespace hyp {
 	class OrthoGraphicCameraController {
 	public:
-
 		OrthoGraphicCameraController(float viewport_width, float viewport_height);
 
 		void onEvent(hyp::Event& event);
@@ -39,6 +37,7 @@ namespace hyp {
 	private:
 		bool onMouseScrolled(hyp::MouseScrolledEvent& event);
 		bool onWindowResized(hyp::WindowResizeEvent& event);
+
 	private:
 		float m_aspectRatio;
 		float m_width = 0.f, m_height = 0.f;
@@ -50,6 +49,5 @@ namespace hyp {
 		hyp::OrthoGraphicCamera m_camera;
 	};
 }
-
 
 #endif // !HYP_ORTHOGRAPHIC_CONTROLLER

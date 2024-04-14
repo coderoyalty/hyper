@@ -14,6 +14,7 @@ namespace hyp {
 		void unbind();
 
 		uint32_t getCount() const { return m_count; }
+
 	private:
 		uint32_t m_rendererId;
 		uint32_t m_count;

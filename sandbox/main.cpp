@@ -7,8 +7,7 @@
 #include <core/window.hpp>
 #include "game_layer.hpp"
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
 	hyp::Device::init({});
 	hyp::WindowProps props("hyper-sandbox: pong", 600, 600);
 	props.resizable = false;

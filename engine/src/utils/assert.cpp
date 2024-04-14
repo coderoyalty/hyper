@@ -6,8 +6,7 @@
 
 using namespace hyp;
 
-void report_assert(const char* expr, const char* message, const char* filename, uint32_t line)
-{
+void report_assert(const char* expr, const char* message, const char* filename, uint32_t line) {
 	log_output(hyp::LOG_TYPE::FATAL, "assert: %s\n", expr);
 
 	HANDLE consoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);

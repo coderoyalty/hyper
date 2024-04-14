@@ -1,13 +1,13 @@
 #pragma once
 #ifndef HYPER_EDITOR_LAYER
-#define HYPER_EDITOR_LAYER
-#include <core/application.hpp>
-#include <glm/glm.hpp>
-#include <renderer/framebuffer.hpp>
-#include <renderer/orthographic_controller.hpp>
-#include <scene/components.hpp>
-#include <scene/entity.hpp>
-#include <scene/scene.hpp>
+	#define HYPER_EDITOR_LAYER
+	#include <core/application.hpp>
+	#include <glm/glm.hpp>
+	#include <renderer/framebuffer.hpp>
+	#include <renderer/orthographic_controller.hpp>
+	#include <scene/components.hpp>
+	#include <scene/entity.hpp>
+	#include <scene/scene.hpp>
 
 class EditorLayer : public hyp::Layer {
 public:

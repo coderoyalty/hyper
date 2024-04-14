@@ -4,8 +4,7 @@
 #include <renderer/render_command.hpp>
 #include "EditorLayer.hpp"
 
-int main(int argc, char **argv)
-{
+int main(int argc, char** argv) {
 	hyp::Device::init({});
 
 	hyp::WindowProps props("hyper-editor", 600, 600);

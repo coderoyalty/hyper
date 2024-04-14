@@ -10,6 +10,7 @@ namespace hyp {
 		hyp::Key getkey() const { return m_key; }
 
 		EVENT_CLASS_CATEGORY(EventCategory::InputCategory | EventCategory::KeyboardCategory);
+
 	protected:
 		KeyEvent(const KeyCode key) : m_key((Key)key) {};
 		Key m_key;
@@ -18,19 +19,20 @@ namespace hyp {
 	class KeyPressedEvent : public hyp::KeyEvent {
 	public:
 		KeyPressedEvent(const KeyCode key, bool isRepeated) : KeyEvent(key), m_repeated(isRepeated) {}
-		
+
 		bool isRepeat() const {
 			return m_repeated;
 		}
 
 		EVENT_CLASS_TYPE(hyp::EventType::KeyPressed);
+
 	private:
 		bool m_repeated;
 	};
 
 	class KeyReleasedEvent : public hyp::KeyEvent {
 	public:
-		KeyReleasedEvent(const KeyCode key): KeyEvent(key) {}
+		KeyReleasedEvent(const KeyCode key) : KeyEvent(key) {}
 		EVENT_CLASS_TYPE(hyp::EventType::KeyReleased);
 	};
 }

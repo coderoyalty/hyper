@@ -16,8 +16,7 @@ namespace utils {
 	}
 }
 
-hyp::Texture::Texture(const TextureSpecification& spec)
-{
+hyp::Texture::Texture(const TextureSpecification& spec) {
 	m_spec = spec;
 
 	m_width = spec.width;
@@ -38,10 +37,8 @@ hyp::Texture::Texture(const TextureSpecification& spec)
 }
 
 hyp::Texture::Texture(const std::string& path)
-	: m_path(path), m_texture(0),
-	m_internalFormat(0), m_dataFormat(0)
-{
-
+    : m_path(path), m_texture(0),
+      m_internalFormat(0), m_dataFormat(0) {
 	int width, height, channels;
 	unsigned char* pixels;
 
@@ -57,17 +54,20 @@ hyp::Texture::Texture(const std::string& path)
 
 	int dataFormat = 0, internalFormat = 0;
 
-	if (!pixels) {
+	if (!pixels)
+	{
 		return;
 	}
 
 	m_loaded = true;
 
-	if (channels == 4) {
+	if (channels == 4)
+	{
 		dataFormat = GL_RGBA;
 		internalFormat = GL_RGBA;
 	}
-	else if (channels == 3) {
+	else if (channels == 3)
+	{
 		dataFormat = GL_RGB;
 		internalFormat = GL_RGB;
 	}
@@ -97,23 +97,19 @@ hyp::Texture::Texture(const std::string& path)
 	stbi_image_free(pixels);
 }
 
-hyp::Texture::~Texture()
-{
+hyp::Texture::~Texture() {
 	glDeleteTextures(1, &m_texture);
 }
 
-hyp::Ref<hyp::Texture> hyp::Texture::create(const hyp::TextureSpecification& spec)
-{
+hyp::Ref<hyp::Texture> hyp::Texture::create(const hyp::TextureSpecification& spec) {
 	return hyp::CreateRef<hyp::Texture>(spec);
 }
 
-hyp::Ref<hyp::Texture> hyp::Texture::create(const std::string& path)
-{
+hyp::Ref<hyp::Texture> hyp::Texture::create(const std::string& path) {
 	return hyp::CreateRef<hyp::Texture>(path);
 }
 
-void hyp::Texture::bind(int8_t slot)
-{
+void hyp::Texture::bind(int8_t slot) {
 	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_2D, m_texture);
 }
@@ -123,8 +119,7 @@ void hyp::Texture::unbind() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void hyp::Texture::setData(void* pixels, uint32_t size)
-{
+void hyp::Texture::setData(void* pixels, uint32_t size) {
 	uint32_t formatSize = m_dataFormat == GL_RGBA ? 4 : 3;
 
 	HYP_ASSERT_CORE(m_width * m_height * formatSize == size, "data provided must be the entire pixels data");

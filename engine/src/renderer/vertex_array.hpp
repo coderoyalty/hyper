@@ -6,10 +6,8 @@
 #include <renderer/vertex_buffer.hpp>
 #include <renderer/element_buffer.hpp>
 
-namespace hyp
-{
-	class VertexArray
-	{
+namespace hyp {
+	class VertexArray {
 	public:
 		VertexArray();
 
@@ -17,17 +15,15 @@ namespace hyp
 
 	public:
 		static hyp::Shared<VertexArray> create();
-	public:
 
+	public:
 		void bind();
 		void unbind();
 
 		void addVertexBuffer(const Ref<VertexBuffer>& vbuffer);
 		void setIndexBuffer(const Ref<hyp::ElementBuffer>& element_buffer);
 
-
-		const std::vector<Ref<VertexBuffer>>& getVertexBuffers() const
-		{
+		const std::vector<Ref<VertexBuffer>>& getVertexBuffers() const {
 			return m_vbuffers;
 		}
 

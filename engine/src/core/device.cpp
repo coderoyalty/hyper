@@ -2,16 +2,16 @@
 #include <GLFW/glfw3.h>
 #include "utils/logger.hpp"
 
-void hyp::Device::init(const DeviceSetting& ds)
-{
-	if (ds.majorVersion < 3) {
+void hyp::Device::init(const DeviceSetting& ds) {
+	if (ds.majorVersion < 3)
+	{
 		HYP_ERROR("The OpenGL version used it not supported");
 		std::terminate();
 	}
 
-
 	int code = glfwInit();
-	if (!code) {
+	if (!code)
+	{
 		HYP_ERROR("GLFW API initialized failed");
 		std::terminate();
 	}

@@ -1,8 +1,8 @@
 #include <event/event.hpp>
 #ifndef HYPER_LAYER_HPP
-#define HYPER_LAYER_HPP
+	#define HYPER_LAYER_HPP
 
-#include <string>
+	#include <string>
 
 namespace hyp {
 	class Layer {
@@ -19,6 +19,7 @@ namespace hyp {
 		virtual void onUIRender() {}
 
 		std::string getName() { return m_layerName; }
+
 	private:
 		std::string m_layerName;
 	};

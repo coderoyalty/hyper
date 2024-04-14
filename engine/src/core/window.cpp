@@ -11,36 +11,33 @@ namespace callback {
 	static void registerMouseBtn(GLFWwindow* window, int button, int action, int mods);
 }
 
-hyp::Scope<hyp::Window> hyp::Window::create(WindowProps props)
-{
+hyp::Scope<hyp::Window> hyp::Window::create(WindowProps props) {
 	return hyp::CreateScope<hyp::Window>(props);
 }
 
-hyp::Window::Window(WindowProps props) : m_props(props)
-{
+hyp::Window::Window(WindowProps props) : m_props(props) {
 	this->init();
 }
 
-hyp::Window::~Window()
-{
+hyp::Window::~Window() {
 	this->close();
 	this->deinit();
 }
 
-void hyp::Window::setVSync(bool enable)
-{
-	if (enable) {
+void hyp::Window::setVSync(bool enable) {
+	if (enable)
+	{
 		glfwSwapInterval(1);
 	}
-	else {
+	else
+	{
 		glfwSwapInterval(0);
 	}
 
 	m_props.vsync = enable;
 }
 
-void hyp::Window::init()
-{
+void hyp::Window::init() {
 	glfwWindowHint(GLFW_RESIZABLE, this->m_props.resizable);
 	glfwWindowHint(GLFW_FOCUSED, this->m_props.focus);
 	glfwWindowHint(GLFW_VISIBLE, this->m_props.visible);
@@ -48,8 +45,8 @@ void hyp::Window::init()
 
 	hyp::WindowData& data = this->m_props.windowData;
 	this->m_window = glfwCreateWindow(
-		data.width, data.height, data.title.c_str(),
-		this->m_props.fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
+	    data.width, data.height, data.title.c_str(),
+	    this->m_props.fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
 	if (!this->m_window)
 	{
 		HYP_ERROR("Unable to create window");
@@ -58,7 +55,8 @@ void hyp::Window::init()
 
 	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-	if (mode) {
+	if (mode)
+	{
 		hyp::Timer::setFPS(mode->refreshRate);
 	}
 
@@ -83,8 +81,7 @@ void hyp::Window::init()
 	glfwSetMouseButtonCallback(m_window, callback::registerMouseBtn);
 }
 
-void hyp::Window::deinit()
-{
+void hyp::Window::deinit() {
 	if (m_window)
 	{
 		glfwDestroyWindow(m_window);
@@ -92,30 +89,25 @@ void hyp::Window::deinit()
 	return;
 }
 
-void hyp::Window::setVisibility(bool visible)
-{
+void hyp::Window::setVisibility(bool visible) {
 	glfwSetWindowAttrib(m_window, GLFW_VISIBLE, visible);
 	m_props.visible = visible;
 }
 
-void hyp::Window::close()
-{
+void hyp::Window::close() {
 	glfwSetWindowShouldClose(m_window, true);
 }
 
-bool hyp::Window::isRunning() const
-{
+bool hyp::Window::isRunning() const {
 	return !glfwWindowShouldClose(m_window);
 }
 
-void hyp::Window::onUpdate()
-{
+void hyp::Window::onUpdate() {
 	glfwPollEvents();
 	m_context->swapBuffer();
 }
 
-void hyp::Window::setEventCallback(const EventCallbackFn& fn)
-{
+void hyp::Window::setEventCallback(const EventCallbackFn& fn) {
 	m_props.windowData.event_callback = fn;
 }
 
@@ -141,7 +133,8 @@ void callback::registerWindowClose(GLFWwindow* window) {
 void callback::registerKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	hyp::WindowData& data = *(hyp::WindowData*)glfwGetWindowUserPointer(window);
 
-	switch (action) {
+	switch (action)
+	{
 	case GLFW_PRESS:
 	{
 		hyp::KeyPressedEvent event((hyp::KeyCode)key, false);
@@ -163,25 +156,21 @@ void callback::registerKey(GLFWwindow* window, int key, int scancode, int action
 	default:
 		break;
 	};
-
 }
-void callback::registerCursorPos(GLFWwindow* window, double xpos, double ypos)
-{
+void callback::registerCursorPos(GLFWwindow* window, double xpos, double ypos) {
 	hyp::WindowData& data = *(hyp::WindowData*)glfwGetWindowUserPointer(window);
 
 	hyp::MouseMovedEvent event((float)xpos, (float)ypos);
 	data.event_callback(event);
 }
 
-void callback::registerScroll(GLFWwindow* window, double xoffset, double yoffset)
-{
+void callback::registerScroll(GLFWwindow* window, double xoffset, double yoffset) {
 	hyp::WindowData& data = *(hyp::WindowData*)glfwGetWindowUserPointer(window);
 	hyp::MouseScrolledEvent event((float)xoffset, (float)yoffset);
 	data.event_callback(event);
 }
 
-void callback::registerMouseBtn(GLFWwindow* window, int button, int action, int mods)
-{
+void callback::registerMouseBtn(GLFWwindow* window, int button, int action, int mods) {
 	hyp::WindowData& data = *(hyp::WindowData*)glfwGetWindowUserPointer(window);
 
 	switch (action)

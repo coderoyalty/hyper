@@ -1,7 +1,6 @@
 #pragma once
 #ifndef HYP_TIMER_HPP
-#define HYP_TIMER_HPP
-
+	#define HYP_TIMER_HPP
 
 namespace hyp {
 	class Timer {
@@ -18,6 +17,7 @@ namespace hyp {
 		* \brief elapsed time since last tick in milliseconds
 		*/
 		static float getDeltaTimeMs();
+
 	private:
 		static void postTick();
 		friend class Application;
@@ -25,4 +25,3 @@ namespace hyp {
 }
 
 #endif // !HYP_TIMER_HPP
-

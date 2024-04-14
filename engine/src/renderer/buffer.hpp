@@ -8,8 +8,7 @@
 #include "utils/logger.hpp"
 #include "core/base.hpp"
 
-namespace hyp
-{
+namespace hyp {
 
 	enum class ShaderDataType
 	{
@@ -27,8 +26,7 @@ namespace hyp
 		Bool
 	};
 
-	static uint32_t ShaderDataTypeSize(ShaderDataType type)
-	{
+	static uint32_t ShaderDataTypeSize(ShaderDataType type) {
 		switch (type)
 		{
 		case ShaderDataType::Float:
@@ -71,12 +69,10 @@ namespace hyp
 		VertexAttribDescriptor() = default;
 
 		VertexAttribDescriptor(ShaderDataType type, const std::string& name, bool normalized = false)
-			: type(type), name(name), offset(0), size(ShaderDataTypeSize(type)), normalized(false)
-		{
+		    : type(type), name(name), offset(0), size(ShaderDataTypeSize(type)), normalized(false) {
 		}
 
-		uint32_t getComponentCount() const
-		{
+		uint32_t getComponentCount() const {
 			switch (type)
 			{
 			case ShaderDataType::Float:
@@ -109,52 +105,42 @@ namespace hyp
 		}
 	};
 
-	class BufferLayout
-	{
+	class BufferLayout {
 	public:
-		BufferLayout()
-		{
+		BufferLayout() {
 		}
 
 		BufferLayout(std::initializer_list<VertexAttribDescriptor> attributesDescriptor)
-			: m_attribDescriptors(attributesDescriptor)
-		{
+		    : m_attribDescriptors(attributesDescriptor) {
 			computeLayout();
 		}
 
-		uint32_t getStride() const
-		{
+		uint32_t getStride() const {
 			return m_stride;
 		}
 
-		const std::vector<VertexAttribDescriptor>& getAttributes() const
-		{
+		const std::vector<VertexAttribDescriptor>& getAttributes() const {
 			return m_attribDescriptors;
 		};
 
-		std::vector<VertexAttribDescriptor>::iterator begin()
-		{
+		std::vector<VertexAttribDescriptor>::iterator begin() {
 			return m_attribDescriptors.begin();
 		};
 
-		std::vector<VertexAttribDescriptor>::iterator end()
-		{
+		std::vector<VertexAttribDescriptor>::iterator end() {
 			return m_attribDescriptors.end();
 		};
 
-		std::vector<VertexAttribDescriptor>::const_iterator begin() const
-		{
+		std::vector<VertexAttribDescriptor>::const_iterator begin() const {
 			return m_attribDescriptors.begin();
 		};
 
-		std::vector<VertexAttribDescriptor>::const_iterator end() const
-		{
+		std::vector<VertexAttribDescriptor>::const_iterator end() const {
 			return m_attribDescriptors.end();
 		};
 
 	private:
-		void computeLayout()
-		{
+		void computeLayout() {
 			uint32_t offset = 0;
 			m_stride = 0;
 			for (auto& attribute : m_attribDescriptors)

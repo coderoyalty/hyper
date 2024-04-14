@@ -4,10 +4,8 @@
 #include "utils/assert.hpp"
 
 using namespace hyp;
-namespace Utils
-{
-	static GLenum MapShaderDataTypeToOpenGL(ShaderDataType type)
-	{
+namespace Utils {
+	static GLenum MapShaderDataTypeToOpenGL(ShaderDataType type) {
 		switch (type)
 		{
 		case ShaderDataType::Float:
@@ -39,34 +37,28 @@ namespace Utils
 	};
 } // Utils
 
-VertexArray::VertexArray()
-{
+VertexArray::VertexArray() {
 	glGenVertexArrays(1, &m_rendererID);
 	this->bind();
 }
 
-VertexArray::~VertexArray()
-{
+VertexArray::~VertexArray() {
 	glDeleteVertexArrays(1, &m_rendererID);
 }
 
-hyp::Shared<VertexArray> hyp::VertexArray::create()
-{
+hyp::Shared<VertexArray> hyp::VertexArray::create() {
 	return hyp::CreateRef<VertexArray>();
 }
 
-void VertexArray::bind()
-{
+void VertexArray::bind() {
 	glBindVertexArray(m_rendererID);
 }
 
-void VertexArray::unbind()
-{
+void VertexArray::unbind() {
 	glBindVertexArray(0);
 }
 
-void VertexArray::addVertexBuffer(const Ref<VertexBuffer>& vbuffer)
-{
+void VertexArray::addVertexBuffer(const Ref<VertexBuffer>& vbuffer) {
 	HYP_ASSERT_CORE(vbuffer->getLayout().getAttributes().size() != 0, "vertex buffer has no layout");
 
 	const auto& layout = vbuffer->getLayout();
@@ -82,10 +74,10 @@ void VertexArray::addVertexBuffer(const Ref<VertexBuffer>& vbuffer)
 		{
 			glEnableVertexAttribArray(m_vbufferIndex);
 			glVertexAttribIPointer(
-				m_vbufferIndex, attribute.getComponentCount(),
-				Utils::MapShaderDataTypeToOpenGL(attribute.type),
-				layout.getStride(),
-				(const void*)attribute.offset);
+			    m_vbufferIndex, attribute.getComponentCount(),
+			    Utils::MapShaderDataTypeToOpenGL(attribute.type),
+			    layout.getStride(),
+			    (const void*)attribute.offset);
 			m_vbufferIndex++;
 			break;
 		}
@@ -96,11 +88,11 @@ void VertexArray::addVertexBuffer(const Ref<VertexBuffer>& vbuffer)
 		{
 			glEnableVertexAttribArray(m_vbufferIndex);
 			glVertexAttribPointer(
-				m_vbufferIndex, attribute.getComponentCount(),
-				Utils::MapShaderDataTypeToOpenGL(attribute.type),
-				attribute.normalized ? GL_TRUE : GL_FALSE,
-				layout.getStride(),
-				(const void*)attribute.offset);
+			    m_vbufferIndex, attribute.getComponentCount(),
+			    Utils::MapShaderDataTypeToOpenGL(attribute.type),
+			    attribute.normalized ? GL_TRUE : GL_FALSE,
+			    layout.getStride(),
+			    (const void*)attribute.offset);
 			m_vbufferIndex++;
 			break;
 		}
@@ -113,11 +105,11 @@ void VertexArray::addVertexBuffer(const Ref<VertexBuffer>& vbuffer)
 			{
 				glEnableVertexAttribArray(m_vbufferIndex);
 				glVertexAttribPointer(
-					m_vbufferIndex, count,
-					Utils::MapShaderDataTypeToOpenGL(attribute.type),
-					attribute.normalized ? GL_TRUE : GL_FALSE,
-					layout.getStride(),
-					(const void*)(attribute.offset + sizeof(float) * i * count));
+				    m_vbufferIndex, count,
+				    Utils::MapShaderDataTypeToOpenGL(attribute.type),
+				    attribute.normalized ? GL_TRUE : GL_FALSE,
+				    layout.getStride(),
+				    (const void*)(attribute.offset + sizeof(float) * i * count));
 				glVertexAttribDivisor(m_vbufferIndex, 1);
 				m_vbufferIndex++;
 			}
@@ -130,8 +122,7 @@ void VertexArray::addVertexBuffer(const Ref<VertexBuffer>& vbuffer)
 	m_vbuffers.push_back(vbuffer);
 }
 
-void hyp::VertexArray::setIndexBuffer(const Ref<hyp::ElementBuffer>& element_buffer)
-{
+void hyp::VertexArray::setIndexBuffer(const Ref<hyp::ElementBuffer>& element_buffer) {
 	this->bind();
 	element_buffer->bind();
 

@@ -2,37 +2,41 @@
 
 #ifndef HYP_FRAMEBUFFER_HPP
 
-#define HYP_FRAMEBUFFER_HPP
-#include <cstdint>
-#include <core/application.hpp>
-#include <vector>
+	#define HYP_FRAMEBUFFER_HPP
+	#include <cstdint>
+	#include <core/application.hpp>
+	#include <vector>
 
 namespace hyp {
-	enum class FbTextureFormat {
+	enum class FbTextureFormat
+	{
 		None = 0,
 		RGBA,
 	};
 
-	struct FbTextureSpecification {
-		FbTextureSpecification(FbTextureFormat format): textureFormat(format) {
+	struct FbTextureSpecification
+	{
+		FbTextureSpecification(FbTextureFormat format) : textureFormat(format) {
 		}
 
 		FbTextureFormat textureFormat = FbTextureFormat::None;
 	};
 
-	struct FbAttachmentSpecification {
+	struct FbAttachmentSpecification
+	{
 		FbAttachmentSpecification() = default;
 		FbAttachmentSpecification(std::initializer_list<FbTextureSpecification> attachments)
-			: attachments(attachments) {}
+		    : attachments(attachments) {}
 
 		std::vector<FbTextureSpecification> attachments;
 	};
 
-	struct FramebufferSpecification {
+	struct FramebufferSpecification
+	{
 		uint32_t width, height;
 		FbAttachmentSpecification attachment;
 	};
-	
+
 	static const int MaxFramebufferSize = 1024 * 8;
 
 	class Framebuffer {
@@ -56,6 +60,7 @@ namespace hyp {
 		const FramebufferSpecification& getSpecification() const {
 			return m_spec;
 		}
+
 	private:
 		uint32_t m_fbo;
 		FramebufferSpecification m_spec;

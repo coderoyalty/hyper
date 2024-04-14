@@ -8,25 +8,42 @@
 
 namespace hyp {
 
-	enum class HYPER_API EventType {
-		None = 0, WindowClose, WindowResize, WindowFocused, WindowNotFocused, WindowMoved,
-		KeyPressed, KeyReleased,
-		MouseBtnPressed, MouseBtnReleased, MouseMoved, MouseScroll
-	};
-
-	enum EventCategory {
+	enum class HYPER_API EventType
+	{
 		None = 0,
-		WindowCategory, InputCategory, KeyboardCategory, MouseCategory, MouseBtnCategory
+		WindowClose,
+		WindowResize,
+		WindowFocused,
+		WindowNotFocused,
+		WindowMoved,
+		KeyPressed,
+		KeyReleased,
+		MouseBtnPressed,
+		MouseBtnReleased,
+		MouseMoved,
+		MouseScroll
 	};
 
-#define EVENT_CLASS_TYPE(type) static EventType getType() {return type; };\
-								EventType getEventType() { return getType(); }
+	enum EventCategory
+	{
+		None = 0,
+		WindowCategory,
+		InputCategory,
+		KeyboardCategory,
+		MouseCategory,
+		MouseBtnCategory
+	};
 
-#define EVENT_CLASS_CATEGORY(category) virtual int getCategoryFlags() const override { return category; }
+#define EVENT_CLASS_TYPE(type)                   \
+	static EventType getType() { return type; }; \
+	EventType getEventType() { return getType(); }
 
-#define BIND_EVENT_FN(function) [this](auto& args) -> decltype(auto) {\
-		return this->function(args);\
-	}\
+#define EVENT_CLASS_CATEGORY(category) \
+	virtual int getCategoryFlags() const override { return category; }
+
+#define BIND_EVENT_FN(function) [this](auto& args) -> decltype(auto) { \
+	return this->function(args);                                       \
+}
 
 	class HYPER_API Event {
 	public:
@@ -55,12 +72,14 @@ namespace hyp {
 
 		template <typename T, typename F>
 		bool dispatch(const F& func) {
-			if (m_event.getEventType() == T::getType()) {
+			if (m_event.getEventType() == T::getType())
+			{
 				m_event.handled |= func(static_cast<T&>(m_event));
 				return true;
 			}
 			return false;
 		}
+
 	private:
 		Event& m_event;
 	};

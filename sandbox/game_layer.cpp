@@ -125,7 +125,6 @@ void GameLayer::onAttach() {
 }
 
 void GameLayer::onUpdate(float dt) {
-
 	timeToUpdate += dt;
 
 	if (timeToUpdate >= 0.5f)
@@ -133,7 +132,6 @@ void GameLayer::onUpdate(float dt) {
 		update_board();
 		timeToUpdate = 0.f;
 	}
-
 
 	hyp::RenderCommand::setClearColor(0.3, 0.4, 0.1, 1.f);
 	hyp::RenderCommand::clear();

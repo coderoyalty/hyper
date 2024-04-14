@@ -4,10 +4,8 @@
 
 using namespace hyp;
 
-namespace Helpers
-{
-	static bool compileShader(uint32_t& shader, const std::string& content, const SHADER_TYPE& shaderType)
-	{
+namespace Helpers {
+	static bool compileShader(uint32_t& shader, const std::string& content, const SHADER_TYPE& shaderType) {
 		shader = glCreateShader(shaderType);
 		const char* source = content.c_str();
 		glShaderSource(shader, 1, &source, nullptr);
@@ -51,23 +49,19 @@ namespace Helpers
 	}
 }
 
-ShaderProgram::ShaderProgram() : m_isLinked(false)
-{
+ShaderProgram::ShaderProgram() : m_isLinked(false) {
 	this->m_program = glCreateProgram();
 }
 
-hyp::ShaderProgram::~ShaderProgram()
-{
+hyp::ShaderProgram::~ShaderProgram() {
 	glDeleteProgram(m_program);
 }
 
-hyp::Ref<ShaderProgram> hyp::ShaderProgram::create(const std::string& vertexPath, const std::string& fragmentPath)
-{
+hyp::Ref<ShaderProgram> hyp::ShaderProgram::create(const std::string& vertexPath, const std::string& fragmentPath) {
 	return hyp::CreateRef<ShaderProgram>(vertexPath, fragmentPath);
 }
 
-hyp::ShaderProgram::ShaderProgram(const std::string& vertexPath, const std::string& fragmentPath)
-{
+hyp::ShaderProgram::ShaderProgram(const std::string& vertexPath, const std::string& fragmentPath) {
 	this->m_program = glCreateProgram();
 
 	std::string vertexCode;
@@ -83,7 +77,8 @@ hyp::ShaderProgram::ShaderProgram(const std::string& vertexPath, const std::stri
 		vertexFile.open(vertexPath);
 		fragmentFile.open(fragmentPath);
 
-		if (!vertexFile.is_open() || !fragmentFile.is_open()) {
+		if (!vertexFile.is_open() || !fragmentFile.is_open())
+		{
 			HYP_ERROR("Failed to open shader files");
 			return;
 		}
@@ -92,7 +87,8 @@ hyp::ShaderProgram::ShaderProgram(const std::string& vertexPath, const std::stri
 		std::streampos vertexFileSize = vertexFile.tellg();
 		vertexFile.seekg(0, std::ios::beg);
 
-		if (vertexFileSize == 0) {
+		if (vertexFileSize == 0)
+		{
 			HYP_ERROR("Vertex Shader File is Empty");
 			return;
 		}
@@ -101,7 +97,8 @@ hyp::ShaderProgram::ShaderProgram(const std::string& vertexPath, const std::stri
 		std::streampos fragmentFileSize = fragmentFile.tellg();
 		fragmentFile.seekg(0, std::ios::beg);
 
-		if (fragmentFileSize == 0) {
+		if (fragmentFileSize == 0)
+		{
 			HYP_ERROR("Fragment Shader File is Empty");
 			return;
 		}
@@ -137,8 +134,7 @@ hyp::ShaderProgram::ShaderProgram(const std::string& vertexPath, const std::stri
 	this->attachShader(fshader);
 }
 
-void hyp::ShaderProgram::attachShader(uint32_t& shader)
-{
+void hyp::ShaderProgram::attachShader(uint32_t& shader) {
 	if (m_isLinked)
 	{
 		HYP_WARN("Shader program is already linked. Cannot attach shader.");
@@ -148,8 +144,7 @@ void hyp::ShaderProgram::attachShader(uint32_t& shader)
 	glAttachShader(m_program, shader);
 }
 
-int hyp::ShaderProgram::getLocation(const std::string& name)
-{
+int hyp::ShaderProgram::getLocation(const std::string& name) {
 	auto it = m_locations.find(name);
 
 	if (it != m_locations.end())
@@ -163,11 +158,11 @@ int hyp::ShaderProgram::getLocation(const std::string& name)
 	return location;
 }
 
-int hyp::ShaderProgram::getBlockIndex(const std::string& name)
-{
+int hyp::ShaderProgram::getBlockIndex(const std::string& name) {
 	auto it = m_locations.find(name);
 
-	if (it != m_locations.end()) {
+	if (it != m_locations.end())
+	{
 		return it->second;
 	}
 
@@ -177,8 +172,7 @@ int hyp::ShaderProgram::getBlockIndex(const std::string& name)
 	return location;
 }
 
-void ShaderProgram::link()
-{
+void ShaderProgram::link() {
 	if (this->m_isLinked)
 	{
 		return;
@@ -187,61 +181,50 @@ void ShaderProgram::link()
 	this->m_isLinked = true;
 }
 
-void ShaderProgram::use()
-{
+void ShaderProgram::use() {
 	glUseProgram(this->m_program);
 }
 
-void hyp::ShaderProgram::setInt(const std::string& name, int value)
-{
+void hyp::ShaderProgram::setInt(const std::string& name, int value) {
 	int location = this->getLocation(name);
 	glUniform1i(location, value);
 }
 
-void hyp::ShaderProgram::setFloat(const std::string& name, float value)
-{
+void hyp::ShaderProgram::setFloat(const std::string& name, float value) {
 	int location = this->getLocation(name);
 	glUniform1f(location, value);
 }
 
-void hyp::ShaderProgram::setVec2(const std::string& name, const glm::vec2& value)
-{
+void hyp::ShaderProgram::setVec2(const std::string& name, const glm::vec2& value) {
 	int location = this->getLocation(name);
 	glUniform2f(location, value.x, value.y);
 }
 
-
-void hyp::ShaderProgram::setVec3(const std::string& name, const glm::vec3& value)
-{
+void hyp::ShaderProgram::setVec3(const std::string& name, const glm::vec3& value) {
 	int location = this->getLocation(name);
 	glUniform3f(location, value.x, value.y, value.z);
 }
 
-void hyp::ShaderProgram::setVec4(const std::string& name, const glm::vec4& value)
-{
+void hyp::ShaderProgram::setVec4(const std::string& name, const glm::vec4& value) {
 	int location = this->getLocation(name);
 	glUniform4f(location, value.x, value.y, value.z, value.w);
 }
 
-void hyp::ShaderProgram::setMat2(const std::string& name, const glm::mat2& value)
-{
+void hyp::ShaderProgram::setMat2(const std::string& name, const glm::mat2& value) {
 	int location = this->getLocation(name);
 	glUniformMatrix2fv(location, 1, false, glm::value_ptr(value));
 }
 
-void hyp::ShaderProgram::setMat3(const std::string& name, const glm::mat3& value)
-{
+void hyp::ShaderProgram::setMat3(const std::string& name, const glm::mat3& value) {
 	int location = this->getLocation(name);
 	glUniformMatrix3fv(location, 1, false, glm::value_ptr(value));
 }
 
-void hyp::ShaderProgram::setMat4(const std::string& name, const glm::mat4& value)
-{
+void hyp::ShaderProgram::setMat4(const std::string& name, const glm::mat4& value) {
 	int location = this->getLocation(name);
 	glUniformMatrix4fv(location, 1, false, glm::value_ptr(value));
 }
 
-void hyp::ShaderProgram::setBlockBinding(const std::string& name, uint32_t blockBinding)
-{
+void hyp::ShaderProgram::setBlockBinding(const std::string& name, uint32_t blockBinding) {
 	glUniformBlockBinding(m_program, getBlockIndex(name), blockBinding);
 }

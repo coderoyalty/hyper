@@ -5,12 +5,13 @@
 
 namespace hyp {
 	class HYPER_API NonCopyable {
-    protected:
-        NonCopyable() {}
-    private:
-        NonCopyable(const NonCopyable&) = delete;
-        NonCopyable& operator=(const NonCopyable&) = delete;
+	protected:
+		NonCopyable() {}
+
+	private:
+		NonCopyable(const NonCopyable&) = delete;
+		NonCopyable& operator=(const NonCopyable&) = delete;
 	};
 }
 
-#endif 
+#endif

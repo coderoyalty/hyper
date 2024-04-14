@@ -12,29 +12,49 @@
 class TexturedQuadLayer : public hyp::Layer {
 public:
 	TexturedQuadLayer()
-		: controller(600.f, 600.f)
-	{
-
+	    : controller(600.f, 600.f) {
 		hyp::FramebufferSpecification fbSpec;
-		fbSpec.attachment = hyp::FbAttachmentSpecification({
-			{hyp::FbTextureFormat::RGBA}
-		});
+		fbSpec.attachment = hyp::FbAttachmentSpecification({ { hyp::FbTextureFormat::RGBA } });
 		fbSpec.width = 600;
 		fbSpec.height = 600;
 		framebuffer = hyp::Framebuffer::create(fbSpec);
 
 		float vertices[6 * 5] = {
-			-0.0f, -0.0f, 0.f, 0.f, 0.f,
-			-0.0f, +1.0f, 0.f, 0.f, 1.f,
-			+1.0f, +1.0f, 0.f, 1.f, 1.f,
-			+1.0f, +1.0f, 0.f, 1.f, 1.f,
-			+1.0f, -0.0f, 0.f, 1.f, 0.f,
-			-0.0f, -0.0f, 0.f, 0.f, 0.f,
+			-0.0f,
+			-0.0f,
+			0.f,
+			0.f,
+			0.f,
+			-0.0f,
+			+1.0f,
+			0.f,
+			0.f,
+			1.f,
+			+1.0f,
+			+1.0f,
+			0.f,
+			1.f,
+			1.f,
+			+1.0f,
+			+1.0f,
+			0.f,
+			1.f,
+			1.f,
+			+1.0f,
+			-0.0f,
+			0.f,
+			1.f,
+			0.f,
+			-0.0f,
+			-0.0f,
+			0.f,
+			0.f,
+			0.f,
 		};
 		vao = hyp::VertexArray::create();
 		auto& vbo = hyp::VertexBuffer::create(vertices, sizeof(vertices));
 
-		vbo->setLayout({ {hyp::ShaderDataType::Vec3, "aPos"}, {hyp::ShaderDataType::Vec2, "aTex"} });
+		vbo->setLayout({ { hyp::ShaderDataType::Vec3, "aPos" }, { hyp::ShaderDataType::Vec2, "aTex" } });
 
 		vao->bind();
 		vao->addVertexBuffer(vbo);
@@ -50,7 +70,7 @@ public:
 		model = glm::scale(model, glm::vec3(size, size, 0.f));
 
 		glm::mat4 viewProj = glm::ortho(0.f, 600.f, 600.f, 0.f, -1.f, +1.f);
-		
+
 		program->use();
 		program->setMat4("uViewProj", viewProj);
 		program->setMat4("model", model);
@@ -60,7 +80,6 @@ public:
 	}
 
 	virtual void onDetach() override {
-
 	}
 
 	virtual void onEvent(hyp::Event& event) override {
@@ -85,7 +104,7 @@ public:
 		auto textureId = framebuffer->getColorAttachmentId();
 		auto spec = framebuffer->getSpecification();
 		ImGui::Image((void*)(uintptr_t)textureId, ImVec2(spec.width, spec.height),
-			ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+		    ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
 		ImGui::End();
 	}
 

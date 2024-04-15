@@ -18,9 +18,9 @@ void hyp::Renderer2D::init() {
 }
 
 void Renderer2D::deinit() {
-	s_renderer.quad.vertices.clear();
-	s_renderer.line.vertices.clear();
-	s_renderer.circle.vertices.clear();
+	s_renderer.quad.reset();
+	s_renderer.line.reset();
+	s_renderer.circle.reset();
 	HYP_INFO("Destroyed 2D Renderer");
 }
 
@@ -191,7 +191,10 @@ void Renderer2D::drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::v
 }
 
 void Renderer2D::drawCircle(const glm::mat4& transform, float thickness, float fade, const glm::vec4& color) {
-	//TODO: call next circle batch if the batch capacity is filled
+	if (s_renderer.circle.vertices.size() == static_cast<unsigned long long>(MaxCircles) * 4)
+	{
+		utils::nextCircleBatch();
+	}
 
 	for (size_t i = 0; i < 4; i++)
 	{
@@ -430,6 +433,11 @@ void utils::flushCircle() {
 
 	circle.program->use();
 	hyp::RenderCommand::drawIndexed(circle.vao, circle.indexCount);
+}
+
+void utils::nextCircleBatch() {
+	flushCircle();
+	s_renderer.circle.reset();
 }
 
 hyp::Renderer2D::Stats hyp::Renderer2D::getStats() {

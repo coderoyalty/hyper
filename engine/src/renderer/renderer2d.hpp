@@ -86,6 +86,7 @@ namespace hyp {
 const uint32_t MaxLight = 32;
 const uint32_t MaxTextureSlots = 32;
 const uint32_t MaxQuad = 1000;
+const uint32_t MaxCircles = MaxQuad;
 const uint32_t MaxVertices = MaxQuad * 4;
 const uint32_t MaxIndices = MaxQuad * 6;
 
@@ -100,6 +101,7 @@ namespace utils {
 
 	static void initCircle();
 	static void flushCircle();
+	static void nextCircleBatch();
 }
 
 namespace hyp {

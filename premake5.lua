@@ -19,6 +19,7 @@ group "Dependencies"
 	include "dependencies/glad"
 	include "dependencies/glfw"
 	include "dependencies/imgui"
+	include "dependencies/freetype"
 
 group "Hyper"
 	include "engine"

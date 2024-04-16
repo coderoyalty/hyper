@@ -21,10 +21,11 @@ project "sandbox"
 		"%{includes.GLFW}",
 		"%{includes.GLAD}",
 		"%{includes.GLM}",
-		"%{includes.STBIMAGE}",
+		"%{includes.STB}",
 		"%{includes.IMGUI}",
 		"%{includes.ENTT}",
-		"%{includes.IMGUIZMO"
+		"%{includes.IMGUIZMO",
+		"%{includes.FREETYPE}"
 	}
 	links
 	{

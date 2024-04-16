@@ -8,7 +8,7 @@ project "Hyper"
 	files
 	{
 		"src/**hpp", "src/**.cpp",
-		"../dependencies/vendor/stb_image/**.cpp",
+		"../dependencies/vendor/stb/**.cpp",
 
 		"../dependencies/imguizmo/ImGuizmo.h",
 		"../dependencies/imguizmo/ImGuizmo.cpp"
@@ -26,15 +26,16 @@ project "Hyper"
 		"%{includes.GLFW}",
 		"%{includes.GLAD}",
 		"%{includes.GLM}",
-		"%{includes.STBIMAGE}",
+		"%{includes.STB}",
 		"%{includes.IMGUI}",
 		"%{includes.ENTT}",
-		"%{includes.IMGUIZMO}"
+		"%{includes.IMGUIZMO}",
+		"%{includes.FREETYPE}"
 	}
 	
 	links
 	{
-		"GLFW", "GLAD", "IMGUI", "opengl32.lib"
+		"GLFW", "GLAD", "IMGUI", "opengl32.lib", "FREETYPE"
 	}
 
 	filter "files:vendor/imguizmo/**.cpp"

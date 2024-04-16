@@ -7,7 +7,7 @@ project "hyper-editor"
 
 	files
 	{
-		"**hpp", "**.cpp", "*.c"
+		"**.hpp", "**.cpp", "*.c"
 	}
 
 	-- defines {	"GLFW_DLL"	}
@@ -20,7 +20,7 @@ project "hyper-editor"
 		"%{includes.GLFW}",
 		"%{includes.GLAD}",
 		"%{includes.GLM}",
-		"%{includes.STBIMAGE}",
+		"%{includes.STB}",
 		"%{includes.IMGUI}",
 		"%{includes.ENTT}",
 		"%{includes.IMGUIZMO}"

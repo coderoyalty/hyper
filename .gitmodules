@@ -8,3 +8,6 @@
 [submodule "dependencies/imguizmo"]
 	path = dependencies/imguizmo
 	url = https://github.com/positron-dev/ImGuizmo.git
+[submodule "dependencies/freetype"]
+	path = dependencies/freetype
+	url = https://github.com/positron-dev/freetype.git

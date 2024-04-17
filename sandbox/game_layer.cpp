@@ -1,6 +1,7 @@
 #include "game_layer.hpp"
 #include <chrono>
 #include <random>
+#include <imgui.h>
 
 static const int row = 50;
 static const int col = 50;
@@ -140,4 +141,13 @@ void GameLayer::onUpdate(float dt) {
 	draw_board();
 
 	hyp::Renderer2D::endScene();
+}
+
+void GameLayer::onUIRender() {
+	ImGui::Begin("Image");
+	auto& atlas = hyp::Font::getDefault()->getAtlasTexture();
+	auto texId = atlas->getTextureId();
+
+	ImGui::Image((void*)(intptr_t)texId, { 512, 512 });
+	ImGui::End();
 }

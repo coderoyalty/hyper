@@ -16,13 +16,18 @@ namespace hyp {
 
 	struct Glyph
 	{
+		void getQuadAtlasBounds(glm::vec2& atlas_min, glm::vec2& atlas_max) const;
+		void getQuadPlaneBounds(glm::vec2& plane_min, glm::vec2& plane_max, float scale = 1.f) const;
+		//NOTE: returning only x advance for now, as it only supports ASCII chars (meaning y will always be zero)
+		double getAdvance() const {
+			// thought I was going to do some sort of calculation... (might still)
+			return advance.x;
+		}
+
 		glm::vec2 size;
 		glm::vec2 offset;
 		glm::vec2 advance;
 		glm::vec2 uvCoords;
-
-		void getQuadAtlasBounds(glm::vec2& atlas_min, glm::vec2& atlas_max) const;
-		void getQuadPlaneBounds(glm::vec2& plane_min, glm::vec2& plane_max) const;
 	};
 
 	struct FontMetrics
@@ -34,9 +39,14 @@ namespace hyp {
 
 	struct FontGeometry
 	{
+		hyp::Glyph getGlyph(char ch);
+		const FontMetrics& getMetrics() const {
+			return metrics;
+		}
+
+		double getAdvance(char ch, char nextChar);
 		FontMetrics metrics;
 		std::map<char, Glyph> glyphs;
-		hyp::Glyph getGlyph(char ch);
 	};
 
 	class Font {
@@ -46,7 +56,7 @@ namespace hyp {
 		hyp::Ref<hyp::Texture2D> getAtlasTexture() const { return m_texture; }
 		hyp::Ref<hyp::FontGeometry> getFontData() const { return m_fontGeometry; }
 
-		//TODO: add default font to assets for all platform
+		//TODO: add default font asset for all platform
 	#ifdef _WIN32
 		static hyp::Ref<hyp::Font> getDefault();
 	#endif

@@ -6,6 +6,7 @@
 	#include <glm/gtc/matrix_transform.hpp>
 	#include <renderer/render_command.hpp>
 	#include <renderer/texture.hpp>
+	#include <renderer/font.hpp>
 
 namespace hyp {
 	struct Light
@@ -44,11 +45,20 @@ namespace hyp {
 
 		static void drawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color);
 		static void drawQuad(const glm::vec3& position, const glm::vec2& size,
-		    hyp::Ref<hyp::Texture2D>& texture, float tilingFactor = 1.f, const glm::vec4& color = glm::vec4(1.0));
+		    hyp::Ref<hyp::Texture2D> texture, float tilingFactor = 1.f, const glm::vec4& color = glm::vec4(1.0));
 
 	public:
 		static void drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color = glm::vec4(1.0));
 		static void drawCircle(const glm::mat4& transform, float thickness, float fade, const glm::vec4& color = glm::vec4(1.f));
+
+	public:
+		struct TextParams
+		{
+			glm::vec4 color { 1.f };
+			float leading = 0.f; // line-spacing
+			float fontSize = 48.f;
+		};
+		static void drawString(const std::string& text, hyp::Ref<hyp::Font> font, const glm::mat4& transform, const TextParams& textParams);
 
 	public:
 		static Stats getStats();
@@ -68,6 +78,7 @@ namespace hyp {
 	struct QuadVertex;
 	struct CircleVertex;
 	struct LineVertex;
+	struct TextVertex;
 	struct RenderEntity;
 }
 
@@ -102,6 +113,10 @@ namespace utils {
 	static void initCircle();
 	static void flushCircle();
 	static void nextCircleBatch();
+
+	static void initText();
+	static void flushText();
+	static void nextTextBatch();
 }
 
 namespace hyp {
@@ -128,6 +143,13 @@ namespace hyp {
 		glm::vec4 color;
 		float thickness;
 		float fade;
+	};
+
+	struct TextVertex
+	{
+		glm::vec3 position = { 0.f, 0.f, 0.f };
+		glm::vec4 color = { 1.f, 1.f, 1.f, 1.f };
+		glm::vec2 uvCoord = {0.f, 0.f};
 	};
 
 	struct RenderEntity
@@ -184,6 +206,21 @@ namespace hyp {
 		}
 	};
 
+	struct TextData : public RenderEntity
+	{
+		std::vector<TextVertex> vertices;
+		uint32_t indexCount = 0;
+
+		hyp::Ref<hyp::Texture2D> fontAtlasTexture;
+
+		virtual void reset() {
+			vertices.clear();
+			indexCount = 0;
+		}
+	};
+
+	//TODO: remove the experimental lighting support, (looking to use deferred rendering to support this)
+
 	///TODO: support for other lighting settings such as:
 	/// 1. the constant, linear and quadratic value when calculation attenuation
 	/// 2. providing ambient, diffuse and specular color for each light
@@ -201,6 +238,7 @@ namespace hyp {
 		QuadData quad;
 		LineData line;
 		CircleData circle;
+		TextData text;
 		LightingData lighting;
 
 		struct CameraData

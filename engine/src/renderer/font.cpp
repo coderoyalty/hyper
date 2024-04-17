@@ -2,31 +2,8 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+// (royalty) can this be set the before loading the font?
 uint16_t hyp::Font::s_fontSize = 48;
-#include <stb_rect_pack.h>
-
-void testing_stbrp() {
-	std::vector<std::pair<int, int>> pairs;
-	pairs.push_back({ 20, 20 });
-	pairs.push_back({ 20, 20 });
-	pairs.push_back({ 20, 20 });
-
-	stbrp_context context {};
-	stbrp_node* nodes = (stbrp_node*)malloc(sizeof(stbrp_node) * 3);
-	stbrp_init_target(&context, 80, 80, nodes, 3);
-
-	for (int i = 0; i < pairs.size(); i++)
-	{
-		auto& pair = pairs[i];
-		stbrp_rect rect {};
-		rect.w = pair.first;
-		rect.h = pair.second;
-
-		stbrp_pack_rects(&context, &rect, 1);
-		printf("Packed texture %d at (%d, %d) size: (%d, %d)\n", i, rect.x, rect.y, rect.w, rect.h);
-	}
-	return;
-}
 
 hyp::Font::Font(const fs::path& fontFilePath) {
 	const int textureWidth = 512;
@@ -48,7 +25,7 @@ hyp::Font::Font(const fs::path& fontFilePath) {
 	int padding = 2;
 	int row = 0;
 	int col = padding;
-	unsigned int fontHeight = s_fontSize;
+	unsigned int fontHeight = 0;
 
 	FontMetrics metrics {};
 	metrics.ascender = fontFace->ascender;
@@ -143,11 +120,34 @@ void hyp::Glyph::getQuadAtlasBounds(glm::vec2& min, glm::vec2& max) const {
 	max = min + this->size;
 }
 
-void hyp::Glyph::getQuadPlaneBounds(glm::vec2& plane_min, glm::vec2& plane_max) const {
-	plane_min = this->offset;
-	plane_max = plane_min + this->size;
+void hyp::Glyph::getQuadPlaneBounds(glm::vec2& plane_min, glm::vec2& plane_max, float scale) const {
+	if (size.x > 0 && size.y > 0)
+	{
+		float x = offset.x * scale;
+		float y = -offset.y * scale;
+
+		float w = size.x * scale;
+		float h = size.y * scale;
+
+		plane_min.x = x;
+		plane_min.y = y;
+
+		plane_max.x = x + w;
+		plane_max.y = y + h;
+	}
+	else
+	{
+		plane_min.x = 0, plane_min.y = 0, plane_max.x = 0, plane_max.y = 0;
+	}
 }
 
 hyp::Glyph hyp::FontGeometry::getGlyph(char ch) {
 	return glyphs[ch];
+}
+
+double hyp::FontGeometry::getAdvance(char ch, char nextChar) {
+	auto& glyph1 = this->getGlyph(ch);
+	auto& glyph2 = this->getGlyph(nextChar);
+
+	return glyph2.offset.x - (glyph1.offset.x + glyph1.size.x);
 }

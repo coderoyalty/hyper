@@ -6,12 +6,45 @@ namespace utils {
 	static uint32_t toGlFormat(const hyp::TextureFormat& format) {
 		switch (format)
 		{
-		case hyp::TextureFormat::RGB8:
+		case hyp::TextureFormat::RGB:
+			return GL_RGB8;
+		case hyp::TextureFormat::RGBA:
+			return GL_RGBA8;
+		case hyp::TextureFormat::RED:
+			return GL_R8;
+		}
+
+		return 0;
+	}
+
+	static GLenum toGlDataFormat(const hyp::TextureFormat& format) {
+		switch (format)
+		{
+		case hyp::TextureFormat::RGB:
 			return GL_RGB;
 		case hyp::TextureFormat::RGBA:
 			return GL_RGBA;
+		case hyp::TextureFormat::RED:
+			return GL_RED;
 		}
 
+		return 0;
+	}
+
+	static uint32_t toGlFormatSize(GLenum format) {
+		switch (format)
+		{
+		case GL_RGB:
+			return 3;
+		case GL_RGBA:
+			return 4;
+		case GL_RED:
+			return 1;
+		default:
+			break;
+		}
+
+		HYP_ASSERT(false);
 		return 0;
 	}
 }
@@ -23,7 +56,7 @@ hyp::Texture::Texture(const TextureSpecification& spec) {
 	m_height = spec.height;
 
 	m_internalFormat = utils::toGlFormat(spec.format);
-	m_dataFormat = utils::toGlFormat(spec.format);
+	m_dataFormat = utils::toGlDataFormat(spec.format);
 
 	glGenTextures(1, &m_texture);
 	glBindTexture(GL_TEXTURE_2D, m_texture);
@@ -63,13 +96,13 @@ hyp::Texture::Texture(const std::string& path)
 
 	if (channels == 4)
 	{
+		internalFormat = GL_RGBA8;
 		dataFormat = GL_RGBA;
-		internalFormat = GL_RGBA;
 	}
 	else if (channels == 3)
 	{
+		internalFormat = GL_RGB8;
 		dataFormat = GL_RGB;
-		internalFormat = GL_RGB;
 	}
 
 	m_internalFormat = internalFormat;
@@ -85,6 +118,7 @@ hyp::Texture::Texture(const std::string& path)
 
 	glGenTextures(1, &m_texture);
 	glBindTexture(GL_TEXTURE_2D, m_texture);
+	m_loaded = true;
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -120,10 +154,15 @@ void hyp::Texture::unbind() {
 }
 
 void hyp::Texture::setData(void* pixels, uint32_t size) {
-	uint32_t formatSize = m_dataFormat == GL_RGBA ? 4 : 3;
+	uint32_t formatSize = utils::toGlFormatSize(m_dataFormat);
 
 	HYP_ASSERT_CORE(m_width * m_height * formatSize == size, "data provided must be the entire pixels data");
 
 	glBindTexture(GL_TEXTURE_2D, m_texture);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, pixels);
+	if (m_spec.mipmap)
+	{
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	m_loaded = true;
 }

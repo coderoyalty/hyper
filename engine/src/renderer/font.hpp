@@ -56,10 +56,7 @@ namespace hyp {
 		hyp::Ref<hyp::Texture2D> getAtlasTexture() const { return m_texture; }
 		hyp::Ref<hyp::FontGeometry> getFontData() const { return m_fontGeometry; }
 
-		//TODO: add default font asset for all platform
-	#ifdef _WIN32
 		static hyp::Ref<hyp::Font> getDefault();
-	#endif
 	private:
 		// for caching text rendering information
 		hyp::Ref<hyp::FontGeometry> m_fontGeometry;

@@ -217,6 +217,11 @@ void Renderer2D::drawCircle(const glm::mat4& transform, float thickness, float f
 void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> font, const glm::mat4& transform, const TextParams& textParams) {
 	auto& text = s_renderer.text;
 
+	// switch to engine's default font, if the provided font is invalid
+	if (!font) {
+		font = hyp::Font::getDefault();
+	}
+
 	const auto& fontGeometry = font->getFontData();
 	const auto& metrics = fontGeometry->getMetrics();
 	auto fontAtlas = font->getAtlasTexture();

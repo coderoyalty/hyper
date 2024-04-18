@@ -98,8 +98,6 @@ hyp::Font::Font(const fs::path& fontFilePath) {
 	delete[] textureBuffer;
 }
 
-#ifdef _WIN32
-
 hyp::Ref<hyp::Font> hyp::Font::getDefault() {
 	static hyp::Ref<hyp::Font> s_fontDefault;
 
@@ -108,12 +106,10 @@ hyp::Ref<hyp::Font> hyp::Font::getDefault() {
 		return s_fontDefault;
 	}
 
-	s_fontDefault = hyp::CreateRef<hyp::Font>("C:/Windows/Fonts/Arial.ttf");
-
+	s_fontDefault = hyp::CreateRef<hyp::Font>("assets/fonts/CascadiaCode.ttf");
+	HYP_INFO("Loaded engine's default font");
 	return s_fontDefault;
 }
-
-#endif
 
 void hyp::Glyph::getQuadAtlasBounds(glm::vec2& min, glm::vec2& max) const {
 	min = this->uvCoords;

@@ -136,7 +136,7 @@ void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture
 
 	float textureIndex = 0.0;
 	// find texture in slots
-	for (int i = 1; i < quad.textureSlotIndex; i++)
+	for (uint32_t i = 1; i < quad.textureSlotIndex; i++)
 	{
 		if (*quad.textureSlots[i] == *texture)
 		{
@@ -155,7 +155,7 @@ void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture
 		/// this logic above avoids this scenario, and is presumed to reset the slot index
 		HYP_ASSERT_CORE(quad.textureSlotIndex != MaxTextureSlots, "texture slot limits exceeded");
 		quad.textureSlots[quad.textureSlotIndex] = texture;
-		textureIndex = quad.textureSlotIndex++;
+		textureIndex = (float)quad.textureSlotIndex++;
 	}
 
 	int quadVertexCount = 4;
@@ -226,20 +226,41 @@ void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> fon
 	float y = 0.0;
 
 	float scale = textParams.fontSize;
-	float fontScalingFactor = 1.0 / (metrics.ascender - metrics.descender);
-
+	float fontScalingFactor = 1.f / (metrics.ascender - metrics.descender);
 
 	for (size_t i = 0; i < str.length(); i++)
 	{
 		char ch = str[i];
 
+		// no need to create quads for whitespace characters
+		if (ch == '\r') continue;
+		if (ch == '\n')
+		{
+			x = 0.0;
+			y += fontScalingFactor * scale * metrics.lineHeight + textParams.leading;
+			continue;
+		}
+
+		if (ch == ' ')
+		{
+			float advance = (float)fontGeometry->getGlyph(' ')->getAdvance();
+			x += fontScalingFactor * advance * scale;
+			continue;
+		}
+
 		auto glyph = fontGeometry->getGlyph(ch);
 
+		// avoid accessing a nullptr
+		if (!glyph) {
+			HYP_ERROR("No glyph exists for the character %c", ch);
+			return;
+		}
+
 		glm::vec2 uvMin, uvMax;
-		glyph.getQuadAtlasBounds(uvMin, uvMax);
+		glyph->getQuadAtlasBounds(uvMin, uvMax);
 
 		glm::vec2 quadMin, quadMax;
-		glyph.getQuadPlaneBounds(quadMin, quadMax, scale);
+		glyph->getQuadPlaneBounds(quadMin, quadMax, scale);
 
 		float texelWidth = 1.f / fontAtlas->getWidth();
 		float texelHeight = 1.f / fontAtlas->getHeight();
@@ -277,7 +298,7 @@ void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> fon
 
 		text.indexCount += 6;
 
-		x += fontScalingFactor * glyph.advance.x * scale;
+		x += fontScalingFactor * glyph->advance.x * scale;
 	}
 }
 
@@ -358,7 +379,7 @@ void utils::initQuad() {
 
 void utils::flushQuad() {
 	auto& quad = s_renderer.quad;
-	size_t size = quad.vertices.size();
+	uint32_t size = quad.vertices.size();
 	if (size == 0)
 	{
 		return;

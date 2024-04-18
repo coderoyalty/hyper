@@ -39,7 +39,7 @@ namespace hyp {
 
 	struct FontGeometry
 	{
-		hyp::Glyph getGlyph(char ch);
+		hyp::Glyph* getGlyph(char ch);
 		const FontMetrics& getMetrics() const {
 			return metrics;
 		}

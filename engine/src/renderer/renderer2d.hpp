@@ -55,6 +55,7 @@ namespace hyp {
 		struct TextParams
 		{
 			glm::vec4 color { 1.f };
+			// range 0.0 - 1.0
 			float leading = 0.f; // line-spacing
 			float fontSize = 48.f;
 		};

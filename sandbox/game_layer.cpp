@@ -161,5 +161,6 @@ void GameLayer::onUIRender() {
 	ImGui::DragFloat2("Position", glm::value_ptr(position));
 	ImGui::DragFloat("Font Size", &textParams.fontSize);
 	ImGui::ColorEdit4("Text Color", glm::value_ptr(textParams.color));
+	ImGui::DragFloat("Line Spacing", &textParams.leading, 0.001, 0.f, 1.f);
 	ImGui::End();
 }

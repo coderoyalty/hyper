@@ -141,13 +141,14 @@ void hyp::Glyph::getQuadPlaneBounds(glm::vec2& plane_min, glm::vec2& plane_max, 
 	}
 }
 
-hyp::Glyph hyp::FontGeometry::getGlyph(char ch) {
-	return glyphs[ch];
+hyp::Glyph* hyp::FontGeometry::getGlyph(char ch) {
+	if (glyphs.find(ch) == glyphs.end()) return nullptr;
+	return &glyphs[ch];
 }
 
 double hyp::FontGeometry::getAdvance(char ch, char nextChar) {
-	auto& glyph1 = this->getGlyph(ch);
-	auto& glyph2 = this->getGlyph(nextChar);
+	auto glyph1 = getGlyph(ch);
+	auto glyph2 = getGlyph(nextChar);
 
-	return glyph2.offset.x - (glyph1.offset.x + glyph1.size.x);
+	return glyph2->offset.x - (glyph1->offset.x + glyph1->size.x);
 }

@@ -218,7 +218,8 @@ void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> fon
 	auto& text = s_renderer.text;
 
 	// switch to engine's default font, if the provided font is invalid
-	if (!font) {
+	if (!font)
+	{
 		font = hyp::Font::getDefault();
 	}
 
@@ -256,10 +257,9 @@ void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> fon
 		auto glyph = fontGeometry->getGlyph(ch);
 
 		// avoid accessing a nullptr
-		if (!glyph) {
-			HYP_ERROR("No glyph exists for the character %c", ch);
-			return;
-		}
+		if (!glyph)
+			glyph = fontGeometry->getGlyph((uint8_t)127);
+		if (!glyph) continue;
 
 		glm::vec2 uvMin, uvMax;
 		glyph->getQuadAtlasBounds(uvMin, uvMax);

@@ -254,6 +254,12 @@ void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> fon
 			continue;
 		}
 
+		if (ch == '\t') {
+			float advance = (float)fontGeometry->getGlyph(' ')->getAdvance();
+			x += fontScalingFactor * advance * scale * 2.f;
+			continue;
+		}
+
 		auto glyph = fontGeometry->getGlyph(ch);
 
 		// avoid accessing a nullptr

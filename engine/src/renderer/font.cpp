@@ -5,6 +5,23 @@
 // (royalty) can this be set the before loading the font?
 uint16_t hyp::Font::s_fontSize = 48;
 
+hyp::Ref<hyp::Font> hyp::Font::create(const fs::path& fontFilePath) {
+	return hyp::CreateRef<hyp::Font>(fontFilePath);
+}
+
+hyp::Ref<hyp::Font> hyp::Font::getDefault() {
+	static hyp::Ref<hyp::Font> s_fontDefault;
+
+	if (s_fontDefault)
+	{
+		return s_fontDefault;
+	}
+
+	s_fontDefault = hyp::Font::create("assets/fonts/CascadiaCode.ttf");
+	HYP_INFO("Loaded engine's default font");
+	return s_fontDefault;
+}
+
 hyp::Font::Font(const fs::path& fontFilePath) {
 	const int textureWidth = 512;
 	const int textureHeight = 512;
@@ -96,19 +113,6 @@ hyp::Font::Font(const fs::path& fontFilePath) {
 	}
 
 	delete[] textureBuffer;
-}
-
-hyp::Ref<hyp::Font> hyp::Font::getDefault() {
-	static hyp::Ref<hyp::Font> s_fontDefault;
-
-	if (s_fontDefault)
-	{
-		return s_fontDefault;
-	}
-
-	s_fontDefault = hyp::CreateRef<hyp::Font>("assets/fonts/CascadiaCode.ttf");
-	HYP_INFO("Loaded engine's default font");
-	return s_fontDefault;
 }
 
 void hyp::Glyph::getQuadAtlasBounds(glm::vec2& min, glm::vec2& max) const {

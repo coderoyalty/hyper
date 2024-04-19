@@ -57,6 +57,7 @@ namespace hyp {
 		hyp::Ref<hyp::FontGeometry> getFontData() const { return m_fontGeometry; }
 
 		static hyp::Ref<hyp::Font> getDefault();
+		static hyp::Ref<hyp::Font> create(const fs::path& fontFilePath);
 	private:
 		// for caching text rendering information
 		hyp::Ref<hyp::FontGeometry> m_fontGeometry;

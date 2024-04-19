@@ -14,8 +14,8 @@ namespace hyp {
 	enum class TextureFormat
 	{
 		None,
-		Red,
-		RGB8,
+		RED,
+		RGB,
 		RGBA,
 		RGBA32F,
 	};

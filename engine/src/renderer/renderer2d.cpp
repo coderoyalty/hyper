@@ -12,6 +12,7 @@ void hyp::Renderer2D::init() {
 	utils::initQuad();
 	utils::initLine();
 	utils::initCircle();
+	utils::initText();
 
 	s_renderer.cameraUniformBuffer = hyp::UniformBuffer::create(sizeof(RendererData::CameraData), 0);
 	s_renderer.lighting.uniformBuffer = hyp::UniformBuffer::create(sizeof(Light) * MaxLight, 2);
@@ -32,12 +33,14 @@ void Renderer2D::flush() {
 	utils::flushQuad();
 	utils::flushLine();
 	utils::flushCircle();
+	utils::flushText();
 }
 
 void Renderer2D::startBatch() {
 	s_renderer.quad.reset();
 	s_renderer.line.reset();
 	s_renderer.circle.reset();
+	s_renderer.text.reset();
 
 	s_renderer.stats.drawCalls = 0;
 	s_renderer.stats.lineCount = 0;
@@ -87,7 +90,7 @@ void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, cons
 	drawQuad(model, color);
 }
 
-void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, hyp::Ref<hyp::Texture2D>& texture, float tilingFactor, const glm::vec4& color) {
+void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, hyp::Ref<hyp::Texture2D> texture, float tilingFactor, const glm::vec4& color) {
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, position + glm::vec3(size / 2.f, 0.f));
 	model = glm::scale(model, glm::vec3(size, 0.f));
@@ -133,7 +136,7 @@ void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture
 
 	float textureIndex = 0.0;
 	// find texture in slots
-	for (int i = 1; i < quad.textureSlotIndex; i++)
+	for (uint32_t i = 1; i < quad.textureSlotIndex; i++)
 	{
 		if (*quad.textureSlots[i] == *texture)
 		{
@@ -152,7 +155,7 @@ void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture
 		/// this logic above avoids this scenario, and is presumed to reset the slot index
 		HYP_ASSERT_CORE(quad.textureSlotIndex != MaxTextureSlots, "texture slot limits exceeded");
 		quad.textureSlots[quad.textureSlotIndex] = texture;
-		textureIndex = quad.textureSlotIndex++;
+		textureIndex = (float)quad.textureSlotIndex++;
 	}
 
 	int quadVertexCount = 4;
@@ -211,6 +214,99 @@ void Renderer2D::drawCircle(const glm::mat4& transform, float thickness, float f
 	s_renderer.circle.indexCount += 6;
 }
 
+void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> font, const glm::mat4& transform, const TextParams& textParams) {
+	auto& text = s_renderer.text;
+
+	// switch to engine's default font, if the provided font is invalid
+	if (!font) {
+		font = hyp::Font::getDefault();
+	}
+
+	const auto& fontGeometry = font->getFontData();
+	const auto& metrics = fontGeometry->getMetrics();
+	auto fontAtlas = font->getAtlasTexture();
+	text.fontAtlasTexture = fontAtlas;
+
+	float x = 0.0;
+	float y = 0.0;
+
+	float scale = textParams.fontSize;
+	float fontScalingFactor = 1.f / (metrics.ascender - metrics.descender);
+
+	for (size_t i = 0; i < str.length(); i++)
+	{
+		char ch = str[i];
+
+		// no need to create quads for whitespace characters
+		if (ch == '\r') continue;
+		if (ch == '\n')
+		{
+			x = 0.0;
+			y += fontScalingFactor * scale * metrics.lineHeight + textParams.leading;
+			continue;
+		}
+
+		if (ch == ' ')
+		{
+			float advance = (float)fontGeometry->getGlyph(' ')->getAdvance();
+			x += fontScalingFactor * advance * scale;
+			continue;
+		}
+
+		auto glyph = fontGeometry->getGlyph(ch);
+
+		// avoid accessing a nullptr
+		if (!glyph) {
+			HYP_ERROR("No glyph exists for the character %c", ch);
+			return;
+		}
+
+		glm::vec2 uvMin, uvMax;
+		glyph->getQuadAtlasBounds(uvMin, uvMax);
+
+		glm::vec2 quadMin, quadMax;
+		glyph->getQuadPlaneBounds(quadMin, quadMax, scale);
+
+		float texelWidth = 1.f / fontAtlas->getWidth();
+		float texelHeight = 1.f / fontAtlas->getHeight();
+
+		uvMin *= glm::vec2(texelWidth, texelHeight);
+		uvMax *= glm::vec2(texelWidth, texelHeight);
+
+		quadMin *= fontScalingFactor;
+		quadMax *= fontScalingFactor;
+		quadMin += glm::vec2(x, y);
+		quadMax += glm::vec2(x, y);
+
+		TextVertex v0, v1, v2, v3;
+
+		v0.position = transform * glm ::vec4(quadMin, 0.f, 1.f);
+		v0.color = textParams.color;
+		v0.uvCoord = uvMin;
+
+		v1.position = transform * glm ::vec4(quadMin.x, quadMax.y, 0.f, 1.f);
+		v1.color = textParams.color;
+		v1.uvCoord = { uvMin.x, uvMax.y };
+
+		v2.position = transform * glm ::vec4(quadMax, 0.f, 1.f);
+		v2.color = textParams.color;
+		v2.uvCoord = uvMax;
+
+		v3.position = transform * glm ::vec4(quadMax.x, quadMin.y, 0.f, 1.f);
+		v3.color = textParams.color;
+		v3.uvCoord = { uvMax.x, uvMin.y };
+
+		text.vertices.push_back(v0);
+		text.vertices.push_back(v1);
+		text.vertices.push_back(v2);
+		text.vertices.push_back(v3);
+
+		text.indexCount += 6;
+
+		x += fontScalingFactor * glyph->advance.x * scale;
+	}
+}
+
 /*Quad Data*/
 
 void utils::initQuad() {
@@ -234,7 +330,7 @@ void utils::initQuad() {
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Float, "aTilingFactor", false),
 	});
 
-	quad.vao->addVertexBuffer(s_renderer.quad.vbo);
+	quad.vao->addVertexBuffer(quad.vbo);
 	quad.vertices.clear();
 	quad.vertices.resize(MaxVertices);
 
@@ -288,7 +384,7 @@ void utils::initQuad() {
 
 void utils::flushQuad() {
 	auto& quad = s_renderer.quad;
-	size_t size = quad.vertices.size();
+	uint32_t size = quad.vertices.size();
 	if (size == 0)
 	{
 		return;
@@ -438,6 +534,73 @@ void utils::flushCircle() {
 void utils::nextCircleBatch() {
 	flushCircle();
 	s_renderer.circle.reset();
+}
+
+/* Text Data */
+
+void utils::initText() {
+	auto& text = s_renderer.text;
+
+	text.vao = hyp::VertexArray::create();
+	text.vbo = hyp::VertexBuffer::create(MaxVertices * sizeof(TextVertex));
+	text.vbo->setLayout({
+	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
+	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec4, "aColor", false),
+	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec2, "aUV", false),
+	});
+
+	text.vao->addVertexBuffer(text.vbo);
+	text.vertices.clear();
+	text.vertices.resize(MaxVertices);
+
+	uint32_t* indices = new uint32_t[MaxIndices];
+	int offset = 0;
+	int i = 0;
+
+	for (i = 0; i < MaxIndices; i += 6)
+	{
+		indices[i + 0] = offset + 0;
+		indices[i + 1] = offset + 1;
+		indices[i + 2] = offset + 2;
+
+		indices[i + 3] = offset + 2;
+		indices[i + 4] = offset + 3;
+		indices[i + 5] = offset + 0;
+
+		offset += 4;
+	}
+
+	auto& textIndexBuffer = hyp::CreateRef<hyp::ElementBuffer>(indices, MaxIndices);
+
+	text.vao->setIndexBuffer(textIndexBuffer);
+	delete[] indices;
+
+	text.program = hyp::ShaderProgram::create("assets/shaders/text.vert",
+	    "assets/shaders/text.frag");
+
+	text.program->link();
+	text.program->setBlockBinding("Camera", 0);
+}
+
+void utils::flushText() {
+	auto& text = s_renderer.text;
+	size_t size = text.vertices.size();
+
+	if (!text.indexCount)
+	{
+		return;
+	}
+
+	text.vbo->setData(text.vertices.data(), (uint32_t)size * sizeof(TextVertex));
+
+	text.program->use();
+	text.fontAtlasTexture->bind(0);
+	hyp::RenderCommand::drawIndexed(text.vao, text.indexCount);
+}
+
+void utils::nextTextBatch() {
+	flushText();
+	s_renderer.text.reset();
 }
 
 hyp::Renderer2D::Stats hyp::Renderer2D::getStats() {

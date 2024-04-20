@@ -186,6 +186,18 @@ namespace hyp {
 			transformIndexCount = 0;
 			textureSlotIndex = 1;
 		}
+
+		void clear() {
+			vertices.resize(0);
+			vertices.shrink_to_fit();
+
+			transforms.resize(0);
+			transforms.shrink_to_fit();
+
+			indexCount = 0;
+			transformIndexCount = 0;
+			textureSlotIndex = 1;
+		}
 	};
 
 	struct LineData : public RenderEntity
@@ -193,6 +205,11 @@ namespace hyp {
 		std::vector<LineVertex> vertices;
 		virtual void reset() {
 			vertices.clear();
+		}
+
+		void clear() {
+			vertices.resize(0);
+			vertices.shrink_to_fit();
 		}
 	};
 
@@ -204,6 +221,11 @@ namespace hyp {
 		virtual void reset() {
 			vertices.clear();
 			indexCount = 0;
+		}
+
+		void clear() {
+			vertices.resize(0);
+			vertices.shrink_to_fit();
 		}
 	};
 
@@ -217,6 +239,11 @@ namespace hyp {
 		virtual void reset() {
 			vertices.clear();
 			indexCount = 0;
+		}
+
+		void clear() {
+			vertices.resize(0);
+			vertices.shrink_to_fit();
 		}
 	};
 

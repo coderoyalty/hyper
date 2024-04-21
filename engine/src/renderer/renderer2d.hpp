@@ -150,22 +150,34 @@ namespace hyp {
 	{
 		glm::vec3 position = { 0.f, 0.f, 0.f };
 		glm::vec4 color = { 1.f, 1.f, 1.f, 1.f };
-		glm::vec2 uvCoord = {0.f, 0.f};
+		glm::vec2 uvCoord = { 0.f, 0.f };
 	};
 
+	template <typename T>
 	struct RenderEntity
 	{
 		hyp::Ref<hyp::VertexBuffer> vbo;
 		hyp::Ref<hyp::VertexArray> vao;
 		hyp::Ref<hyp::ShaderProgram> program;
-	};
 
-	struct QuadData : public RenderEntity
-	{
-		// quad vertices
-		std::vector<QuadVertex> vertices;
+		std::vector<T> vertices;
 		uint32_t indexCount = 0;
 
+		virtual void reset() {
+			vertices.clear();
+			indexCount = 0;
+		}
+
+		virtual void clear() {
+			vertices.clear();
+			vertices.resize(0);
+			vertices.shrink_to_fit();
+			indexCount = 0;
+		}
+	};
+
+	struct QuadData : public RenderEntity<QuadVertex>
+	{
 		// transformation info
 		std::vector<glm::mat4> transforms;
 		hyp::Shared<hyp::UniformBuffer> transformBuffer;
@@ -179,7 +191,7 @@ namespace hyp {
 		glm::vec4 vertexPos[4] = {};
 		glm::vec2 uvCoords[4] = {};
 
-		void reset() {
+		virtual void reset() override {
 			vertices.clear();
 			transforms.clear();
 			indexCount = 0;
@@ -187,10 +199,12 @@ namespace hyp {
 			textureSlotIndex = 1;
 		}
 
-		void clear() {
+		virtual void clear() {
+			vertices.clear();
 			vertices.resize(0);
 			vertices.shrink_to_fit();
 
+			vertices.clear();
 			transforms.resize(0);
 			transforms.shrink_to_fit();
 
@@ -200,51 +214,17 @@ namespace hyp {
 		}
 	};
 
-	struct LineData : public RenderEntity
+	struct LineData : public RenderEntity<LineVertex>
 	{
-		std::vector<LineVertex> vertices;
-		virtual void reset() {
-			vertices.clear();
-		}
-
-		void clear() {
-			vertices.resize(0);
-			vertices.shrink_to_fit();
-		}
 	};
 
-	struct CircleData : public RenderEntity
+	struct CircleData : RenderEntity<CircleVertex>
 	{
-		std::vector<CircleVertex> vertices;
-		uint32_t indexCount = 0;
-
-		virtual void reset() {
-			vertices.clear();
-			indexCount = 0;
-		}
-
-		void clear() {
-			vertices.resize(0);
-			vertices.shrink_to_fit();
-		}
 	};
 
-	struct TextData : public RenderEntity
+	struct TextData : public RenderEntity<TextVertex>
 	{
-		std::vector<TextVertex> vertices;
-		uint32_t indexCount = 0;
-
 		hyp::Ref<hyp::Texture2D> fontAtlasTexture;
-
-		virtual void reset() {
-			vertices.clear();
-			indexCount = 0;
-		}
-
-		void clear() {
-			vertices.resize(0);
-			vertices.shrink_to_fit();
-		}
 	};
 
 	//TODO: remove the experimental lighting support, (looking to use deferred rendering to support this)

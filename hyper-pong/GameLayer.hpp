@@ -2,7 +2,7 @@
 
 #pragma once
 #include <core/application.hpp>
-#include <renderer/orthographic_controller.hpp>
+#include <camera/orthographic_controller.hpp>
 #include <renderer/renderer2d.hpp>
 #include <imgui.h>
 

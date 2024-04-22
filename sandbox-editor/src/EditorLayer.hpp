@@ -4,7 +4,7 @@
 	#include <core/application.hpp>
 	#include <glm/glm.hpp>
 	#include <renderer/framebuffer.hpp>
-	#include <renderer/orthographic_controller.hpp>
+	#include <camera/orthographic_controller.hpp>
 	#include <scene/components.hpp>
 	#include <scene/entity.hpp>
 	#include <scene/scene.hpp>

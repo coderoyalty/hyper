@@ -11,6 +11,11 @@ namespace hyp {
 
 		static glm::vec2 getMousePos();
 
+		/*
+		* get mouse position relative to the window position
+		*/
+		static glm::vec2 getMouseAbsPos();
+
 		static float getMouseX();
 		static float getMouseY();
 	};

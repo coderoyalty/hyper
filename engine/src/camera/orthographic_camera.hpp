@@ -2,7 +2,7 @@
 #ifndef HYP_ORTHOGRAPHIC_CAMERA_HPP
 	#define HYP_ORTHOGRAPHIC_CAMERA_HPP
 
-	#include <renderer/camera.hpp>
+	#include <camera/camera.hpp>
 
 namespace hyp {
 	class OrthoGraphicCamera : public hyp::Camera {

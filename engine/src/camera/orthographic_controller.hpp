@@ -8,7 +8,7 @@
 	#include <event/key_event.hpp>
 	#include <event/win_event.hpp>
 	#include <io/input.hpp>
-	#include <renderer/orthographic_camera.hpp>
+	#include <camera/orthographic_camera.hpp>
 
 namespace hyp {
 	class OrthoGraphicCameraController {

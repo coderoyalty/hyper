@@ -19,9 +19,10 @@ void hyp::Renderer2D::init() {
 }
 
 void Renderer2D::deinit() {
-	s_renderer.quad.reset();
-	s_renderer.line.reset();
-	s_renderer.circle.reset();
+	s_renderer.quad.clear();
+	s_renderer.line.clear();
+	s_renderer.circle.clear();
+	s_renderer.text.clear();
 	HYP_INFO("Destroyed 2D Renderer");
 }
 

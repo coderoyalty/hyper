@@ -16,6 +16,14 @@ glm::vec2 hyp::Input::getMousePos() {
 	return glm::vec2((float)xpos, (float)ypos);
 }
 
+glm::vec2 hyp::Input::getMouseAbsPos() {
+	GLFWwindow* window = hyp::Application::get().getWindow()->getNativeWindow();
+	int xpos = 0, ypos = 0;
+	glfwGetWindowPos(window, &xpos, &ypos);
+
+	return getMousePos() - glm::vec2(xpos, ypos);
+}
+
 float hyp::Input::getMouseX() {
 	return getMousePos().x;
 }

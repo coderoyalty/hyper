@@ -1,6 +1,7 @@
 #include "renderer/framebuffer.hpp"
 
 namespace utils {
+	static GLenum fbTextureFormatToGL(hyp::FbTextureFormat format);
 	void attachColorTexture(uint32_t texture, uint32_t width, uint32_t height, GLenum internalFormat, GLenum format, int index);
 }
 
@@ -74,6 +75,11 @@ void hyp::Framebuffer::reset() {
 				    m_spec.width, m_spec.height, GL_RGBA8, GL_RGBA, i);
 				break;
 			}
+			case hyp::FbTextureFormat::RED_INT:
+			{
+				utils::attachColorTexture(m_colorAttachments[i], m_spec.width, m_spec.height, GL_R32I, GL_RED_INTEGER, i);
+				break;
+			}
 			default:
 				HYP_ASSERT_CORE(false, "Frame buffer texture format is invalid");
 				break;
@@ -86,10 +92,51 @@ void hyp::Framebuffer::reset() {
 		HYP_WARN("Framebuffer is not complete!");
 	}
 
+	//TODO: is it right to enable drawing for all color attachments?
+	if (m_colorAttachments.size() > 1) {
+		HYP_ASSERT(m_colorAttachments.size() <= 8);
+		std::vector<GLenum> buffers;
+
+		for (int i = 0; i < m_colorAttachments.size(); i++) {
+			buffers.push_back(GL_COLOR_ATTACHMENT0 + i);
+		}
+
+		glDrawBuffers(m_colorAttachments.size(), buffers.data());
+	}
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+int32_t hyp::Framebuffer::readPixel(uint32_t attachmentId, int x, int y) {
+	HYP_ASSERT(attachmentId < m_colorAttachments.size());
+
+	int32_t m_pixels = 0;
+
+	glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentId);
+	glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &m_pixels);
+
+	return m_pixels;
+}
+
+void hyp::Framebuffer::clearAttachment(uint32_t attachmentId, int value) {
+	HYP_ASSERT(attachmentId < m_colorAttachments.size());
+
+	glBindTexture(GL_TEXTURE_2D, m_colorAttachments[attachmentId]);
+	glTexImage2D(GL_TEXTURE_2D, 0, 0, 0, m_spec.width, m_spec.height, utils::fbTextureFormatToGL(m_colorAttachmentSpecs[attachmentId].textureFormat), GL_INT, &value);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 /* Utils Function */
+
+GLenum utils::fbTextureFormatToGL(hyp::FbTextureFormat format) {
+	switch (format)
+	{
+	case hyp::FbTextureFormat::RGBA: return GL_RGBA8;
+	case hyp::FbTextureFormat::RED_INT: return GL_RED_INTEGER;
+	}
+
+	return (uint32_t)-1; //hmmm?
+}
 
 void utils::attachColorTexture(uint32_t texture, uint32_t width, uint32_t height, GLenum internalFormat, GLenum format, int index) {
 	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, nullptr);

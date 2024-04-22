@@ -12,6 +12,7 @@ namespace hyp {
 	{
 		None = 0,
 		RGBA,
+		RED_INT,
 	};
 
 	struct FbTextureSpecification
@@ -61,6 +62,9 @@ namespace hyp {
 			return m_spec;
 		}
 
+		int32_t readPixel(uint32_t attachmentId, int x, int y);
+
+		void clearAttachment(uint32_t attachmentId, int value);
 	private:
 		uint32_t m_fbo;
 		FramebufferSpecification m_spec;

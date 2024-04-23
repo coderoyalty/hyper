@@ -7,7 +7,7 @@
 	#include <camera/orthographic_controller.hpp>
 	#include <scene/components.hpp>
 	#include <scene/entity.hpp>
-	#include <scene/scene.hpp>
+	#include "panels/hierarchyPanel.hpp"
 
 class EditorLayer : public hyp::Layer {
 public:
@@ -19,9 +19,13 @@ public:
 
 private:
 	hyp::Ref<hyp::Framebuffer> m_framebuffer;
+	hyp::Ref<hyp::Scene> m_scene;
+	hyp::Ref<hyp::HierarchyPanel> m_hierarchyPanel;
+
+private:
 	glm::vec2 m_viewportSize;
+	glm::vec2 m_viewportBounds[2];
 	hyp::Ref<hyp::OrthoGraphicCameraController> m_cameraController;
-	hyp::Unique<hyp::Scene> m_scene;
 	bool m_viewportFocused = false;
 	hyp::Entity m_entity;
 };

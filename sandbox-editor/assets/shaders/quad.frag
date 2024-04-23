@@ -1,6 +1,7 @@
 #version 330 core
 
 out vec4 fragColor;
+out int entityId;
 
 in vec4 inColor;
 in vec3 inFragPos;
@@ -94,4 +95,6 @@ void main() {
     result += CalcPointLight(lights[i] , inNormal, inFragPos);
 
   fragColor = texColor * vec4(result, 1.f);
+
+  entityId = 5;
 }

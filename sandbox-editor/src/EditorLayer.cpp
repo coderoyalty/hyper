@@ -1,5 +1,4 @@
 #include "EditorLayer.hpp"
-#include <imgui.h>
 #include <renderer/renderer2d.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -8,14 +7,16 @@ EditorLayer::EditorLayer()
 	m_viewportSize = { 600.f, 600.f };
 
 	hyp::FramebufferSpecification fbSpec;
-	fbSpec.attachment = hyp::FbAttachmentSpecification({ { hyp::FbTextureFormat::RGBA } });
+	fbSpec.attachment = hyp::FbAttachmentSpecification({ { hyp::FbTextureFormat::RGBA }, { hyp::FbTextureFormat::RED_INT } });
 	fbSpec.width = 600;
 	fbSpec.height = 600;
 	m_framebuffer = hyp::Framebuffer::create(fbSpec);
 
 	m_cameraController = hyp::CreateRef<hyp::OrthoGraphicCameraController>(600.f, 600.f);
 
-	m_scene = hyp::CreateScope<hyp::Scene>();
+	m_scene = hyp::CreateRef<hyp::Scene>();
+
+	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_scene);
 
 	m_entity = m_scene->createEntity("Square");
 
@@ -40,6 +41,16 @@ void EditorLayer::onUpdate(float dt) {
 	hyp::Renderer2D::beginScene(m_cameraController->getCamera().getViewProjectionMatrix());
 	m_scene->onUpdate(dt);
 	hyp::Renderer2D::endScene();
+
+	/*m_framebuffer->clearAttachment(1, -1);
+	auto [mx, my] = ImGui::GetMousePos();
+
+	mx -= m_viewportBounds[0].x;
+	my -= m_viewportBounds[0].y;
+	glm::vec2 viewportSize = m_viewportBounds[1] - m_viewportBounds[0];
+	my = viewportSize.y - my;
+	int mouseX = (int)mx;
+	int mouseY = (int)my;*/
 
 	m_framebuffer->unbind();
 }
@@ -67,6 +78,13 @@ void EditorLayer::onUIRender() {
 	m_viewportFocused = ImGui::IsWindowFocused();
 	auto hovered = ImGui::IsWindowHovered();
 
+	auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+	auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+	auto viewportOffset = ImGui::GetWindowPos();
+
+	m_viewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+	m_viewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+
 	hyp::Application::get().getUILayer()->blockEvent(!hovered);
 
 	if (m_viewportSize != *((glm::vec2*)&viewportPanelSize))
@@ -77,25 +95,11 @@ void EditorLayer::onUIRender() {
 		m_cameraController->onResize(viewportPanelSize.x, viewportPanelSize.y);
 	}
 
-	uint32_t textureID = m_framebuffer->getColorAttachmentId();
+	uint32_t textureID = m_framebuffer->getColorAttachmentId(0);
 	ImGui::Image((void*)textureID, ImVec2 { m_viewportSize.x, m_viewportSize.y }, ImVec2 { 0, 1 }, ImVec2 { 1, 0 });
 	ImGui::End();
 	ImGui::PopStyleVar();
 	ImGui::ShowDemoWindow(&demo);
 
-	ImGui::Begin("Entity");
-	if (m_entity)
-	{
-		ImGui::Separator();
-		auto& tag = m_entity.get<hyp::TagComponent>().name;
-		ImGui::Text("%s", tag.c_str());
-		auto& pos = m_entity.get<hyp::TransformComponent>().position;
-		auto& size = m_entity.get<hyp::TransformComponent>().size;
-		auto& color = m_entity.get<hyp::SpriteRendererComponent>().color;
-		ImGui::DragFloat3("Position", glm::value_ptr(pos));
-		ImGui::DragFloat2("Size", glm::value_ptr(size));
-		ImGui::ColorEdit4("Color", glm::value_ptr(color));
-		ImGui::Separator();
-	}
-	ImGui::End();
+	m_hierarchyPanel->onUIRender();
 }

@@ -9,7 +9,6 @@ hyp::Scene::~Scene() {}
 
 hyp::Entity hyp::Scene::createEntity(const std::string& name) {
 	entt::entity handle = m_registry.create();
-
 	Entity entity = Entity(handle, this);
 
 	auto& tag = entity.add<TagComponent>();
@@ -29,6 +28,6 @@ void hyp::Scene::onUpdate(float dt) {
 	for (auto& entity : view)
 	{
 		auto& [transform, sprite] = view.get<TransformComponent, hyp::SpriteRendererComponent>(entity);
-		hyp::Renderer2D::drawQuad(transform.position, transform.size, sprite.color);
+		hyp::Renderer2D::drawQuad(transform.position, transform.size, sprite.texture, sprite.tilingFactor, sprite.color);
 	}
 }

@@ -152,11 +152,14 @@ void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture
 		if (quad.textureSlotIndex == MaxTextureSlots)
 			utils::nextQuadBatch(); // dispatch the current batch
 
+
 		/// the texture slot index will never be = to MaxTextureSlots
 		/// this logic above avoids this scenario, and is presumed to reset the slot index
-		HYP_ASSERT_CORE(quad.textureSlotIndex != MaxTextureSlots, "texture slot limits exceeded");
-		quad.textureSlots[quad.textureSlotIndex] = texture;
-		textureIndex = (float)quad.textureSlotIndex++;
+		if (texture) {
+			HYP_ASSERT_CORE(quad.textureSlotIndex != MaxTextureSlots, "texture slot limits exceeded");
+			quad.textureSlots[quad.textureSlotIndex] = texture;
+			textureIndex = (float)quad.textureSlotIndex++;
+		}
 	}
 
 	int quadVertexCount = 4;

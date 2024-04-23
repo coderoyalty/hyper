@@ -15,6 +15,8 @@ namespace hyp {
 
 		Entity createEntity(const std::string& name);
 
+		void destroyEntity(Entity entity);
+
 		void onUpdate(float dt);
 
 	private:

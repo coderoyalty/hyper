@@ -19,10 +19,14 @@ hyp::Entity hyp::Scene::createEntity(const std::string& name) {
 	return entity;
 }
 
+void hyp::Scene::destroyEntity(Entity entity) {
+	m_registry.destroy(entity);
+}
+
 void hyp::Scene::onUpdate(float dt) {
 	auto& view = m_registry.group<TransformComponent>(entt::get<hyp::SpriteRendererComponent>);
 
-	for (auto entity : view)
+	for (auto& entity : view)
 	{
 		auto& [transform, sprite] = view.get<TransformComponent, hyp::SpriteRendererComponent>(entity);
 		hyp::Renderer2D::drawQuad(transform.position, transform.size, sprite.color);

@@ -38,6 +38,8 @@ namespace hyp {
 			m_scene->m_registry.remove<T>(m_handle);
 		}
 
+		operator entt::entity() const { return m_handle; }
+
 		operator bool() { return m_handle != entt::null; }
 
 	private:

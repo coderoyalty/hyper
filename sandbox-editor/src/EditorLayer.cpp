@@ -17,15 +17,13 @@ EditorLayer::EditorLayer()
 	m_scene = hyp::CreateRef<hyp::Scene>();
 
 	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_scene);
-
-	m_entity = m_scene->createEntity("Square");
-
-	m_entity.get<hyp::TransformComponent>().size = { 100.f, 100.f };
-	m_entity.add<hyp::SpriteRendererComponent>(glm::vec4(1.0));
 }
 
 void EditorLayer::onEvent(hyp::Event& event) {
 	m_cameraController->onEvent(event);
+
+	hyp::EventDispatcher ed(event);
+	ed.dispatch<hyp::MouseBtnPressedEvent>(BIND_EVENT_FN(onMousePressed));
 }
 
 void EditorLayer::onUpdate(float dt) {
@@ -42,7 +40,7 @@ void EditorLayer::onUpdate(float dt) {
 	m_scene->onUpdate(dt);
 	hyp::Renderer2D::endScene();
 
-	/*m_framebuffer->clearAttachment(1, -1);
+	m_framebuffer->clearAttachment(1, -1);
 	auto [mx, my] = ImGui::GetMousePos();
 
 	mx -= m_viewportBounds[0].x;
@@ -50,7 +48,13 @@ void EditorLayer::onUpdate(float dt) {
 	glm::vec2 viewportSize = m_viewportBounds[1] - m_viewportBounds[0];
 	my = viewportSize.y - my;
 	int mouseX = (int)mx;
-	int mouseY = (int)my;*/
+	int mouseY = (int)my;
+
+	if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
+	{
+		int pixel = m_framebuffer->readPixel(1, mouseX, mouseY);
+		m_hoveredEntity = pixel >= m_scene->maxEntities() ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_scene.get());
+	}
 
 	m_framebuffer->unbind();
 }
@@ -102,4 +106,13 @@ void EditorLayer::onUIRender() {
 	ImGui::ShowDemoWindow(&demo);
 
 	m_hierarchyPanel->onUIRender();
+}
+
+bool EditorLayer::onMousePressed(hyp::MouseBtnPressedEvent& event) {
+	if (event.getButton() == hyp::Mouse::BUTTON_LEFT)
+	{
+		m_hierarchyPanel->setSelectedEntity(m_hoveredEntity);
+	}
+
+	return false;
 }

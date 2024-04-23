@@ -28,6 +28,6 @@ void hyp::Scene::onUpdate(float dt) {
 	for (auto& entity : view)
 	{
 		auto& [transform, sprite] = view.get<TransformComponent, hyp::SpriteRendererComponent>(entity);
-		hyp::Renderer2D::drawQuad(transform.position, transform.size, sprite.texture, sprite.tilingFactor, sprite.color);
+		hyp::Renderer2D::drawQuad(transform.position, transform.size, sprite.texture, sprite.tilingFactor, sprite.color, (int)entity);
 	}
 }

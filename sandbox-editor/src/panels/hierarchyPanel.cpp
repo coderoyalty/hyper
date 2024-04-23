@@ -34,7 +34,7 @@ void hyp::HierarchyPanel::onUIRender() {
 				Entity entity = m_context->createEntity("Empty Entity");
 				auto& model = entity.get<TransformComponent>();
 				model.size = { 100.f, 100.f };
-				auto& sprite = entity.add<SpriteRendererComponent>(glm::vec4(1.0, 0.0, 0.0, 1.f));
+				auto& sprite = entity.add<SpriteRendererComponent>();
 
 			}
 

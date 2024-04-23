@@ -18,6 +18,9 @@ public:
 	virtual void onUIRender();
 
 private:
+	bool onMousePressed(hyp::MouseBtnPressedEvent& event);
+
+private:
 	hyp::Ref<hyp::Framebuffer> m_framebuffer;
 	hyp::Ref<hyp::Scene> m_scene;
 	hyp::Ref<hyp::HierarchyPanel> m_hierarchyPanel;
@@ -27,7 +30,7 @@ private:
 	glm::vec2 m_viewportBounds[2];
 	hyp::Ref<hyp::OrthoGraphicCameraController> m_cameraController;
 	bool m_viewportFocused = false;
-	hyp::Entity m_entity;
+	hyp::Entity m_hoveredEntity;
 };
 
 #endif //! HYPER_EDITOR_LAYER

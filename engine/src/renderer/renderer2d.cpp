@@ -91,12 +91,12 @@ void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, cons
 	drawQuad(model, color);
 }
 
-void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, hyp::Ref<hyp::Texture2D> texture, float tilingFactor, const glm::vec4& color) {
+void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, hyp::Ref<hyp::Texture2D> texture, float tilingFactor, const glm::vec4& color, int entityId) {
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, position + glm::vec3(size / 2.f, 0.f));
 	model = glm::scale(model, glm::vec3(size, 0.f));
 
-	drawQuad(model, texture, tilingFactor, color);
+	drawQuad(model, texture, tilingFactor, color, entityId);
 }
 
 void Renderer2D::drawQuad(const glm::mat4& transform, const glm::vec4& color) {
@@ -132,7 +132,7 @@ void Renderer2D::drawQuad(const glm::mat4& transform, const glm::vec4& color) {
 /*
 * @brief for rendering textured-quad
 */
-void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture2D>& texture, float tilingFactor, const glm::vec4& color) {
+void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture2D>& texture, float tilingFactor, const glm::vec4& color, int entityId) {
 	auto& quad = s_renderer.quad;
 
 	float textureIndex = 0.0;
@@ -152,10 +152,10 @@ void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture
 		if (quad.textureSlotIndex == MaxTextureSlots)
 			utils::nextQuadBatch(); // dispatch the current batch
 
-
 		/// the texture slot index will never be = to MaxTextureSlots
 		/// this logic above avoids this scenario, and is presumed to reset the slot index
-		if (texture) {
+		if (texture)
+		{
 			HYP_ASSERT_CORE(quad.textureSlotIndex != MaxTextureSlots, "texture slot limits exceeded");
 			quad.textureSlots[quad.textureSlotIndex] = texture;
 			textureIndex = (float)quad.textureSlotIndex++;
@@ -173,6 +173,7 @@ void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture
 		vertex.textureIndex = textureIndex;
 		vertex.transformIndex = quad.transformIndexCount;
 		vertex.tilingFactor = tilingFactor;
+		vertex.entityId = entityId;
 
 		quad.vertices.push_back(vertex);
 	}
@@ -258,7 +259,8 @@ void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> fon
 			continue;
 		}
 
-		if (ch == '\t') {
+		if (ch == '\t')
+		{
 			float advance = (float)fontGeometry->getGlyph(' ')->getAdvance();
 			x += fontScalingFactor * advance * scale * 2.f;
 			continue;
@@ -338,6 +340,7 @@ void utils::initQuad() {
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Int, "aTransformIndex", false),
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Float, "aTextureIndex", false),
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Float, "aTilingFactor", false),
+	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Int, "aEntityId", false),
 	});
 
 	quad.vao->addVertexBuffer(quad.vbo);

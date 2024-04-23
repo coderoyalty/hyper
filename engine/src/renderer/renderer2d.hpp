@@ -41,11 +41,12 @@ namespace hyp {
 
 	public:
 		static void drawQuad(const glm::mat4& transform, const glm::vec4& color);
-		static void drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture2D>& texture, float tilingFactor = 1.f, const glm::vec4& color = glm::vec4(1.f));
+		static void drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture2D>& texture,
+		    float tilingFactor = 1.f, const glm::vec4& color = glm::vec4(1.f), int entityId = -1);
 
 		static void drawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color);
 		static void drawQuad(const glm::vec3& position, const glm::vec2& size,
-		    hyp::Ref<hyp::Texture2D> texture, float tilingFactor = 1.f, const glm::vec4& color = glm::vec4(1.0));
+		    hyp::Ref<hyp::Texture2D> texture, float tilingFactor = 1.f, const glm::vec4& color = glm::vec4(1.0), int entityId = -1);
 
 	public:
 		static void drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color = glm::vec4(1.0));
@@ -129,6 +130,7 @@ namespace hyp {
 		int transformIndex = 0;
 		float textureIndex = 0;
 		float tilingFactor = 1.f; // no. of times a texture is repeated.
+		int entityId = -1;
 	};
 
 	struct LineVertex

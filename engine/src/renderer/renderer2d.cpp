@@ -198,7 +198,7 @@ void Renderer2D::drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::v
 		utils::nextLineBatch();
 }
 
-void Renderer2D::drawCircle(const glm::mat4& transform, float thickness, float fade, const glm::vec4& color) {
+void Renderer2D::drawCircle(const glm::mat4& transform, float thickness, float fade, const glm::vec4& color, int entityId) {
 	if (s_renderer.circle.vertices.size() == static_cast<unsigned long long>(MaxCircles) * 4)
 	{
 		utils::nextCircleBatch();
@@ -212,6 +212,7 @@ void Renderer2D::drawCircle(const glm::mat4& transform, float thickness, float f
 		vertex.localPosition = s_renderer.quad.vertexPos[i] * 2.f;
 		vertex.thickness = thickness;
 		vertex.fade = fade;
+		vertex.entityId = entityId;
 
 		s_renderer.circle.vertices.push_back(vertex);
 	}
@@ -496,6 +497,7 @@ void utils::initCircle() {
 	    { hyp::ShaderDataType::Vec4, "aColor" },
 	    { hyp::ShaderDataType::Float, "aThickness" },
 	    { hyp::ShaderDataType::Float, "aFade" },
+	    { hyp::ShaderDataType::Int, "aEntityId" },
 	});
 	circle.vbo->setLayout(layout);
 

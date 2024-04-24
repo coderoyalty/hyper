@@ -50,7 +50,7 @@ namespace hyp {
 
 	public:
 		static void drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color = glm::vec4(1.0));
-		static void drawCircle(const glm::mat4& transform, float thickness, float fade, const glm::vec4& color = glm::vec4(1.f));
+		static void drawCircle(const glm::mat4& transform, float thickness, float fade, const glm::vec4& color = glm::vec4(1.f), int entityId = -1);
 
 	public:
 		struct TextParams
@@ -146,6 +146,7 @@ namespace hyp {
 		glm::vec4 color;
 		float thickness;
 		float fade;
+		int entityId = -1;
 	};
 
 	struct TextVertex

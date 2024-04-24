@@ -1,10 +1,13 @@
 #include "EditorLayer.hpp"
 #include <renderer/renderer2d.hpp>
+#include <ImGuizmo.h>
 #include <glm/gtc/type_ptr.hpp>
 
 EditorLayer::EditorLayer()
     : Layer("editor-layer") {
 	m_viewportSize = { 600.f, 600.f };
+	m_viewportBounds[0] = glm::vec2(0.0);
+	m_viewportBounds[1] = glm::vec2(0.0);
 
 	hyp::FramebufferSpecification fbSpec;
 	fbSpec.attachment = hyp::FbAttachmentSpecification({ { hyp::FbTextureFormat::RGBA }, { hyp::FbTextureFormat::RED_INT } });
@@ -53,7 +56,7 @@ void EditorLayer::onUpdate(float dt) {
 	if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
 	{
 		int pixel = m_framebuffer->readPixel(1, mouseX, mouseY);
-		m_hoveredEntity = pixel >= m_scene->maxEntities() ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_scene.get());
+		m_hoveredEntity = pixel == 1050253722 ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_scene.get());
 	}
 
 	m_framebuffer->unbind();

@@ -27,11 +27,6 @@ namespace hyp {
 			return m_registry.view<Components...>();
 		}
 
-		//TODO: hmm??
-		uint32_t maxEntities() {
-			return m_registry.capacity();
-		}
-
 	private:
 		entt::registry m_registry;
 	};

@@ -1,9 +1,11 @@
 #version 330 core
 
 out vec4 fragColor;
+out int entityId;
 
 in vec4 inColor;
 in vec2 inTexCoord;
+flat in int inEntityId;
 
 uniform sampler2D uFontAtlas;
 
@@ -36,5 +38,6 @@ void main() {
     fragColor = mix(bgColor, inColor, opacity);
     if (fragColor.a == 0.0)
         discard;
-}
 
+    entityId = inEntityId;
+}

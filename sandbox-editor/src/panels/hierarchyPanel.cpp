@@ -56,6 +56,7 @@ void hyp::HierarchyPanel::onUIRender() {
 			"TransformComponent",
 			"SpriteComponent",
 			"CircleComponent",
+			"TextComponent"
 		};
 		static int selectedItemIndex = 0;
 		drawComponents(m_selectedEntity);
@@ -71,7 +72,7 @@ void hyp::HierarchyPanel::onUIRender() {
 			{
 				if (ImGui::BeginCombo("##component_combos", componentsName[selectedItemIndex]))
 				{
-					for (int i = 0; i < 4; i++)
+					for (int i = 0; i < 5; i++)
 					{
 						bool isSelected = (selectedItemIndex == i);
 						if (ImGui::Selectable(componentsName[i], isSelected))
@@ -100,7 +101,8 @@ void hyp::HierarchyPanel::onUIRender() {
 				}
 				case 2: // Sprite
 				{
-					if (!m_selectedEntity.has<hyp::CircleRendererComponent>()) // shouldn't have sprite and circle component to an entity
+					if (!m_selectedEntity.has<hyp::CircleRendererComponent>() && !m_selectedEntity.has<hyp::TextComponent>())
+					// shouldn't have sprite and circle component to an entity
 					{
 						m_selectedEntity.getOrAdd<hyp::SpriteRendererComponent>(glm::vec4(1.f));
 					}
@@ -108,9 +110,18 @@ void hyp::HierarchyPanel::onUIRender() {
 				}
 				case 3: // Circle
 				{
-					if (!m_selectedEntity.has<hyp::SpriteRendererComponent>()) // shouldn't have sprite and circle component to an entity
+					if (!m_selectedEntity.has<hyp::SpriteRendererComponent>() && !m_selectedEntity.has<hyp::TextComponent>())
+					// shouldn't have sprite and circle component to an entity
 					{
 						m_selectedEntity.getOrAdd<hyp::CircleRendererComponent>(glm::vec4(1.f));
+					}
+					break;
+				}
+				case 4: // Text
+				{
+					if (!(m_selectedEntity.has<hyp::SpriteRendererComponent>() || m_selectedEntity.has<hyp::CircleRendererComponent>()))
+					{
+						m_selectedEntity.getOrAdd<hyp::TextComponent>();
 					}
 					break;
 				}
@@ -226,8 +237,8 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 
 	drawComponent<hyp::TransformComponent>("Transform", entity, [](hyp::TransformComponent& component)
 	{
-		utils::drawVec3Control("Position", component.position);
-		utils::drawVec2Control("Scale", component.size);
+		utils::drawVec3Control("Position", component.position, 0.f, 65.f);
+		utils::drawVec2Control("Scale", component.size, 0.f, 65.f);
 	});
 
 	drawComponent<hyp::SpriteRendererComponent>("Sprite Renderer", entity, [](hyp::SpriteRendererComponent& component)
@@ -266,6 +277,20 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 
 		ImGui::DragFloat("Thickness", &component.thickness, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Fade", &component.fade, 0.01f, 0.0f, 1.0f);
+	});
+
+	drawComponent<hyp::TextComponent>("Text Renderer", entity, [](hyp::TextComponent& component)
+	{
+		ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
+		char buffer[1024];
+		memset(buffer, 0, sizeof(buffer));
+		strncpy_s(buffer, sizeof(buffer), component.text.c_str(), sizeof(buffer));
+		if (ImGui::InputText("##Text", buffer, sizeof(buffer)))
+		{
+			component.text = std::string(buffer);
+		}
+		ImGui::DragFloat("Font Size", &component.fontSize, 1.f, 0.0f, 150.0f);
+		ImGui::DragFloat("Line Spacing", &component.lineSpacing, 0.01f, 0.0f, 1.0f);
 	});
 }
 

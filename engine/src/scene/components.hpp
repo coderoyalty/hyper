@@ -4,6 +4,7 @@
 
 	#include <glm/glm.hpp>
 	#include <renderer/texture.hpp>
+	#include <renderer/font.hpp>
 	#include <string>
 
 namespace hyp {
@@ -47,6 +48,15 @@ namespace hyp {
 			thickness = 1.f;
 			fade = 0.f;
 		}
+	};
+
+	struct TextComponent
+	{
+		std::string text;
+		hyp::Ref<hyp::Font> font;
+		glm::vec4 color { 1.f };
+		float lineSpacing = 0.f;
+		float fontSize = 16.f;
 	};
 
 } // namespace hyp

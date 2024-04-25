@@ -33,7 +33,7 @@ void hyp::Scene::onUpdate(float dt) {
 		}
 	}
 
-{
+	{
 		auto& circle_group = m_registry.view<TransformComponent, hyp::CircleRendererComponent>();
 
 		for (auto& entity : circle_group)
@@ -46,6 +46,26 @@ void hyp::Scene::onUpdate(float dt) {
 			model = glm::scale(model, glm::vec3(transform.size, 0.f));
 
 			hyp::Renderer2D::drawCircle(model, circle.thickness, circle.fade, circle.color, (int)entity);
+		}
+	}
+
+	{
+		auto text_group = m_registry.view<TransformComponent, TextComponent>();
+
+		for (auto& entity : text_group)
+		{
+			auto& [transform, text] = text_group.get<TransformComponent, TextComponent>(entity);
+
+			glm::mat4 model(1.f);
+
+			model = glm::translate(model, transform.position + glm::vec3(transform.size * 0.5f, 0.f));
+			model = glm::scale(model, glm::vec3(transform.size, 0.f));
+
+			hyp::Renderer2D::TextParams textParams;
+			textParams.fontSize = text.fontSize;
+			textParams.leading = text.lineSpacing;
+			textParams.color = text.color;
+			hyp::Renderer2D::drawString(text.text, text.font, model, textParams, (int)entity);
 		}
 	}
 }

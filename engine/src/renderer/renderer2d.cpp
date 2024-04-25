@@ -220,7 +220,7 @@ void Renderer2D::drawCircle(const glm::mat4& transform, float thickness, float f
 	s_renderer.circle.indexCount += 6;
 }
 
-void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> font, const glm::mat4& transform, const TextParams& textParams) {
+void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> font, const glm::mat4& transform, const TextParams& textParams, int entityId) {
 	auto& text = s_renderer.text;
 
 	// switch to engine's default font, if the provided font is invalid
@@ -296,18 +296,22 @@ void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> fon
 		v0.position = transform * glm ::vec4(quadMin, 0.f, 1.f);
 		v0.color = textParams.color;
 		v0.uvCoord = uvMin;
+		v0.entityId = entityId;
 
 		v1.position = transform * glm ::vec4(quadMin.x, quadMax.y, 0.f, 1.f);
 		v1.color = textParams.color;
 		v1.uvCoord = { uvMin.x, uvMax.y };
+		v1.entityId = entityId;
 
 		v2.position = transform * glm ::vec4(quadMax, 0.f, 1.f);
 		v2.color = textParams.color;
 		v2.uvCoord = uvMax;
+		v2.entityId = entityId;
 
 		v3.position = transform * glm ::vec4(quadMax.x, quadMin.y, 0.f, 1.f);
 		v3.color = textParams.color;
 		v3.uvCoord = { uvMax.x, uvMin.y };
+		v3.entityId = entityId;
 
 		text.vertices.push_back(v0);
 		text.vertices.push_back(v1);
@@ -562,6 +566,7 @@ void utils::initText() {
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec4, "aColor", false),
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec2, "aUV", false),
+	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Int, "aEntityId", false),
 	});
 
 	text.vao->addVertexBuffer(text.vbo);

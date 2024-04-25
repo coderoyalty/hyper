@@ -60,7 +60,7 @@ namespace hyp {
 			float leading = 0.f; // line-spacing
 			float fontSize = 48.f;
 		};
-		static void drawString(const std::string& text, hyp::Ref<hyp::Font> font, const glm::mat4& transform, const TextParams& textParams);
+		static void drawString(const std::string& text, hyp::Ref<hyp::Font> font, const glm::mat4& transform, const TextParams& textParams, int entityId = -1);
 
 	public:
 		static Stats getStats();
@@ -154,6 +154,7 @@ namespace hyp {
 		glm::vec3 position = { 0.f, 0.f, 0.f };
 		glm::vec4 color = { 1.f, 1.f, 1.f, 1.f };
 		glm::vec2 uvCoord = { 0.f, 0.f };
+		int entityId = -1;
 	};
 
 	template <typename T>

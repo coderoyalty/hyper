@@ -1,8 +1,14 @@
 #include "hierarchyPanel.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui_internal.h>
+#include <filesystem>
 
-static void drawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f);
+namespace fs = std::filesystem;
+
+namespace utils {
+	static void drawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.f, float columnWidth = 100.f);
+	static void drawVec2Control(const std::string& label, glm::vec2& values, float resetValue = 0.f, float columnWidth = 100.f);
+}
 
 hyp::HierarchyPanel::HierarchyPanel(const hyp::Ref<hyp::Scene>& scene) {
 	setContext(scene);
@@ -28,14 +34,13 @@ void hyp::HierarchyPanel::onUIRender() {
 		});
 
 		if (ImGui::BeginPopupContextWindow(0,
-		          ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+		        ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
 		{
-			if (ImGui::MenuItem("Create Empty Entity")) {
+			if (ImGui::MenuItem("Create Empty Entity"))
+			{
 				Entity entity = m_context->createEntity("Empty Entity");
 				auto& model = entity.get<TransformComponent>();
 				model.size = { 100.f, 100.f };
-				auto& sprite = entity.add<SpriteRendererComponent>();
-
 			}
 
 			ImGui::EndPopup();
@@ -44,7 +49,79 @@ void hyp::HierarchyPanel::onUIRender() {
 	ImGui::End();
 
 	ImGui::Begin("Properties");
-	drawComponents(m_selectedEntity);
+	{
+		static bool showComponents;
+		static const char* componentsName[] = {
+			"None",
+			"TransformComponent",
+			"SpriteComponent",
+			"CircleComponent",
+		};
+		static int selectedItemIndex = 0;
+		drawComponents(m_selectedEntity);
+
+		if (m_selectedEntity)
+		{
+			if (ImGui::Button("Add Component"))
+			{
+				showComponents = true;
+			}
+
+			if (showComponents)
+			{
+				if (ImGui::BeginCombo("##component_combos", componentsName[selectedItemIndex]))
+				{
+					for (int i = 0; i < 4; i++)
+					{
+						bool isSelected = (selectedItemIndex == i);
+						if (ImGui::Selectable(componentsName[i], isSelected))
+						{
+							showComponents = false;
+							selectedItemIndex = i;
+						}
+						if (isSelected)
+						{
+							ImGui::SetItemDefaultFocus(); // Set focus on the selected item
+						}
+					}
+					ImGui::EndCombo();
+				}
+			}
+
+			if (selectedItemIndex != 0)
+			{
+				switch (selectedItemIndex)
+				{
+				case 1: // TransformComponent
+				{
+					auto& transform = m_selectedEntity.getOrAdd<hyp::TransformComponent>();
+					transform.size = { 100.f, 100.f };
+					break;
+				}
+				case 2: // Sprite
+				{
+					if (!m_selectedEntity.has<hyp::CircleRendererComponent>()) // shouldn't have sprite and circle component to an entity
+					{
+						m_selectedEntity.getOrAdd<hyp::SpriteRendererComponent>(glm::vec4(1.f));
+					}
+					break;
+				}
+				case 3: // Circle
+				{
+					if (!m_selectedEntity.has<hyp::SpriteRendererComponent>()) // shouldn't have sprite and circle component to an entity
+					{
+						m_selectedEntity.getOrAdd<hyp::CircleRendererComponent>(glm::vec4(1.f));
+					}
+					break;
+				}
+				default:
+					break;
+				}
+
+				selectedItemIndex = 0;
+			}
+		}
+	}
 	ImGui::End();
 }
 
@@ -60,7 +137,8 @@ void hyp::HierarchyPanel::drawEntityNode(Entity entity) {
 	flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 	bool opened = ImGui::TreeNodeEx(id_ss.str().c_str(), flags, tag.c_str());
 
-	if (ImGui::IsItemHovered()) {
+	if (ImGui::IsItemHovered())
+	{
 		hoveredEntity = entity;
 	}
 
@@ -91,6 +169,45 @@ void hyp::HierarchyPanel::drawEntityNode(Entity entity) {
 	}
 }
 
+template <typename T, typename UIFunction>
+static void drawComponent(const std::string& name, hyp::Entity entity, UIFunction uiFunction) {
+	const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
+	if (entity.has<T>())
+	{
+		auto& component = entity.get<T>();
+		ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
+
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2 { 4, 4 });
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImGui::Separator();
+		bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, name.c_str());
+		ImGui::PopStyleVar();
+		ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
+		if (ImGui::Button("+", ImVec2 { lineHeight, lineHeight }))
+		{
+			ImGui::OpenPopup("ComponentSettings");
+		}
+
+		bool removeComponent = false;
+		if (ImGui::BeginPopup("ComponentSettings"))
+		{
+			if (ImGui::MenuItem("Remove component"))
+				removeComponent = true;
+
+			ImGui::EndPopup();
+		}
+
+		if (open)
+		{
+			uiFunction(component);
+			ImGui::TreePop();
+		}
+
+		if (removeComponent)
+			entity.remove<T>();
+	}
+}
+
 void hyp::HierarchyPanel::drawComponents(Entity entity) {
 	if (!entity) return;
 
@@ -107,34 +224,64 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 		}
 	}
 
-	auto& model = entity.get<TransformComponent>();
+	drawComponent<hyp::TransformComponent>("Transform", entity, [](hyp::TransformComponent& component)
+	{
+		utils::drawVec3Control("Position", component.position);
+		utils::drawVec2Control("Scale", component.size);
+	});
 
-	drawVec3Control("Position", model.position);
-	glm::vec3 size(model.size, 0.f);
-	drawVec3Control("Size", size);
-	model.size = glm::vec2(size);
+	drawComponent<hyp::SpriteRendererComponent>("Sprite Renderer", entity, [](hyp::SpriteRendererComponent& component)
+	{
+		ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
 
-	ImGui::Separator();
+		ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
 
-	if (entity.has<SpriteRendererComponent>()) {
-		auto& sprite = entity.get<SpriteRendererComponent>();
-		ImGui::ColorEdit4("Color", glm::value_ptr(sprite.color));
-	}
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("BROWSER_ITEM"))
+			{
+				const wchar_t* path = (const wchar_t*)payload->Data;
+
+				fs::path texturePath(path);
+				if (fs::exists(texturePath))
+				{
+					hyp::Ref<hyp::Texture2D> texture = hyp::Texture2D::create(texturePath.string());
+
+					if (texture->isLoaded())
+					{
+						component.texture = texture;
+					}
+				}
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+
+		ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f);
+	});
+
+	drawComponent<hyp::CircleRendererComponent>("Circle Renderer", entity, [](hyp::CircleRendererComponent& component)
+	{
+		ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
+
+		ImGui::DragFloat("Thickness", &component.thickness, 0.01f, 0.0f, 1.0f);
+		ImGui::DragFloat("Fade", &component.fade, 0.01f, 0.0f, 1.0f);
+	});
 }
 
-void drawVec3Control(const std::string& label, glm::vec3& values, float resetValue, float columnWidth) {
+void utils::drawVec3Control(const std::string& label, glm::vec3& values, float resetValue, float columnWidth) {
 	ImGuiIO& io = ImGui::GetIO();
 	auto boldFont = io.Fonts->Fonts[0];
 
+	ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, { 2, 2 });
 	ImGui::PushID(label.c_str());
-
 	ImGui::Columns(2);
 	ImGui::SetColumnWidth(0, columnWidth);
 	ImGui::Text(label.c_str());
 	ImGui::NextColumn();
 
 	ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 { 0, 0 });
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 { 0, 2 });
 
 	float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 	ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
@@ -182,6 +329,57 @@ void drawVec3Control(const std::string& label, glm::vec3& values, float resetVal
 
 	ImGui::PopStyleVar();
 
+	ImGui::Columns(1);
+
+	ImGui::PopID();
+	ImGui::PopStyleVar();
+}
+
+void utils::drawVec2Control(const std::string& label, glm::vec2& values, float resetValue, float columnWidth) {
+	ImGuiIO& io = ImGui::GetIO();
+	auto boldFont = io.Fonts->Fonts[0];
+
+	ImGui::PushID(label.c_str());
+
+	ImGui::Columns(2);
+	ImGui::SetColumnWidth(0, columnWidth);
+	ImGui::Text(label.c_str());
+	ImGui::NextColumn();
+
+	ImGui::PushMultiItemsWidths(2, ImGui::CalcItemWidth());
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 { 0, 2 });
+
+	float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+	ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4 { 0.8f, 0.1f, 0.15f, 1.0f });
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4 { 0.9f, 0.2f, 0.2f, 1.0f });
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4 { 0.8f, 0.1f, 0.15f, 1.0f });
+	ImGui::PushFont(boldFont);
+	if (ImGui::Button("X", buttonSize))
+		values.x = resetValue;
+	ImGui::PopFont();
+	ImGui::PopStyleColor(3);
+
+	ImGui::SameLine();
+	ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
+	ImGui::PopItemWidth();
+	ImGui::SameLine();
+
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4 { 0.2f, 0.7f, 0.2f, 1.0f });
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4 { 0.3f, 0.8f, 0.3f, 1.0f });
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4 { 0.2f, 0.7f, 0.2f, 1.0f });
+	ImGui::PushFont(boldFont);
+	if (ImGui::Button("Y", buttonSize))
+		values.y = resetValue;
+	ImGui::PopFont();
+	ImGui::PopStyleColor(3);
+
+	ImGui::SameLine();
+	ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
+	ImGui::PopItemWidth();
+
+	ImGui::PopStyleVar();
 	ImGui::Columns(1);
 
 	ImGui::PopID();

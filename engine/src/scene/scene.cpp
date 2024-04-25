@@ -23,11 +23,29 @@ void hyp::Scene::destroyEntity(Entity entity) {
 }
 
 void hyp::Scene::onUpdate(float dt) {
-	auto& view = m_registry.group<TransformComponent>(entt::get<hyp::SpriteRendererComponent>);
-
-	for (auto& entity : view)
 	{
-		auto& [transform, sprite] = view.get<TransformComponent, hyp::SpriteRendererComponent>(entity);
-		hyp::Renderer2D::drawQuad(transform.position, transform.size, sprite.texture, sprite.tilingFactor, sprite.color, (int)entity);
+		auto& sprite_group = m_registry.group<TransformComponent, hyp::SpriteRendererComponent>();
+
+		for (auto& entity : sprite_group)
+		{
+			auto& [transform, sprite] = sprite_group.get<TransformComponent, hyp::SpriteRendererComponent>(entity);
+			hyp::Renderer2D::drawQuad(transform.position, transform.size, sprite.texture, sprite.tilingFactor, sprite.color, (int)entity);
+		}
+	}
+
+{
+		auto& circle_group = m_registry.view<TransformComponent, hyp::CircleRendererComponent>();
+
+		for (auto& entity : circle_group)
+		{
+			auto& [transform, circle] = circle_group.get<TransformComponent, hyp::CircleRendererComponent>(entity);
+
+			glm::mat4 model(1.0);
+
+			model = glm::translate(model, transform.position);
+			model = glm::scale(model, glm::vec3(transform.size, 0.f));
+
+			hyp::Renderer2D::drawCircle(model, circle.thickness, circle.fade, circle.color, (int)entity);
+		}
 	}
 }

@@ -40,7 +40,7 @@ void hyp::HierarchyPanel::onUIRender() {
 			{
 				Entity entity = m_context->createEntity("Empty Entity");
 				auto& model = entity.get<TransformComponent>();
-				model.size = { 100.f, 100.f };
+				model.size = { 0.5, 0.5f };
 			}
 
 			ImGui::EndPopup();
@@ -96,7 +96,7 @@ void hyp::HierarchyPanel::onUIRender() {
 				case 1: // TransformComponent
 				{
 					auto& transform = m_selectedEntity.getOrAdd<hyp::TransformComponent>();
-					transform.size = { 100.f, 100.f };
+					transform.size = { 0.5, 0.5f };
 					break;
 				}
 				case 2: // Sprite
@@ -239,6 +239,7 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 	{
 		utils::drawVec3Control("Position", component.position, 0.f, 65.f);
 		utils::drawVec2Control("Scale", component.size, 0.f, 65.f);
+		ImGui::DragFloat("Rotation", &component.rotation, 0.1, -360.f, 360.f);
 	});
 
 	drawComponent<hyp::SpriteRendererComponent>("Sprite Renderer", entity, [](hyp::SpriteRendererComponent& component)
@@ -387,7 +388,7 @@ void utils::drawVec2Control(const std::string& label, glm::vec2& values, float r
 	ImGui::PopStyleColor(3);
 
 	ImGui::SameLine();
-	ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
+	ImGui::DragFloat("##X", &values.x, 0.01f, 0.0f, 0.0f, "%.2f");
 	ImGui::PopItemWidth();
 	ImGui::SameLine();
 
@@ -401,7 +402,7 @@ void utils::drawVec2Control(const std::string& label, glm::vec2& values, float r
 	ImGui::PopStyleColor(3);
 
 	ImGui::SameLine();
-	ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
+	ImGui::DragFloat("##Y", &values.y, 0.01f, 0.0f, 0.0f, "%.2f");
 	ImGui::PopItemWidth();
 
 	ImGui::PopStyleVar();

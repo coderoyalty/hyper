@@ -29,7 +29,7 @@ void hyp::Scene::onUpdate(float dt) {
 		for (auto& entity : sprite_group)
 		{
 			auto& [transform, sprite] = sprite_group.get<TransformComponent, hyp::SpriteRendererComponent>(entity);
-			hyp::Renderer2D::drawQuad(transform.position, transform.size, sprite.texture, sprite.tilingFactor, sprite.color, (int)entity);
+			hyp::Renderer2D::drawQuad(transform.getTransform(), sprite.texture, sprite.tilingFactor, sprite.color, (int)entity);
 		}
 	}
 
@@ -45,7 +45,7 @@ void hyp::Scene::onUpdate(float dt) {
 			model = glm::translate(model, transform.position);
 			model = glm::scale(model, glm::vec3(transform.size, 0.f));
 
-			hyp::Renderer2D::drawCircle(model, circle.thickness, circle.fade, circle.color, (int)entity);
+			hyp::Renderer2D::drawCircle(transform.getTransform(), circle.thickness, circle.fade, circle.color, (int)entity);
 		}
 	}
 
@@ -65,7 +65,7 @@ void hyp::Scene::onUpdate(float dt) {
 			textParams.fontSize = text.fontSize;
 			textParams.leading = text.lineSpacing;
 			textParams.color = text.color;
-			hyp::Renderer2D::drawString(text.text, text.font, model, textParams, (int)entity);
+			hyp::Renderer2D::drawString(text.text, text.font, transform.getTransform(), textParams, (int)entity);
 		}
 	}
 }

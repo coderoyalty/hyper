@@ -3,6 +3,7 @@
 	#define HYP_COMPONENTS_HPP
 
 	#include <glm/glm.hpp>
+	#include <glm/gtc/matrix_transform.hpp>
 	#include <renderer/texture.hpp>
 	#include <renderer/font.hpp>
 	#include <string>
@@ -24,6 +25,15 @@ namespace hyp {
 			position = { 0.f, 0.f, 0.f };
 			rotation = 0.f;
 			size = { 0.f, 0.f };
+		}
+
+		glm::mat4 getTransform() {
+			glm::mat4 model(1.0);
+			model = glm::translate(model, position);
+			model = glm::scale(model, glm::vec3(size, 0.f));
+			model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.f, 0.f, 1.f));
+
+			return model;
 		}
 	};
 

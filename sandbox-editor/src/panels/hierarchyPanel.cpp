@@ -121,7 +121,8 @@ void hyp::HierarchyPanel::onUIRender() {
 				{
 					if (!(m_selectedEntity.has<hyp::SpriteRendererComponent>() || m_selectedEntity.has<hyp::CircleRendererComponent>()))
 					{
-						m_selectedEntity.getOrAdd<hyp::TextComponent>();
+						auto& text = m_selectedEntity.getOrAdd<hyp::TextComponent>();
+						text.text = text.text.length() == 0 ? "Untitled" : text.text;
 					}
 					break;
 				}

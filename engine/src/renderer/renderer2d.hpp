@@ -49,7 +49,7 @@ namespace hyp {
 		    hyp::Ref<hyp::Texture2D> texture, float tilingFactor = 1.f, const glm::vec4& color = glm::vec4(1.0), int entityId = -1);
 
 	public:
-		static void drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color = glm::vec4(1.0));
+		static void drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color = glm::vec4(1.0), int entityId = -1);
 		static void drawCircle(const glm::mat4& transform, float thickness, float fade, const glm::vec4& color = glm::vec4(1.f), int entityId = -1);
 
 	public:
@@ -137,6 +137,7 @@ namespace hyp {
 	{
 		glm::vec3 position = { 0.f, 0.f, 0.f };
 		glm::vec4 color = glm::vec4(1.f);
+		int entityId = -1;
 	};
 
 	struct CircleVertex

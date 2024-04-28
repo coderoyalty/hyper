@@ -183,13 +183,14 @@ void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture
 	s_renderer.quad.indexCount += 6;
 }
 
-void Renderer2D::drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color) {
+void Renderer2D::drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color, int entityId) {
 	LineVertex v0, v1;
 
 	v0.position = p1;
 	v1.position = p2;
 
 	v0.color = v1.color = color;
+	v0.entityId = v1.entityId = entityId;
 
 	s_renderer.line.vertices.push_back(v0);
 	s_renderer.line.vertices.push_back(v1);
@@ -450,6 +451,7 @@ void utils::initLine() {
 	line.vbo->setLayout({
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec4, "aColor", false),
+	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Int, "aEntityId", false),
 	});
 
 	line.vao->addVertexBuffer(s_renderer.line.vbo);

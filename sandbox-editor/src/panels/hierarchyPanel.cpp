@@ -240,7 +240,9 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 	{
 		utils::drawVec3Control("Position", component.position, 0.f, 65.f);
 		utils::drawVec2Control("Scale", component.size, 0.f, 65.f);
-		ImGui::DragFloat("Rotation", &component.rotation, 0.1, -360.f, 360.f);
+		ImGui::Text("Rotation");
+		ImGui::SameLine();
+		ImGui::DragFloat("##Rotation", &component.rotation, 0.1, -360.f, 360.f);
 	});
 
 	drawComponent<hyp::SpriteRendererComponent>("Sprite Renderer", entity, [](hyp::SpriteRendererComponent& component)
@@ -269,30 +271,47 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 
 			ImGui::EndDragDropTarget();
 		}
-
-		ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f);
+		ImGui::Text("Tiling Factor");
+		ImGui::SameLine();
+		ImGui::DragFloat("##TilingFactor", &component.tilingFactor, 0.1f, 0.0f, 100.0f);
 	});
 
 	drawComponent<hyp::CircleRendererComponent>("Circle Renderer", entity, [](hyp::CircleRendererComponent& component)
 	{
 		ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
 
-		ImGui::DragFloat("Thickness", &component.thickness, 0.01f, 0.0f, 1.0f);
-		ImGui::DragFloat("Fade", &component.fade, 0.01f, 0.0f, 1.0f);
+		ImGui::Text("Thickness");
+		ImGui::SameLine();
+		ImGui::DragFloat("##Thickness", &component.thickness, 0.01f, 0.0f, 1.0f);
+
+		ImGui::Text("Fade");
+		ImGui::SameLine();
+		ImGui::DragFloat("##Fade", &component.fade, 0.01f, 0.0f, 1.0f);
 	});
 
 	drawComponent<hyp::TextComponent>("Text Renderer", entity, [](hyp::TextComponent& component)
 	{
-		ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
+		ImGui::Text("Color");
+		ImGui::SameLine();
+		ImGui::ColorEdit4("##Color", glm::value_ptr(component.color));
 		char buffer[1024];
 		memset(buffer, 0, sizeof(buffer));
 		strncpy_s(buffer, sizeof(buffer), component.text.c_str(), sizeof(buffer));
+
+		ImGui::Text("Text");
+		ImGui::SameLine();
 		if (ImGui::InputText("##Text", buffer, sizeof(buffer)))
 		{
 			component.text = std::string(buffer);
 		}
-		ImGui::DragFloat("Font Size", &component.fontSize, 1.f, 0.0f, 150.0f);
-		ImGui::DragFloat("Line Spacing", &component.lineSpacing, 0.01f, 0.0f, 1.0f);
+
+		ImGui::Text("Font Size");
+		ImGui::SameLine();
+		ImGui::DragFloat("##FontSize", &component.fontSize, 1.f, 0.0f, 150.0f);
+
+		ImGui::Text("Line Spacing");
+		ImGui::SameLine();
+		ImGui::DragFloat("##LineSpacing", &component.lineSpacing, 0.01f, 0.0f, 1.0f);
 	});
 }
 
@@ -323,7 +342,7 @@ void utils::drawVec3Control(const std::string& label, glm::vec3& values, float r
 	ImGui::PopStyleColor(3);
 
 	ImGui::SameLine();
-	ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
+	ImGui::DragFloat("##X", &values.x, 0.01f, 0.0f, 0.0f, "%.2f");
 	ImGui::PopItemWidth();
 	ImGui::SameLine();
 
@@ -337,7 +356,7 @@ void utils::drawVec3Control(const std::string& label, glm::vec3& values, float r
 	ImGui::PopStyleColor(3);
 
 	ImGui::SameLine();
-	ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
+	ImGui::DragFloat("##Y", &values.y, 0.01f, 0.0f, 0.0f, "%.2f");
 	ImGui::PopItemWidth();
 	ImGui::SameLine();
 
@@ -351,7 +370,7 @@ void utils::drawVec3Control(const std::string& label, glm::vec3& values, float r
 	ImGui::PopStyleColor(3);
 
 	ImGui::SameLine();
-	ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
+	ImGui::DragFloat("##Z", &values.z, 0.01f, 0.0f, 0.0f, "%.2f");
 	ImGui::PopItemWidth();
 
 	ImGui::PopStyleVar();

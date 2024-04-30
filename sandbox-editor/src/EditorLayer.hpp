@@ -8,29 +8,54 @@
 	#include <scene/components.hpp>
 	#include <scene/entity.hpp>
 	#include "panels/hierarchyPanel.hpp"
+	#include <camera/editor_camera.hpp>
 
-class EditorLayer : public hyp::Layer {
-public:
-	EditorLayer();
+namespace hyp {
+	namespace editor {
 
-	virtual void onEvent(hyp::Event& event) override;
-	virtual void onUpdate(float dt) override;
-	virtual void onUIRender();
+		struct ViewportState
+		{
+			bool hovered = false;
+			bool focused = false;
 
-private:
-	bool onMousePressed(hyp::MouseBtnPressedEvent& event);
+			glm::vec2 size = { 0.f, 0.f };
 
-private:
-	hyp::Ref<hyp::Framebuffer> m_framebuffer;
-	hyp::Ref<hyp::Scene> m_scene;
-	hyp::Ref<hyp::HierarchyPanel> m_hierarchyPanel;
+			union
+			{
+				struct
+				{
+					glm::vec2 min_bound;
+					glm::vec2 max_bound;
+				};
+				glm::vec2 bounds[2] = { { 0.f, 0.f }, { 0.f, 0.f } };
+			};
+		};
 
-private:
-	glm::vec2 m_viewportSize;
-	glm::vec2 m_viewportBounds[2];
-	hyp::Ref<hyp::OrthoGraphicCameraController> m_cameraController;
-	bool m_viewportFocused = false;
-	hyp::Entity m_hoveredEntity;
-};
+		class EditorLayer : public hyp::Layer {
+		public:
+			EditorLayer();
+
+			virtual void onEvent(hyp::Event& event) override;
+			virtual void onUpdate(float dt) override;
+			virtual void onUIRender();
+
+		private:
+			bool onMousePressed(hyp::MouseBtnPressedEvent& event);
+			bool onKeyPressed(hyp::KeyPressedEvent& event);
+		private:
+			hyp::Ref<hyp::Framebuffer> m_framebuffer;
+			hyp::Ref<hyp::Scene> m_scene;
+			hyp::Ref<hyp::HierarchyPanel> m_hierarchyPanel;
+
+		private:
+			ViewportState m_viewportInfo;
+
+			int m_gizmoType = -1;
+
+			hyp::Entity m_hoveredEntity;
+			hyp::EditorCamera m_editorCamera;
+		};
+	};
+}
 
 #endif //! HYPER_EDITOR_LAYER

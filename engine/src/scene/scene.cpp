@@ -43,7 +43,7 @@ void hyp::Scene::onUpdate(float dt) {
 			glm::mat4 model(1.0);
 
 			model = glm::translate(model, transform.position);
-			model = glm::scale(model, glm::vec3(transform.size, 0.f));
+			model = glm::scale(model, transform.scale);
 
 			hyp::Renderer2D::drawCircle(transform.getTransform(), circle.thickness, circle.fade, circle.color, (int)entity);
 		}
@@ -58,8 +58,8 @@ void hyp::Scene::onUpdate(float dt) {
 
 			glm::mat4 model(1.f);
 
-			model = glm::translate(model, transform.position + glm::vec3(transform.size * 0.5f, 0.f));
-			model = glm::scale(model, glm::vec3(transform.size, 0.f));
+			model = glm::translate(model, transform.position);
+			model = glm::scale(model, transform.scale);
 
 			hyp::Renderer2D::TextParams textParams;
 			textParams.fontSize = text.fontSize;

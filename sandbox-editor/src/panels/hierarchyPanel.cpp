@@ -39,8 +39,7 @@ void hyp::HierarchyPanel::onUIRender() {
 			if (ImGui::MenuItem("Create Empty Entity"))
 			{
 				Entity entity = m_context->createEntity("Empty Entity");
-				auto& model = entity.get<TransformComponent>();
-				model.size = { 0.5, 0.5f };
+				entity.get<TransformComponent>();
 			}
 
 			ImGui::EndPopup();
@@ -95,8 +94,7 @@ void hyp::HierarchyPanel::onUIRender() {
 				{
 				case 1: // TransformComponent
 				{
-					auto& transform = m_selectedEntity.getOrAdd<hyp::TransformComponent>();
-					transform.size = { 0.5, 0.5f };
+					m_selectedEntity.getOrAdd<hyp::TransformComponent>();
 					break;
 				}
 				case 2: // Sprite
@@ -239,10 +237,8 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 	drawComponent<hyp::TransformComponent>("Transform", entity, [](hyp::TransformComponent& component)
 	{
 		utils::drawVec3Control("Position", component.position, 0.f, 65.f);
-		utils::drawVec2Control("Scale", component.size, 0.f, 65.f);
-		ImGui::Text("Rotation");
-		ImGui::SameLine();
-		ImGui::DragFloat("##Rotation", &component.rotation, 0.1, -360.f, 360.f);
+		utils::drawVec3Control("Scale", component.scale, 0.f, 65.f);
+		utils::drawVec3Control("Rotation", component.rotation, 0.f, 65.f);
 	});
 
 	drawComponent<hyp::SpriteRendererComponent>("Sprite Renderer", entity, [](hyp::SpriteRendererComponent& component)

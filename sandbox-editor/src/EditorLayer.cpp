@@ -172,7 +172,7 @@ void EditorLayer::onUIRender() {
 
 	auto selectedEntity = m_hierarchyPanel->getSelectedEntity();
 
-	if (selectedEntity && m_gizmoType != -1)
+	if (selectedEntity && selectedEntity.has<TransformComponent>() && m_gizmoType != -1)
 	{
 		ImGuizmo::SetOrthographic(false);
 		ImGuizmo::SetDrawlist();
@@ -182,15 +182,14 @@ void EditorLayer::onUIRender() {
 
 		const glm::mat4& cameraProjection = camera.getProjectionMatrix();
 		glm::mat4 cameraView = camera.getViewMatrix();
-		// Entity transform
 		auto& tc = selectedEntity.get<hyp::TransformComponent>();
 		glm::mat4 transform = tc.getTransform();
 
 		ImGuizmo::Manipulate(
 		    glm::value_ptr(cameraView),
 		    glm::value_ptr(cameraProjection),
-		    (ImGuizmo::OPERATION)m_gizmoType, // Operation type (e.g., translation, rotation, scale)
-		    ImGuizmo::LOCAL,                  // Mode type (e.g., local, world)
+		    (ImGuizmo::OPERATION)m_gizmoType,
+		    ImGuizmo::LOCAL,
 		    glm::value_ptr(transform));
 
 		if (ImGuizmo::IsUsing())

@@ -5,6 +5,7 @@ includes["GLAD"] = "%{wks.location}/dependencies/glfw/include"
 includes["IMGUI"] = "%{wks.location}/dependencies/imgui"
 includes["IMGUIZMO"] = "%{wks.location}/dependencies/imguizmo"
 includes["FREETYPE"] = "%{wks.location}/dependencies/freetype/include"
+includes["YAML_CPP"] = "%{wks.location}/dependencies/yaml-cpp/include"
 
 -- vendor
 includes["GLM"] = "%{wks.location}/dependencies/vendor/glm/include"

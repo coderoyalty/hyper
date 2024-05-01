@@ -10,9 +10,11 @@ project "hyper-editor"
 		"**.hpp", "**.cpp", "*.c"
 	}
 
-	-- defines {	"GLFW_DLL"	}
 
-	defines {	"HYPER_STATIC_EXPORTS"	}
+	defines {
+		"HYPER_STATIC_EXPORTS",
+		"YAML_CPP_STATIC_DEFINE"
+	}
 
 	includedirs
 	{
@@ -23,8 +25,8 @@ project "hyper-editor"
 		"%{includes.STB}",
 		"%{includes.IMGUI}",
 		"%{includes.ENTT}",
-		"%{includes.IMGUIZMO}"
-		
+		"%{includes.IMGUIZMO}",
+		"%{includes.YAML_CPP}"	
 	}
 	links
 	{

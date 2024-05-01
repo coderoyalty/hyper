@@ -20,6 +20,7 @@ group "Dependencies"
 	include "dependencies/glfw"
 	include "dependencies/imgui"
 	include "dependencies/freetype"
+	include "dependencies/yaml-cpp"
 
 group "Hyper"
 	include "engine"

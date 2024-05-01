@@ -43,8 +43,8 @@ namespace hyp {
 		float m_width = 0.f, m_height = 0.f;
 		float m_zoomLevel = 1.f;
 
-		float m_cameraSpeed = 360.f;
-		float m_cameraRotationSpeed = 90.f;
+		float m_cameraSpeed = 2.f;
+		float m_cameraRotationSpeed = 45.f;
 
 		hyp::OrthoGraphicCamera m_camera;
 	};

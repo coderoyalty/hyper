@@ -8,6 +8,12 @@ bool hyp::Input::isKeyPressed(hyp::Key key) {
 	return state == GLFW_PRESS;
 }
 
+bool hyp::Input::isMouseBtnPressed(hyp::Mouse mouse) {
+	GLFWwindow* window = hyp::Application::get().getWindow()->getNativeWindow();
+	int state = glfwGetMouseButton(window, (int)mouse);
+	return state == GLFW_PRESS;
+}
+
 glm::vec2 hyp::Input::getMousePos() {
 	GLFWwindow* window = hyp::Application::get().getWindow()->getNativeWindow();
 	double xpos = 0.f, ypos = 0.f;

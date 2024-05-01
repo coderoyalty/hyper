@@ -91,12 +91,12 @@ void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, cons
 	drawQuad(model, color);
 }
 
-void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, hyp::Ref<hyp::Texture2D> texture, float tilingFactor, const glm::vec4& color) {
+void Renderer2D::drawQuad(const glm::vec3& position, const glm::vec2& size, hyp::Ref<hyp::Texture2D> texture, float tilingFactor, const glm::vec4& color, int entityId) {
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, position + glm::vec3(size / 2.f, 0.f));
 	model = glm::scale(model, glm::vec3(size, 0.f));
 
-	drawQuad(model, texture, tilingFactor, color);
+	drawQuad(model, texture, tilingFactor, color, entityId);
 }
 
 void Renderer2D::drawQuad(const glm::mat4& transform, const glm::vec4& color) {
@@ -132,7 +132,7 @@ void Renderer2D::drawQuad(const glm::mat4& transform, const glm::vec4& color) {
 /*
 * @brief for rendering textured-quad
 */
-void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture2D>& texture, float tilingFactor, const glm::vec4& color) {
+void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture2D>& texture, float tilingFactor, const glm::vec4& color, int entityId) {
 	auto& quad = s_renderer.quad;
 
 	float textureIndex = 0.0;
@@ -152,10 +152,10 @@ void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture
 		if (quad.textureSlotIndex == MaxTextureSlots)
 			utils::nextQuadBatch(); // dispatch the current batch
 
-
 		/// the texture slot index will never be = to MaxTextureSlots
 		/// this logic above avoids this scenario, and is presumed to reset the slot index
-		if (texture) {
+		if (texture)
+		{
 			HYP_ASSERT_CORE(quad.textureSlotIndex != MaxTextureSlots, "texture slot limits exceeded");
 			quad.textureSlots[quad.textureSlotIndex] = texture;
 			textureIndex = (float)quad.textureSlotIndex++;
@@ -173,6 +173,7 @@ void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture
 		vertex.textureIndex = textureIndex;
 		vertex.transformIndex = quad.transformIndexCount;
 		vertex.tilingFactor = tilingFactor;
+		vertex.entityId = entityId;
 
 		quad.vertices.push_back(vertex);
 	}
@@ -182,13 +183,14 @@ void hyp::Renderer2D::drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture
 	s_renderer.quad.indexCount += 6;
 }
 
-void Renderer2D::drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color) {
+void Renderer2D::drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color, int entityId) {
 	LineVertex v0, v1;
 
 	v0.position = p1;
 	v1.position = p2;
 
 	v0.color = v1.color = color;
+	v0.entityId = v1.entityId = entityId;
 
 	s_renderer.line.vertices.push_back(v0);
 	s_renderer.line.vertices.push_back(v1);
@@ -197,7 +199,7 @@ void Renderer2D::drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::v
 		utils::nextLineBatch();
 }
 
-void Renderer2D::drawCircle(const glm::mat4& transform, float thickness, float fade, const glm::vec4& color) {
+void Renderer2D::drawCircle(const glm::mat4& transform, float thickness, float fade, const glm::vec4& color, int entityId) {
 	if (s_renderer.circle.vertices.size() == static_cast<unsigned long long>(MaxCircles) * 4)
 	{
 		utils::nextCircleBatch();
@@ -211,6 +213,7 @@ void Renderer2D::drawCircle(const glm::mat4& transform, float thickness, float f
 		vertex.localPosition = s_renderer.quad.vertexPos[i] * 2.f;
 		vertex.thickness = thickness;
 		vertex.fade = fade;
+		vertex.entityId = entityId;
 
 		s_renderer.circle.vertices.push_back(vertex);
 	}
@@ -218,7 +221,7 @@ void Renderer2D::drawCircle(const glm::mat4& transform, float thickness, float f
 	s_renderer.circle.indexCount += 6;
 }
 
-void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> font, const glm::mat4& transform, const TextParams& textParams) {
+void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> font, const glm::mat4& transform, const TextParams& textParams, int entityId) {
 	auto& text = s_renderer.text;
 
 	// switch to engine's default font, if the provided font is invalid
@@ -258,7 +261,8 @@ void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> fon
 			continue;
 		}
 
-		if (ch == '\t') {
+		if (ch == '\t')
+		{
 			float advance = (float)fontGeometry->getGlyph(' ')->getAdvance();
 			x += fontScalingFactor * advance * scale * 2.f;
 			continue;
@@ -293,18 +297,22 @@ void hyp::Renderer2D::drawString(const std::string& str, hyp::Ref<hyp::Font> fon
 		v0.position = transform * glm ::vec4(quadMin, 0.f, 1.f);
 		v0.color = textParams.color;
 		v0.uvCoord = uvMin;
+		v0.entityId = entityId;
 
 		v1.position = transform * glm ::vec4(quadMin.x, quadMax.y, 0.f, 1.f);
 		v1.color = textParams.color;
 		v1.uvCoord = { uvMin.x, uvMax.y };
+		v1.entityId = entityId;
 
 		v2.position = transform * glm ::vec4(quadMax, 0.f, 1.f);
 		v2.color = textParams.color;
 		v2.uvCoord = uvMax;
+		v2.entityId = entityId;
 
 		v3.position = transform * glm ::vec4(quadMax.x, quadMin.y, 0.f, 1.f);
 		v3.color = textParams.color;
 		v3.uvCoord = { uvMax.x, uvMin.y };
+		v3.entityId = entityId;
 
 		text.vertices.push_back(v0);
 		text.vertices.push_back(v1);
@@ -338,6 +346,7 @@ void utils::initQuad() {
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Int, "aTransformIndex", false),
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Float, "aTextureIndex", false),
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Float, "aTilingFactor", false),
+	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Int, "aEntityId", false),
 	});
 
 	quad.vao->addVertexBuffer(quad.vbo);
@@ -442,6 +451,7 @@ void utils::initLine() {
 	line.vbo->setLayout({
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec4, "aColor", false),
+	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Int, "aEntityId", false),
 	});
 
 	line.vao->addVertexBuffer(s_renderer.line.vbo);
@@ -493,6 +503,7 @@ void utils::initCircle() {
 	    { hyp::ShaderDataType::Vec4, "aColor" },
 	    { hyp::ShaderDataType::Float, "aThickness" },
 	    { hyp::ShaderDataType::Float, "aFade" },
+	    { hyp::ShaderDataType::Int, "aEntityId" },
 	});
 	circle.vbo->setLayout(layout);
 
@@ -557,6 +568,7 @@ void utils::initText() {
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec4, "aColor", false),
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec2, "aUV", false),
+	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Int, "aEntityId", false),
 	});
 
 	text.vao->addVertexBuffer(text.vbo);

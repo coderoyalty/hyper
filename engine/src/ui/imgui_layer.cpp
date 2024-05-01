@@ -1,5 +1,6 @@
 #include <ui/imgui_layer.hpp>
 #include <imgui.h>
+#include <ImGuizmo.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
 
@@ -59,6 +60,7 @@ void hyp::ImGuiLayer::begin() {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
+	ImGuizmo::BeginFrame();
 }
 
 void hyp::ImGuiLayer::end() {

@@ -1,11 +1,13 @@
 #version 330 core
 
 out vec4 fragColor;
+out int entity;
 
 in vec3 localPosition;
 in vec4 color;
 in float thickness;
 in float fade;
+flat in int entityId;
 
 void main() {
 	float distance = 1.0 - length(localPosition);
@@ -17,4 +19,6 @@ void main() {
 	fragColor = color;
 
 	fragColor.a *= circle;
+
+	entity = entityId;
 }

@@ -41,15 +41,16 @@ namespace hyp {
 
 	public:
 		static void drawQuad(const glm::mat4& transform, const glm::vec4& color);
-		static void drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture2D>& texture, float tilingFactor = 1.f, const glm::vec4& color = glm::vec4(1.f));
+		static void drawQuad(const glm::mat4& transform, hyp::Ref<hyp::Texture2D>& texture,
+		    float tilingFactor = 1.f, const glm::vec4& color = glm::vec4(1.f), int entityId = -1);
 
 		static void drawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color);
 		static void drawQuad(const glm::vec3& position, const glm::vec2& size,
-		    hyp::Ref<hyp::Texture2D> texture, float tilingFactor = 1.f, const glm::vec4& color = glm::vec4(1.0));
+		    hyp::Ref<hyp::Texture2D> texture, float tilingFactor = 1.f, const glm::vec4& color = glm::vec4(1.0), int entityId = -1);
 
 	public:
-		static void drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color = glm::vec4(1.0));
-		static void drawCircle(const glm::mat4& transform, float thickness, float fade, const glm::vec4& color = glm::vec4(1.f));
+		static void drawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color = glm::vec4(1.0), int entityId = -1);
+		static void drawCircle(const glm::mat4& transform, float thickness, float fade, const glm::vec4& color = glm::vec4(1.f), int entityId = -1);
 
 	public:
 		struct TextParams
@@ -59,7 +60,7 @@ namespace hyp {
 			float leading = 0.f; // line-spacing
 			float fontSize = 48.f;
 		};
-		static void drawString(const std::string& text, hyp::Ref<hyp::Font> font, const glm::mat4& transform, const TextParams& textParams);
+		static void drawString(const std::string& text, hyp::Ref<hyp::Font> font, const glm::mat4& transform, const TextParams& textParams, int entityId = -1);
 
 	public:
 		static Stats getStats();
@@ -129,12 +130,14 @@ namespace hyp {
 		int transformIndex = 0;
 		float textureIndex = 0;
 		float tilingFactor = 1.f; // no. of times a texture is repeated.
+		int entityId = -1;
 	};
 
 	struct LineVertex
 	{
 		glm::vec3 position = { 0.f, 0.f, 0.f };
 		glm::vec4 color = glm::vec4(1.f);
+		int entityId = -1;
 	};
 
 	struct CircleVertex
@@ -144,6 +147,7 @@ namespace hyp {
 		glm::vec4 color;
 		float thickness;
 		float fade;
+		int entityId = -1;
 	};
 
 	struct TextVertex
@@ -151,6 +155,7 @@ namespace hyp {
 		glm::vec3 position = { 0.f, 0.f, 0.f };
 		glm::vec4 color = { 1.f, 1.f, 1.f, 1.f };
 		glm::vec2 uvCoord = { 0.f, 0.f };
+		int entityId = -1;
 	};
 
 	template <typename T>

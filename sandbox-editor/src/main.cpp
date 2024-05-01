@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
 	hyp::RenderCommand::init();
 	hyp::Renderer2D::init();
 
-	app.pushLayer(new EditorLayer());
+	app.pushLayer(new hyp::editor::EditorLayer());
 
 	app.run();
 

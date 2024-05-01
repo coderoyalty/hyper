@@ -23,6 +23,17 @@ namespace hyp {
 			return component;
 		}
 
+		// [Debug]
+		// for safely adding a component to the entity without getting an assertion error
+		template<typename T, typename... Args>
+		T& getOrAdd(Args&... args) {
+			if (has<T>()) {
+				return get<T>();
+			}
+
+			return add<T>(std::forward<Args>(args)...);
+		}
+
 		template <typename T>
 		bool has() { return m_scene->m_registry.has<T>(m_handle); }
 
@@ -37,6 +48,10 @@ namespace hyp {
 			HYP_ASSERT_CORE(has<T>(), "entity does not have component");
 			m_scene->m_registry.remove<T>(m_handle);
 		}
+
+		operator entt::entity() const { return m_handle; }
+		bool operator==(const Entity& other) const { return this->m_handle == other.m_handle; }
+		bool operator!=(const Entity& other) const { return !(*this == other); }
 
 		operator bool() { return m_handle != entt::null; }
 

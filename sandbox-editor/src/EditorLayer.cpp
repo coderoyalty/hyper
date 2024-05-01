@@ -69,6 +69,10 @@ EditorLayer::EditorLayer()
 	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_scene);
 
 	m_editorCamera.setPosition(glm::vec3(0.f, 0.f, 3.f));
+
+	auto& entity = m_scene->createEntity("Square");
+	auto& sc = entity.getOrAdd<hyp::SpriteRendererComponent>();
+	sc.texture = hyp::Texture2D::create("assets/textures/checkerboard.png");
 }
 
 void EditorLayer::onEvent(hyp::Event& event) {
@@ -117,6 +121,17 @@ void EditorLayer::onUIRender() {
 	{
 		if (ImGui::BeginMenu("File"))
 		{
+			if (ImGui::MenuItem("New Scene", "Ctrl+N"))
+				;
+
+			if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
+				;
+
+			if (ImGui::MenuItem("Save Scene As", "Ctrl+Shift+S"))
+				;
+
+			ImGui::Separator();
+
 			if (ImGui::MenuItem("Exit")) hyp::Application::get().close();
 			ImGui::EndMenu();
 		}

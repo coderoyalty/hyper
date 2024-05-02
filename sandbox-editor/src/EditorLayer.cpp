@@ -4,6 +4,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <core/version.hpp>
+#include <scene/serializer.hpp>
+#include <utils/file_dialog.hpp>
 
 using namespace hyp;
 using namespace editor;
@@ -54,6 +56,9 @@ namespace utils {
 
 EditorLayer::EditorLayer()
     : Layer("editor-layer") {
+}
+
+void hyp::editor::EditorLayer::onAttach() {
 	m_viewportInfo.size = { 600.f, 600.f };
 	m_viewportInfo.min_bound = glm::vec2(0.0);
 	m_viewportInfo.max_bound = glm::vec2(0.0);
@@ -64,15 +69,12 @@ EditorLayer::EditorLayer()
 	fbSpec.height = 600;
 	m_framebuffer = hyp::Framebuffer::create(fbSpec);
 
-	m_scene = hyp::CreateRef<hyp::Scene>();
+	m_editorScene = hyp::CreateRef<hyp::Scene>();
+	m_activeScene = m_editorScene;
 
-	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_scene);
+	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_activeScene);
 
 	m_editorCamera.setPosition(glm::vec3(0.f, 0.f, 3.f));
-
-	auto& entity = m_scene->createEntity("Square");
-	auto& sc = entity.getOrAdd<hyp::SpriteRendererComponent>();
-	sc.texture = hyp::Texture2D::create("assets/textures/checkerboard.png");
 }
 
 void EditorLayer::onEvent(hyp::Event& event) {
@@ -93,7 +95,7 @@ void EditorLayer::onUpdate(float dt) {
 	hyp::RenderCommand::clear();
 
 	hyp::Renderer2D::beginScene(m_editorCamera.getViewProjectionMatrix());
-	m_scene->onUpdate(dt);
+	m_activeScene->onUpdate(dt);
 	hyp::Renderer2D::endScene();
 
 	m_framebuffer->clearAttachment(1, -1);
@@ -110,7 +112,7 @@ void EditorLayer::onUpdate(float dt) {
 	{
 		int pixel = m_framebuffer->readPixel(1, mouseX, mouseY);
 		// Note: buggy assumption... (10k maximum entities)
-		m_hoveredEntity = pixel > 10000 ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_scene.get());
+		m_hoveredEntity = pixel > 10000 ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_activeScene.get());
 	}
 
 	m_framebuffer->unbind();
@@ -121,14 +123,17 @@ void EditorLayer::onUIRender() {
 	{
 		if (ImGui::BeginMenu("File"))
 		{
+			if (ImGui::MenuItem("Open Scene", "Ctrl+O"))
+				openScene();
+
 			if (ImGui::MenuItem("New Scene", "Ctrl+N"))
-				;
+				newScene();
 
 			if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
-				;
+				saveScene();
 
 			if (ImGui::MenuItem("Save Scene As", "Ctrl+Shift+S"))
-				;
+				saveSceneAs();
 
 			ImGui::Separator();
 
@@ -241,8 +246,27 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	if (event.isRepeat())
 		return false;
 
+	bool control = hyp::Input::isKeyPressed(hyp::Key::LEFT_CONTROL) || hyp::Input::isKeyPressed(hyp::Key::RIGHT_CONTROL);
+	bool shift = hyp::Input::isKeyPressed(hyp::Key::LEFT_SHIFT) || hyp::Input::isKeyPressed(hyp::Key::RIGHT_SHIFT);
+
 	switch (event.getkey())
 	{
+	case hyp::Key::O:
+	{
+		if (control)
+		{
+			openScene();
+		}
+		break;
+	}
+	case hyp::Key::N: // create new scene
+	{
+		if (control)
+		{
+			newScene();
+		}
+		break;
+	}
 	case hyp::Key::Q:
 	{
 		if (!ImGuizmo::IsUsing())
@@ -251,9 +275,17 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 		};
 		break;
 	}
-	case hyp::Key::S: // scale
+	case hyp::Key::S:
 	{
-		if (!ImGuizmo::IsUsing())
+		if (control && shift)
+		{ //Ctrl+Shift+S
+			saveSceneAs();
+		}
+		if (control) // Ctrl+S
+		{
+			saveScene();
+		}
+		else if (!ImGuizmo::IsUsing()) // scale
 		{
 			m_gizmoType = ImGuizmo::SCALE;
 		}
@@ -280,6 +312,67 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	}
 
 	return false;
+}
+
+void hyp::editor::EditorLayer::openScene() {
+	std::string path = hyp::FileDialog::openFile("Hyper Scene (*.hypscene)\0*.hypscene\0");
+
+	if (!path.empty())
+	{
+		openScene(path);
+	}
+}
+
+void hyp::editor::EditorLayer::openScene(const fs::path& path) {
+	if (path.extension().string() != ".hypscene")
+	{
+		HYP_WARN("Could not load %s - not a scene file", path.filename().c_str());
+		return;
+	}
+
+	hyp::Ref<Scene> scene = hyp::CreateRef<Scene>();
+	hyp::SceneSerializer serializer(scene);
+
+	if (serializer.deserializer(path.string()))
+	{
+		m_editorScene = scene;
+		m_hierarchyPanel->setContext(m_editorScene);
+
+		m_activeScene = m_editorScene;
+		m_editorScenePath = path;
+	}
+}
+
+void hyp::editor::EditorLayer::newScene() {
+	m_activeScene = hyp::CreateRef<Scene>();
+	m_hierarchyPanel->setContext(m_activeScene);
+
+	m_editorScenePath = fs::path();
+}
+
+void hyp::editor::EditorLayer::saveScene() {
+	if (!m_editorScenePath.empty())
+	{
+		serializerScene(m_activeScene, m_editorScenePath);
+	}
+	else
+		saveSceneAs();
+}
+
+void hyp::editor::EditorLayer::saveSceneAs() {
+	std::string path = hyp::FileDialog::saveFile("Hyper Scene (*.hypscene)\0*.hypscene\0");
+
+	if (!path.empty())
+	{
+		serializerScene(m_activeScene, path);
+		m_editorScenePath = path;
+	}
+}
+
+void hyp::editor::EditorLayer::serializerScene(hyp::Ref<hyp::Scene> scene, const fs::path& path) {
+	hyp::SceneSerializer serializer(scene);
+
+	serializer.serializer(path.string());
 }
 
 #define GLM_ENABLE_EXPERIMENTAL

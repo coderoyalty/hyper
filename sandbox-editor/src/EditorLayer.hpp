@@ -9,6 +9,9 @@
 	#include <scene/entity.hpp>
 	#include "panels/hierarchyPanel.hpp"
 	#include <camera/editor_camera.hpp>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 namespace hyp {
 	namespace editor {
@@ -35,18 +38,29 @@ namespace hyp {
 		public:
 			EditorLayer();
 
+			virtual void onAttach() override;
 			virtual void onEvent(hyp::Event& event) override;
 			virtual void onUpdate(float dt) override;
 			virtual void onUIRender();
-
 		private:
 			bool onMousePressed(hyp::MouseBtnPressedEvent& event);
 			bool onKeyPressed(hyp::KeyPressedEvent& event);
+
+		private:
+			void openScene();
+			void openScene(const fs::path& path);
+			void newScene();
+			void saveScene();
+			void saveSceneAs();
+
+			void serializerScene(hyp::Ref<hyp::Scene> scene, const fs::path& path);
 		private:
 			hyp::Ref<hyp::Framebuffer> m_framebuffer;
-			hyp::Ref<hyp::Scene> m_scene;
+			hyp::Ref<hyp::Scene> m_editorScene;
+			hyp::Ref<hyp::Scene> m_activeScene; // mostly used for interacting with the outside world :)
 			hyp::Ref<hyp::HierarchyPanel> m_hierarchyPanel;
 
+			fs::path m_editorScenePath;
 		private:
 			ViewportState m_viewportInfo;
 

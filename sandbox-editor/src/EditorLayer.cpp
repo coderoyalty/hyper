@@ -61,6 +61,28 @@ EditorLayer::EditorLayer()
     : Layer("editor-layer"), m_cameraController(600.f, 600.f), m_cameraType(CameraType::Perspective) {
 	hyp::TransformComponent tc;
 	gridTransform = tc.getTransform();
+
+	m_gridProgram = hyp::ShaderProgram::create("assets/shaders/grid.vert", "assets/shaders/grid.frag");
+	m_gridProgram->link();
+
+	float vertices[] = {
+		// Vertex positions
+		1.0, 1.0, 0.0,
+		-1.0, -1.0, 0.0,
+		-1.0, 1.0, 0.0,
+		-1.0, -1.0, 0.0,
+		1.0, 1.0, 0.0,
+		1.0, -1.0, 0.0
+	};
+
+	m_gridVao = hyp::VertexArray::create();
+	auto & m_gridVbo = hyp::VertexBuffer::create(vertices, sizeof(vertices));
+
+	m_gridVbo->setLayout({
+	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
+	});
+
+	m_gridVao->addVertexBuffer(m_gridVbo);
 }
 
 void hyp::editor::EditorLayer::onAttach() {
@@ -69,7 +91,8 @@ void hyp::editor::EditorLayer::onAttach() {
 	m_viewportInfo.max_bound = glm::vec2(0.0);
 
 	hyp::FramebufferSpecification fbSpec;
-	fbSpec.attachment = hyp::FbAttachmentSpecification({ { hyp::FbTextureFormat::RGBA }, { hyp::FbTextureFormat::RED_INT } });
+	fbSpec.attachment = hyp::FbAttachmentSpecification({ { hyp::FbTextureFormat::RGBA }, { hyp::FbTextureFormat::RED_INT },
+	    { FbTextureFormat::DEPTH24_STENCIL8 } });
 	fbSpec.width = 600;
 	fbSpec.height = 600;
 	m_framebuffer = hyp::Framebuffer::create(fbSpec);
@@ -79,7 +102,7 @@ void hyp::editor::EditorLayer::onAttach() {
 
 	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_activeScene);
 
-	m_editorCamera.setPosition(glm::vec3(0.f, 1.f, 5.f));
+	m_editorCamera.setPosition(glm::vec3(0.f, 0.5f, 2.f));
 }
 
 void EditorLayer::onEvent(hyp::Event& event) {
@@ -131,6 +154,12 @@ void EditorLayer::onUpdate(float dt) {
 	}
 	m_activeScene->onUpdate(dt);
 	hyp::Renderer2D::endScene();
+
+	// render grid
+	m_gridVao->bind();
+	m_gridProgram->use();
+	m_gridProgram->setMat4("viewProj", m_editorCamera.getViewProjectionMatrix());
+	glDrawArrays(GL_TRIANGLES, 0, 6); // TODO: avoid using explicit opengl call...
 
 	m_framebuffer->clearAttachment(1, -1);
 	auto [mx, my] = ImGui::GetMousePos();
@@ -258,17 +287,10 @@ void EditorLayer::onUIRender() {
 
 	ImGuizmo::SetOrthographic(m_cameraType == CameraType::Orthographic);
 	ImGuizmo::SetDrawlist();
-	ImGuizmo::SetRect(m_viewportInfo.bounds[0].x, m_viewportInfo.bounds[0].y,
-	    m_viewportInfo.bounds[1].x - m_viewportInfo.bounds[0].x, m_viewportInfo.bounds[1].y - m_viewportInfo.bounds[0].y);
-
-	//Gizmo-Grid
-	//TODO - ImGuizmo blending is affecting the scene... create a better way to render scene grid
-
-	if (m_cameraType == CameraType::Perspective)
-	{
-		ImGuizmo::DrawGrid(glm::value_ptr(cameraView),
-		    glm::value_ptr(cameraProjection), glm::value_ptr(gridTransform), 100);
-	}
+	ImGuizmo::SetRect(
+	    m_viewportInfo.min_bound.x, m_viewportInfo.min_bound.y,
+	    m_viewportInfo.max_bound.x - m_viewportInfo.min_bound.x,
+	    m_viewportInfo.max_bound.y - m_viewportInfo.min_bound.y);
 
 	auto selectedEntity = m_hierarchyPanel->getSelectedEntity();
 
@@ -323,6 +345,8 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	bool control = hyp::Input::isKeyPressed(hyp::Key::LEFT_CONTROL) || hyp::Input::isKeyPressed(hyp::Key::RIGHT_CONTROL);
 	bool shift = hyp::Input::isKeyPressed(hyp::Key::LEFT_SHIFT) || hyp::Input::isKeyPressed(hyp::Key::RIGHT_SHIFT);
 
+	auto selectedEntity = m_hierarchyPanel->getSelectedEntity();
+
 	switch (event.getkey())
 	{
 	case hyp::Key::O:
@@ -359,7 +383,7 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 		{
 			saveScene();
 		}
-		else if (!ImGuizmo::IsUsing()) // scale
+		else if (selectedEntity && !ImGuizmo::IsUsing()) // scale
 		{
 			m_gizmoType = ImGuizmo::SCALE;
 		}
@@ -367,7 +391,7 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	}
 	case hyp::Key::R: // Rotate
 	{
-		if (!ImGuizmo::IsUsing())
+		if (selectedEntity && !ImGuizmo::IsUsing())
 		{
 			m_gizmoType = ImGuizmo::ROTATE;
 		}
@@ -375,7 +399,7 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	}
 	case hyp::Key::G: // translate
 	{
-		if (!ImGuizmo::IsUsing())
+		if (selectedEntity && !ImGuizmo::IsUsing())
 		{
 			m_gizmoType = ImGuizmo::TRANSLATE;
 		}

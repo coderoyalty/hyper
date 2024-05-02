@@ -10,6 +10,9 @@
 	#include "panels/hierarchyPanel.hpp"
 	#include <camera/editor_camera.hpp>
 	#include <filesystem>
+	#include <renderer/shader.hpp>
+	#include <renderer/vertex_array.hpp>
+	#include <renderer/vertex_buffer.hpp>
 
 namespace fs = std::filesystem;
 
@@ -61,6 +64,9 @@ namespace hyp {
 			hyp::Ref<hyp::Scene> m_activeScene; // mostly used for interacting with the outside world :)
 			hyp::Ref<hyp::HierarchyPanel> m_hierarchyPanel;
 
+			hyp::Ref<hyp::ShaderProgram> m_gridProgram;
+			hyp::Ref<hyp::VertexArray> m_gridVao;
+
 			fs::path m_editorScenePath;
 
 		private:
@@ -72,7 +78,8 @@ namespace hyp {
 
 			enum class CameraType
 			{
-				Perspective, Orthographic,
+				Perspective,
+				Orthographic,
 			};
 
 			CameraType m_cameraType;

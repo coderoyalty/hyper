@@ -13,10 +13,14 @@ namespace hyp {
 		None = 0,
 		RGBA,
 		RED_INT,
+
+		// Depth
+		DEPTH24_STENCIL8
 	};
 
 	struct FbTextureSpecification
 	{
+		FbTextureSpecification() = default;
 		FbTextureSpecification(FbTextureFormat format) : textureFormat(format) {
 		}
 
@@ -71,6 +75,9 @@ namespace hyp {
 
 		std::vector<FbTextureSpecification> m_colorAttachmentSpecs;
 		std::vector<unsigned int> m_colorAttachments;
+
+		FbTextureSpecification m_depthAttachmentSpec;
+		uint32_t m_depthAttachment;
 	};
 
 }

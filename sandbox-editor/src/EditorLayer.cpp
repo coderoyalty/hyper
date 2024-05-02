@@ -1,12 +1,17 @@
 #include "EditorLayer.hpp"
 #include <renderer/renderer2d.hpp>
 #include <ImGuizmo.h>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <core/version.hpp>
+#include <scene/serializer.hpp>
+#include <utils/file_dialog.hpp>
 
 using namespace hyp;
 using namespace editor;
+
+static glm::mat4 gridTransform = glm::mat4(1.0);
 
 namespace utils {
 	static bool decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
@@ -53,30 +58,56 @@ namespace utils {
 }
 
 EditorLayer::EditorLayer()
-    : Layer("editor-layer") {
+    : Layer("editor-layer"), m_cameraController(600.f, 600.f), m_cameraType(CameraType::Perspective) {
+	hyp::TransformComponent tc;
+	gridTransform = tc.getTransform();
+
+	m_gridProgram = hyp::ShaderProgram::create("assets/shaders/grid.vert", "assets/shaders/grid.frag");
+	m_gridProgram->link();
+
+	float vertices[] = {
+		// Vertex positions
+		1.0, 1.0, 0.0,
+		-1.0, -1.0, 0.0,
+		-1.0, 1.0, 0.0,
+		-1.0, -1.0, 0.0,
+		1.0, 1.0, 0.0,
+		1.0, -1.0, 0.0
+	};
+
+	m_gridVao = hyp::VertexArray::create();
+	auto & m_gridVbo = hyp::VertexBuffer::create(vertices, sizeof(vertices));
+
+	m_gridVbo->setLayout({
+	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
+	});
+
+	m_gridVao->addVertexBuffer(m_gridVbo);
+}
+
+void hyp::editor::EditorLayer::onAttach() {
 	m_viewportInfo.size = { 600.f, 600.f };
 	m_viewportInfo.min_bound = glm::vec2(0.0);
 	m_viewportInfo.max_bound = glm::vec2(0.0);
 
 	hyp::FramebufferSpecification fbSpec;
-	fbSpec.attachment = hyp::FbAttachmentSpecification({ { hyp::FbTextureFormat::RGBA }, { hyp::FbTextureFormat::RED_INT } });
+	fbSpec.attachment = hyp::FbAttachmentSpecification({ { hyp::FbTextureFormat::RGBA }, { hyp::FbTextureFormat::RED_INT },
+	    { FbTextureFormat::DEPTH24_STENCIL8 } });
 	fbSpec.width = 600;
 	fbSpec.height = 600;
 	m_framebuffer = hyp::Framebuffer::create(fbSpec);
 
-	m_scene = hyp::CreateRef<hyp::Scene>();
+	m_editorScene = hyp::CreateRef<hyp::Scene>();
+	m_activeScene = m_editorScene;
 
-	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_scene);
+	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_activeScene);
 
-	m_editorCamera.setPosition(glm::vec3(0.f, 0.f, 3.f));
-
-	auto& entity = m_scene->createEntity("Square");
-	auto& sc = entity.getOrAdd<hyp::SpriteRendererComponent>();
-	sc.texture = hyp::Texture2D::create("assets/textures/checkerboard.png");
+	m_editorCamera.setPosition(glm::vec3(0.f, 0.5f, 2.f));
 }
 
 void EditorLayer::onEvent(hyp::Event& event) {
 	m_editorCamera.onEvent(event);
+	m_cameraController.onEvent(event);
 	hyp::EventDispatcher ed(event);
 	ed.dispatch<hyp::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
 	ed.dispatch<hyp::MouseBtnPressedEvent>(BIND_EVENT_FN(onMousePressed));
@@ -85,20 +116,55 @@ void EditorLayer::onEvent(hyp::Event& event) {
 void EditorLayer::onUpdate(float dt) {
 	if (m_viewportInfo.focused)
 	{
-		m_editorCamera.onUpdate(dt);
+		switch (m_cameraType)
+		{
+		case CameraType::Perspective:
+		{
+			m_editorCamera.onUpdate(dt);
+			break;
+		}
+		case CameraType::Orthographic:
+		{
+			m_cameraController.onUpdate(dt);
+			break;
+		}
+		default:
+			break;
+		};
 	}
 
 	m_framebuffer->bind();
 	hyp::RenderCommand::setClearColor(0.1, 0.1, 0.1, 1.f);
 	hyp::RenderCommand::clear();
 
-	hyp::Renderer2D::beginScene(m_editorCamera.getViewProjectionMatrix());
-	m_scene->onUpdate(dt);
+	switch (m_cameraType)
+	{
+	case CameraType::Perspective:
+	{
+		hyp::Renderer2D::beginScene(m_editorCamera.getViewProjectionMatrix());
+		break;
+	}
+	case CameraType::Orthographic:
+	{
+		hyp::Renderer2D::beginScene(m_cameraController.getCamera().getViewProjectionMatrix());
+		break;
+	}
+	default:
+		break;
+	}
+	m_activeScene->onUpdate(dt);
 	hyp::Renderer2D::endScene();
+
+	// render grid
+	m_gridVao->bind();
+	m_gridProgram->use();
+	m_gridProgram->setMat4("viewProj", m_editorCamera.getViewProjectionMatrix());
+	glDrawArrays(GL_TRIANGLES, 0, 6); // TODO: avoid using explicit opengl call...
 
 	m_framebuffer->clearAttachment(1, -1);
 	auto [mx, my] = ImGui::GetMousePos();
 
+	//--> mouse selection logic...
 	mx -= m_viewportInfo.bounds[0].x;
 	my -= m_viewportInfo.bounds[0].y;
 	glm::vec2 viewportSize = m_viewportInfo.bounds[1] - m_viewportInfo.bounds[0];
@@ -110,25 +176,30 @@ void EditorLayer::onUpdate(float dt) {
 	{
 		int pixel = m_framebuffer->readPixel(1, mouseX, mouseY);
 		// Note: buggy assumption... (10k maximum entities)
-		m_hoveredEntity = pixel > 10000 ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_scene.get());
+		m_hoveredEntity = pixel > 10000 ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_activeScene.get());
 	}
+	//<-- mouse selection logic...
 
 	m_framebuffer->unbind();
 }
 
 void EditorLayer::onUIRender() {
+	//-- application main menu
 	if (ImGui::BeginMainMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
 		{
+			if (ImGui::MenuItem("Open Scene", "Ctrl+O"))
+				openScene();
+
 			if (ImGui::MenuItem("New Scene", "Ctrl+N"))
-				;
+				newScene();
 
 			if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
-				;
+				saveScene();
 
 			if (ImGui::MenuItem("Save Scene As", "Ctrl+Shift+S"))
-				;
+				saveSceneAs();
 
 			ImGui::Separator();
 
@@ -148,17 +219,30 @@ void EditorLayer::onUIRender() {
 	}
 
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-	static bool show_demo = true;
 
-	ImGui::ShowDemoWindow(&show_demo);
+	//-- camera choice
+	ImGui::Begin("Camera Properties");
+	if (ImGui::RadioButton("Orthographic", m_cameraType == CameraType::Orthographic))
+	{
+		m_cameraType = CameraType::Orthographic;
+	}
+	ImGui::SameLine();
+	if (ImGui::RadioButton("Perspective", m_cameraType == CameraType::Perspective))
+	{
+		m_cameraType = CameraType::Perspective;
+	}
+	ImGui::End();
 
+	//-- editor user guide
 	utils::editorUserGuide();
-
+	//-- render hierarchy panel
 	m_hierarchyPanel->onUIRender();
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2 { 0, 0 });
 
+	ImGui::SetWindowSize(ImVec2 { m_viewportInfo.size.x, m_viewportInfo.size.y });
 	ImGui::Begin("Viewport");
+
 	ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 
 	m_viewportInfo.focused = ImGui::IsWindowFocused();
@@ -177,7 +261,7 @@ void EditorLayer::onUIRender() {
 	{
 		m_framebuffer->resize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y);
 		m_viewportInfo.size = { viewportPanelSize.x, viewportPanelSize.y };
-
+		m_cameraController.onResize(viewportPanelSize.x, viewportPanelSize.y);
 		m_editorCamera.setViewport(viewportPanelSize.x, viewportPanelSize.y);
 	}
 
@@ -185,18 +269,35 @@ void EditorLayer::onUIRender() {
 	ImGui::Image((void*)textureID, ImVec2 { m_viewportInfo.size.x, m_viewportInfo.size.y },
 	    ImVec2 { 0, 1 }, ImVec2 { 1, 0 });
 
+	//----> ImGuizmo
+
+	glm::mat4 cameraProjection;
+	glm::mat4 cameraView;
+
+	if (m_cameraType == CameraType::Perspective)
+	{
+		cameraProjection = m_editorCamera.getProjectionMatrix();
+		cameraView = m_editorCamera.getViewMatrix();
+	}
+	else
+	{
+		cameraProjection = m_cameraController.getCamera().getProjectionMatrix();
+		cameraView = m_cameraController.getCamera().getViewMatrix();
+	}
+
+	ImGuizmo::SetOrthographic(m_cameraType == CameraType::Orthographic);
+	ImGuizmo::SetDrawlist();
+	ImGuizmo::SetRect(
+	    m_viewportInfo.min_bound.x, m_viewportInfo.min_bound.y,
+	    m_viewportInfo.max_bound.x - m_viewportInfo.min_bound.x,
+	    m_viewportInfo.max_bound.y - m_viewportInfo.min_bound.y);
+
 	auto selectedEntity = m_hierarchyPanel->getSelectedEntity();
+
+	// --- Manipulate selected entity
 
 	if (selectedEntity && selectedEntity.has<TransformComponent>() && m_gizmoType != -1)
 	{
-		ImGuizmo::SetOrthographic(false);
-		ImGuizmo::SetDrawlist();
-		ImGuizmo::SetRect(m_viewportInfo.bounds[0].x, m_viewportInfo.bounds[0].y,
-		    m_viewportInfo.bounds[1].x - m_viewportInfo.bounds[0].x, m_viewportInfo.bounds[1].y - m_viewportInfo.bounds[0].y);
-		auto& camera = m_editorCamera;
-
-		const glm::mat4& cameraProjection = camera.getProjectionMatrix();
-		glm::mat4 cameraView = camera.getViewMatrix();
 		auto& tc = selectedEntity.get<hyp::TransformComponent>();
 		glm::mat4 transform = tc.getTransform();
 
@@ -241,8 +342,29 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	if (event.isRepeat())
 		return false;
 
+	bool control = hyp::Input::isKeyPressed(hyp::Key::LEFT_CONTROL) || hyp::Input::isKeyPressed(hyp::Key::RIGHT_CONTROL);
+	bool shift = hyp::Input::isKeyPressed(hyp::Key::LEFT_SHIFT) || hyp::Input::isKeyPressed(hyp::Key::RIGHT_SHIFT);
+
+	auto selectedEntity = m_hierarchyPanel->getSelectedEntity();
+
 	switch (event.getkey())
 	{
+	case hyp::Key::O:
+	{
+		if (control)
+		{
+			openScene();
+		}
+		break;
+	}
+	case hyp::Key::N: // create new scene
+	{
+		if (control)
+		{
+			newScene();
+		}
+		break;
+	}
 	case hyp::Key::Q:
 	{
 		if (!ImGuizmo::IsUsing())
@@ -251,9 +373,17 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 		};
 		break;
 	}
-	case hyp::Key::S: // scale
+	case hyp::Key::S:
 	{
-		if (!ImGuizmo::IsUsing())
+		if (control && shift)
+		{ //Ctrl+Shift+S
+			saveSceneAs();
+		}
+		if (control) // Ctrl+S
+		{
+			saveScene();
+		}
+		else if (selectedEntity && !ImGuizmo::IsUsing()) // scale
 		{
 			m_gizmoType = ImGuizmo::SCALE;
 		}
@@ -261,7 +391,7 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	}
 	case hyp::Key::R: // Rotate
 	{
-		if (!ImGuizmo::IsUsing())
+		if (selectedEntity && !ImGuizmo::IsUsing())
 		{
 			m_gizmoType = ImGuizmo::ROTATE;
 		}
@@ -269,7 +399,7 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	}
 	case hyp::Key::G: // translate
 	{
-		if (!ImGuizmo::IsUsing())
+		if (selectedEntity && !ImGuizmo::IsUsing())
 		{
 			m_gizmoType = ImGuizmo::TRANSLATE;
 		}
@@ -280,6 +410,67 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	}
 
 	return false;
+}
+
+void hyp::editor::EditorLayer::openScene() {
+	std::string path = hyp::FileDialog::openFile("Hyper Scene (*.hypscene)\0*.hypscene\0");
+
+	if (!path.empty())
+	{
+		openScene(path);
+	}
+}
+
+void hyp::editor::EditorLayer::openScene(const fs::path& path) {
+	if (path.extension().string() != ".hypscene")
+	{
+		HYP_WARN("Could not load %s - not a scene file", path.filename().c_str());
+		return;
+	}
+
+	hyp::Ref<Scene> scene = hyp::CreateRef<Scene>();
+	hyp::SceneSerializer serializer(scene);
+
+	if (serializer.deserializer(path.string()))
+	{
+		m_editorScene = scene;
+		m_hierarchyPanel->setContext(m_editorScene);
+
+		m_activeScene = m_editorScene;
+		m_editorScenePath = path;
+	}
+}
+
+void hyp::editor::EditorLayer::newScene() {
+	m_activeScene = hyp::CreateRef<Scene>();
+	m_hierarchyPanel->setContext(m_activeScene);
+
+	m_editorScenePath = fs::path();
+}
+
+void hyp::editor::EditorLayer::saveScene() {
+	if (!m_editorScenePath.empty())
+	{
+		serializerScene(m_activeScene, m_editorScenePath);
+	}
+	else
+		saveSceneAs();
+}
+
+void hyp::editor::EditorLayer::saveSceneAs() {
+	std::string path = hyp::FileDialog::saveFile("Hyper Scene (*.hypscene)\0*.hypscene\0");
+
+	if (!path.empty())
+	{
+		serializerScene(m_activeScene, path);
+		m_editorScenePath = path;
+	}
+}
+
+void hyp::editor::EditorLayer::serializerScene(hyp::Ref<hyp::Scene> scene, const fs::path& path) {
+	hyp::SceneSerializer serializer(scene);
+
+	serializer.serializer(path.string());
 }
 
 #define GLM_ENABLE_EXPERIMENTAL

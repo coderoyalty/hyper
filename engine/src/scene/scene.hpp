@@ -11,7 +11,7 @@ namespace hyp {
 	class Scene {
 		friend class Entity;
 		friend class HierarchyPanel;
-
+		friend class SceneSerializer;
 	public:
 		Scene();
 		~Scene();

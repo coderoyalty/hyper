@@ -34,6 +34,26 @@ void hyp::EditorCamera::onUpdate(float dt) {
 		}
 	}
 
+	if (hyp::Input::isKeyPressed(hyp::Key::W))
+	{
+		m_position += getForwardDirection() * dt;
+	}
+
+	else if (hyp::Input::isKeyPressed(hyp::Key::S))
+	{
+		m_position -= getForwardDirection() * dt;
+	}
+
+	if (hyp::Input::isKeyPressed(hyp::Key::A))
+	{
+		m_position -= getRightDirection() * dt;
+	}
+
+	else if (hyp::Input::isKeyPressed(hyp::Key::D))
+	{
+		m_position += getRightDirection() * dt;
+	}
+
 	updateView();
 }
 
@@ -73,10 +93,6 @@ void hyp::EditorCamera::updateProjection() {
 }
 
 void hyp::EditorCamera::updateView() {
-	//glm::quat orientation = getOrientation();
-	//m_viewMatrix = glm::translate(glm::mat4(1.0f), m_position) * glm::toMat4(orientation);
-	//m_viewMatrix = glm::inverse(m_viewMatrix);
-
 	m_viewMatrix = glm::lookAt(m_position, m_position + getForwardDirection(), getUpDirection());
 }
 

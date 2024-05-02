@@ -1,6 +1,7 @@
 #include "EditorLayer.hpp"
 #include <renderer/renderer2d.hpp>
 #include <ImGuizmo.h>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <core/version.hpp>
@@ -9,6 +10,8 @@
 
 using namespace hyp;
 using namespace editor;
+
+static glm::mat4 gridTransform = glm::mat4(1.0);
 
 namespace utils {
 	static bool decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
@@ -55,7 +58,9 @@ namespace utils {
 }
 
 EditorLayer::EditorLayer()
-    : Layer("editor-layer"), m_cameraController(600.f, 600.f), m_cameraType(CameraType::Orthographic) {
+    : Layer("editor-layer"), m_cameraController(600.f, 600.f), m_cameraType(CameraType::Perspective) {
+	hyp::TransformComponent tc;
+	gridTransform = tc.getTransform();
 }
 
 void hyp::editor::EditorLayer::onAttach() {
@@ -74,7 +79,7 @@ void hyp::editor::EditorLayer::onAttach() {
 
 	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_activeScene);
 
-	m_editorCamera.setPosition(glm::vec3(0.f, 0.f, 3.f));
+	m_editorCamera.setPosition(glm::vec3(0.f, 1.f, 5.f));
 }
 
 void EditorLayer::onEvent(hyp::Event& event) {
@@ -130,6 +135,7 @@ void EditorLayer::onUpdate(float dt) {
 	m_framebuffer->clearAttachment(1, -1);
 	auto [mx, my] = ImGui::GetMousePos();
 
+	//--> mouse selection logic...
 	mx -= m_viewportInfo.bounds[0].x;
 	my -= m_viewportInfo.bounds[0].y;
 	glm::vec2 viewportSize = m_viewportInfo.bounds[1] - m_viewportInfo.bounds[0];
@@ -143,11 +149,13 @@ void EditorLayer::onUpdate(float dt) {
 		// Note: buggy assumption... (10k maximum entities)
 		m_hoveredEntity = pixel > 10000 ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_activeScene.get());
 	}
+	//<-- mouse selection logic...
 
 	m_framebuffer->unbind();
 }
 
 void EditorLayer::onUIRender() {
+	//-- application main menu
 	if (ImGui::BeginMainMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
@@ -182,28 +190,30 @@ void EditorLayer::onUIRender() {
 	}
 
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-	static bool show_demo = true;
 
-	ImGui::ShowDemoWindow(&show_demo);
-	bool active = m_cameraType == CameraType::Orthographic;
+	//-- camera choice
 	ImGui::Begin("Camera Properties");
-	if (ImGui::RadioButton("Orthographic", active))
+	if (ImGui::RadioButton("Orthographic", m_cameraType == CameraType::Orthographic))
 	{
 		m_cameraType = CameraType::Orthographic;
 	}
-	if (ImGui::RadioButton("Perspective", !active))
+	ImGui::SameLine();
+	if (ImGui::RadioButton("Perspective", m_cameraType == CameraType::Perspective))
 	{
 		m_cameraType = CameraType::Perspective;
 	}
 	ImGui::End();
 
+	//-- editor user guide
 	utils::editorUserGuide();
-
+	//-- render hierarchy panel
 	m_hierarchyPanel->onUIRender();
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2 { 0, 0 });
 
+	ImGui::SetWindowSize(ImVec2 { m_viewportInfo.size.x, m_viewportInfo.size.y });
 	ImGui::Begin("Viewport");
+
 	ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 
 	m_viewportInfo.focused = ImGui::IsWindowFocused();
@@ -230,29 +240,42 @@ void EditorLayer::onUIRender() {
 	ImGui::Image((void*)textureID, ImVec2 { m_viewportInfo.size.x, m_viewportInfo.size.y },
 	    ImVec2 { 0, 1 }, ImVec2 { 1, 0 });
 
+	//----> ImGuizmo
+
+	glm::mat4 cameraProjection;
+	glm::mat4 cameraView;
+
+	if (m_cameraType == CameraType::Perspective)
+	{
+		cameraProjection = m_editorCamera.getProjectionMatrix();
+		cameraView = m_editorCamera.getViewMatrix();
+	}
+	else
+	{
+		cameraProjection = m_cameraController.getCamera().getProjectionMatrix();
+		cameraView = m_cameraController.getCamera().getViewMatrix();
+	}
+
+	ImGuizmo::SetOrthographic(m_cameraType == CameraType::Orthographic);
+	ImGuizmo::SetDrawlist();
+	ImGuizmo::SetRect(m_viewportInfo.bounds[0].x, m_viewportInfo.bounds[0].y,
+	    m_viewportInfo.bounds[1].x - m_viewportInfo.bounds[0].x, m_viewportInfo.bounds[1].y - m_viewportInfo.bounds[0].y);
+
+	//Gizmo-Grid
+	//TODO - ImGuizmo blending is affecting the scene... create a better way to render scene grid
+
+	if (m_cameraType == CameraType::Perspective)
+	{
+		ImGuizmo::DrawGrid(glm::value_ptr(cameraView),
+		    glm::value_ptr(cameraProjection), glm::value_ptr(gridTransform), 100);
+	}
+
 	auto selectedEntity = m_hierarchyPanel->getSelectedEntity();
+
+	// --- Manipulate selected entity
 
 	if (selectedEntity && selectedEntity.has<TransformComponent>() && m_gizmoType != -1)
 	{
-		ImGuizmo::SetOrthographic(false);
-		ImGuizmo::SetDrawlist();
-		ImGuizmo::SetRect(m_viewportInfo.bounds[0].x, m_viewportInfo.bounds[0].y,
-		    m_viewportInfo.bounds[1].x - m_viewportInfo.bounds[0].x, m_viewportInfo.bounds[1].y - m_viewportInfo.bounds[0].y);
-
-		glm::mat4 cameraProjection;
-		glm::mat4 cameraView;
-
-		if (m_cameraType == CameraType::Perspective)
-		{
-			cameraProjection = m_editorCamera.getProjectionMatrix();
-			cameraView = m_editorCamera.getViewMatrix();
-		}
-		else
-		{
-			cameraProjection = m_cameraController.getCamera().getProjectionMatrix();
-			cameraView = m_cameraController.getCamera().getViewMatrix();
-		}
-
 		auto& tc = selectedEntity.get<hyp::TransformComponent>();
 		glm::mat4 transform = tc.getTransform();
 

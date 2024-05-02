@@ -261,7 +261,10 @@ bool hyp::SceneSerializer::deserializer(const std::string& path) {
 			if (spriteComponent) {
 				auto& sc = deserializedEntity.add<hyp::SpriteRendererComponent>();
 				sc.color = spriteComponent["Color"].as<glm::vec4>();
-				sc.tilingFactor = spriteComponent["TilingFactor"].as<float>();
+
+				if (spriteComponent["TilingFactor"]) {
+					sc.tilingFactor = spriteComponent["TilingFactor"].as<float>();
+				}
 
 				if (spriteComponent["Texture"]) {
 					auto texturePath = spriteComponent["Texture"].as<std::string>();

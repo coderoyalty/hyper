@@ -5,10 +5,13 @@ namespace utils {
 	void attachColorTexture(uint32_t texture, uint32_t width, uint32_t height, GLenum internalFormat, GLenum format, int index);
 }
 
-hyp::Framebuffer::Framebuffer(const hyp::FramebufferSpecification& spec) : m_spec(spec), m_fbo(0) {
+hyp::Framebuffer::Framebuffer(const hyp::FramebufferSpecification& spec) : m_spec(spec), m_fbo(0), m_depthAttachment(0) {
 	for (auto& attachment : spec.attachment.attachments)
 	{
-		m_colorAttachmentSpecs.emplace_back(attachment);
+		if (attachment.textureFormat != hyp::FbTextureFormat::DEPTH24_STENCIL8)
+			m_colorAttachmentSpecs.emplace_back(attachment);
+		else
+			m_depthAttachmentSpec = attachment;
 	}
 
 	reset();
@@ -17,6 +20,9 @@ hyp::Framebuffer::Framebuffer(const hyp::FramebufferSpecification& spec) : m_spe
 hyp::Framebuffer::~Framebuffer() {
 	glDeleteFramebuffers(1, &m_fbo);
 	glDeleteTextures(m_colorAttachments.size(), m_colorAttachments.data());
+	if (m_depthAttachment > 0) {
+		glDeleteRenderbuffers(1, &m_depthAttachment);
+	}
 }
 
 void hyp::Framebuffer::bind() {
@@ -51,6 +57,10 @@ void hyp::Framebuffer::reset() {
 		glDeleteFramebuffers(1, &m_fbo);
 		glDeleteTextures(m_colorAttachments.size(), m_colorAttachments.data());
 		m_colorAttachments.clear();
+		if (m_depthAttachment > 0) {
+			glDeleteRenderbuffers(1, &m_depthAttachment);
+		}
+		m_depthAttachment = 0;
 	}
 
 	glGenFramebuffers(1, &m_fbo);
@@ -87,17 +97,40 @@ void hyp::Framebuffer::reset() {
 		}
 	}
 
+	if (m_depthAttachmentSpec.textureFormat != FbTextureFormat::None)
+	{
+		glGenRenderbuffers(1, &m_depthAttachment);
+		glBindRenderbuffer(GL_RENDERBUFFER, m_depthAttachment);
+
+		switch (m_depthAttachmentSpec.textureFormat)
+		{
+		case FbTextureFormat::DEPTH24_STENCIL8:
+		{
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_spec.width, m_spec.height);
+			break;
+		}
+		default:
+			HYP_ASSERT_CORE(false, "Invalid depth attachment")
+			break;
+		}
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthAttachment);
+	}
+
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
 		HYP_WARN("Framebuffer is not complete!");
 	}
 
 	//TODO: is it right to enable drawing for all color attachments?
-	if (m_colorAttachments.size() > 1) {
+	if (m_colorAttachments.size() > 1)
+	{
 		HYP_ASSERT(m_colorAttachments.size() <= 8);
 		std::vector<GLenum> buffers;
 
-		for (int i = 0; i < m_colorAttachments.size(); i++) {
+		for (int i = 0; i < m_colorAttachments.size(); i++)
+		{
 			buffers.push_back(GL_COLOR_ATTACHMENT0 + i);
 		}
 

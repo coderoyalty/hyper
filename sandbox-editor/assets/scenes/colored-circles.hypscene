@@ -1,0 +1,42 @@
+Scene: Untitled-Hyper Scene
+Entities:
+  - TagComponent:
+      Name: green sun
+    TransformComponent:
+      Position: [0.219999999, -0.370000005, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CircleRendererComponent:
+      Color: [0, 1, 0, 1]
+      Fade: 0.400000006
+      Thickness: 1
+  - TagComponent:
+      Name: red sun
+    TransformComponent:
+      Position: [-0.0900000036, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CircleRendererComponent:
+      Color: [1, 0, 0, 1]
+      Fade: 0.400000006
+      Thickness: 1
+  - TagComponent:
+      Name: yellow sun
+    TransformComponent:
+      Position: [0.540000021, 0.0199999996, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CircleRendererComponent:
+      Color: [1, 1, 0, 1]
+      Fade: 0.400000006
+      Thickness: 1
+  - TagComponent:
+      Name: blue sun
+    TransformComponent:
+      Position: [0.230000004, 0.340000004, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CircleRendererComponent:
+      Color: [0, 0, 1, 1]
+      Fade: 0.400000006
+      Thickness: 1

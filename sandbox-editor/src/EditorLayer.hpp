@@ -9,7 +9,7 @@
 	#include <scene/entity.hpp>
 	#include "panels/hierarchyPanel.hpp"
 	#include <camera/editor_camera.hpp>
-#include <filesystem>
+	#include <filesystem>
 
 namespace fs = std::filesystem;
 
@@ -42,6 +42,7 @@ namespace hyp {
 			virtual void onEvent(hyp::Event& event) override;
 			virtual void onUpdate(float dt) override;
 			virtual void onUIRender();
+
 		private:
 			bool onMousePressed(hyp::MouseBtnPressedEvent& event);
 			bool onKeyPressed(hyp::KeyPressedEvent& event);
@@ -52,8 +53,8 @@ namespace hyp {
 			void newScene();
 			void saveScene();
 			void saveSceneAs();
-
 			void serializerScene(hyp::Ref<hyp::Scene> scene, const fs::path& path);
+
 		private:
 			hyp::Ref<hyp::Framebuffer> m_framebuffer;
 			hyp::Ref<hyp::Scene> m_editorScene;
@@ -61,13 +62,22 @@ namespace hyp {
 			hyp::Ref<hyp::HierarchyPanel> m_hierarchyPanel;
 
 			fs::path m_editorScenePath;
+
 		private:
 			ViewportState m_viewportInfo;
 
 			int m_gizmoType = -1;
 
 			hyp::Entity m_hoveredEntity;
+
+			enum class CameraType
+			{
+				Perspective, Orthographic,
+			};
+
+			CameraType m_cameraType;
 			hyp::EditorCamera m_editorCamera;
+			hyp::OrthoGraphicCameraController m_cameraController;
 		};
 	};
 }

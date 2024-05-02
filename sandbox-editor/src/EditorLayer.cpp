@@ -55,7 +55,7 @@ namespace utils {
 }
 
 EditorLayer::EditorLayer()
-    : Layer("editor-layer") {
+    : Layer("editor-layer"), m_cameraController(600.f, 600.f), m_cameraType(CameraType::Orthographic) {
 }
 
 void hyp::editor::EditorLayer::onAttach() {
@@ -79,6 +79,7 @@ void hyp::editor::EditorLayer::onAttach() {
 
 void EditorLayer::onEvent(hyp::Event& event) {
 	m_editorCamera.onEvent(event);
+	m_cameraController.onEvent(event);
 	hyp::EventDispatcher ed(event);
 	ed.dispatch<hyp::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
 	ed.dispatch<hyp::MouseBtnPressedEvent>(BIND_EVENT_FN(onMousePressed));
@@ -87,14 +88,42 @@ void EditorLayer::onEvent(hyp::Event& event) {
 void EditorLayer::onUpdate(float dt) {
 	if (m_viewportInfo.focused)
 	{
-		m_editorCamera.onUpdate(dt);
+		switch (m_cameraType)
+		{
+		case CameraType::Perspective:
+		{
+			m_editorCamera.onUpdate(dt);
+			break;
+		}
+		case CameraType::Orthographic:
+		{
+			m_cameraController.onUpdate(dt);
+			break;
+		}
+		default:
+			break;
+		};
 	}
 
 	m_framebuffer->bind();
 	hyp::RenderCommand::setClearColor(0.1, 0.1, 0.1, 1.f);
 	hyp::RenderCommand::clear();
 
-	hyp::Renderer2D::beginScene(m_editorCamera.getViewProjectionMatrix());
+	switch (m_cameraType)
+	{
+	case CameraType::Perspective:
+	{
+		hyp::Renderer2D::beginScene(m_editorCamera.getViewProjectionMatrix());
+		break;
+	}
+	case CameraType::Orthographic:
+	{
+		hyp::Renderer2D::beginScene(m_cameraController.getCamera().getViewProjectionMatrix());
+		break;
+	}
+	default:
+		break;
+	}
 	m_activeScene->onUpdate(dt);
 	hyp::Renderer2D::endScene();
 
@@ -156,6 +185,17 @@ void EditorLayer::onUIRender() {
 	static bool show_demo = true;
 
 	ImGui::ShowDemoWindow(&show_demo);
+	bool active = m_cameraType == CameraType::Orthographic;
+	ImGui::Begin("Camera Properties");
+	if (ImGui::RadioButton("Orthographic", active))
+	{
+		m_cameraType = CameraType::Orthographic;
+	}
+	if (ImGui::RadioButton("Perspective", !active))
+	{
+		m_cameraType = CameraType::Perspective;
+	}
+	ImGui::End();
 
 	utils::editorUserGuide();
 
@@ -182,7 +222,7 @@ void EditorLayer::onUIRender() {
 	{
 		m_framebuffer->resize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y);
 		m_viewportInfo.size = { viewportPanelSize.x, viewportPanelSize.y };
-
+		m_cameraController.onResize(viewportPanelSize.x, viewportPanelSize.y);
 		m_editorCamera.setViewport(viewportPanelSize.x, viewportPanelSize.y);
 	}
 
@@ -198,10 +238,21 @@ void EditorLayer::onUIRender() {
 		ImGuizmo::SetDrawlist();
 		ImGuizmo::SetRect(m_viewportInfo.bounds[0].x, m_viewportInfo.bounds[0].y,
 		    m_viewportInfo.bounds[1].x - m_viewportInfo.bounds[0].x, m_viewportInfo.bounds[1].y - m_viewportInfo.bounds[0].y);
-		auto& camera = m_editorCamera;
 
-		const glm::mat4& cameraProjection = camera.getProjectionMatrix();
-		glm::mat4 cameraView = camera.getViewMatrix();
+		glm::mat4 cameraProjection;
+		glm::mat4 cameraView;
+
+		if (m_cameraType == CameraType::Perspective)
+		{
+			cameraProjection = m_editorCamera.getProjectionMatrix();
+			cameraView = m_editorCamera.getViewMatrix();
+		}
+		else
+		{
+			cameraProjection = m_cameraController.getCamera().getProjectionMatrix();
+			cameraView = m_cameraController.getCamera().getViewMatrix();
+		}
+
 		auto& tc = selectedEntity.get<hyp::TransformComponent>();
 		glm::mat4 transform = tc.getTransform();
 

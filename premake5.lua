@@ -21,6 +21,7 @@ group "Dependencies"
 	include "dependencies/imgui"
 	include "dependencies/freetype"
 	include "dependencies/yaml-cpp"
+	include "dependencies/lua"
 
 group "Hyper"
 	include "engine"

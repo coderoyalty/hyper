@@ -26,7 +26,9 @@ project "hyper-editor"
 		"%{includes.IMGUI}",
 		"%{includes.ENTT}",
 		"%{includes.IMGUIZMO}",
-		"%{includes.YAML_CPP}"	
+		"%{includes.YAML_CPP}",
+		"%{includes.LUA}",
+		"%{includes.SOL}"
 	}
 	links
 	{

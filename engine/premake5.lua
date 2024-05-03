@@ -32,7 +32,9 @@ project "Hyper"
 		"%{includes.ENTT}",
 		"%{includes.IMGUIZMO}",
 		"%{includes.FREETYPE}",
-		"%{includes.YAML_CPP}"
+		"%{includes.YAML_CPP}",
+		"%{includes.LUA}",
+		"%{includes.SOL}"
 	}
 	
 	links

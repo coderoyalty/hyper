@@ -63,6 +63,14 @@ namespace hyp {
 		float fontSize = 16.f;
 	};
 
+	struct ScriptComponent
+	{
+		std::string className;
+
+		ScriptComponent() = default;
+		ScriptComponent(const ScriptComponent&) = default;
+	};
+
 } // namespace hyp
 
 #endif

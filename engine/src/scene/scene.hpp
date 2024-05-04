@@ -29,6 +29,7 @@ namespace hyp {
 
 	private:
 		entt::registry m_registry;
+		friend class ScriptEngine;
 	};
 } // namespace hyp
 

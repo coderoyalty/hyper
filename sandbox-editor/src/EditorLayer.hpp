@@ -42,6 +42,7 @@ namespace hyp {
 			EditorLayer();
 
 			virtual void onAttach() override;
+			virtual void onDetach() override;
 			virtual void onEvent(hyp::Event& event) override;
 			virtual void onUpdate(float dt) override;
 			virtual void onUIRender();

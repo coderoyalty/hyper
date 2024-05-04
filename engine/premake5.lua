@@ -40,7 +40,7 @@ project "Hyper"
 	links
 	{
 		"GLFW", "GLAD", "IMGUI", "opengl32.lib", "FREETYPE",
-		"YAML-CPP"
+		"YAML-CPP", "LUA" 
 	}
 
 	filter "files:vendor/imguizmo/**.cpp"

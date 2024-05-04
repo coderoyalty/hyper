@@ -7,6 +7,7 @@
 #include <core/version.hpp>
 #include <scene/serializer.hpp>
 #include <utils/file_dialog.hpp>
+#include <scripting/script_engine.hpp>
 
 using namespace hyp;
 using namespace editor;
@@ -103,6 +104,22 @@ void hyp::editor::EditorLayer::onAttach() {
 	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_activeScene);
 
 	m_editorCamera.setPosition(glm::vec3(0.f, 0.5f, 2.f));
+
+	auto& s_entity = m_activeScene->createEntity("Player");
+	auto& sc = s_entity.add<hyp::ScriptComponent>();
+	sc.className = "Player";
+
+	auto& src = s_entity.add<hyp::SpriteRendererComponent>();
+	src.color = glm::vec4(1.0, 0.0, 0.0, 1.0);
+
+	hyp::ScriptEngine::init();
+
+	hyp::ScriptEngine::load_script("assets/scripts/test.lua");
+	hyp::ScriptEngine::onCreateEntity(s_entity);
+}
+
+void hyp::editor::EditorLayer::onDetach() {
+	hyp::ScriptEngine::deinit();
 }
 
 void EditorLayer::onEvent(hyp::Event& event) {
@@ -114,6 +131,7 @@ void EditorLayer::onEvent(hyp::Event& event) {
 }
 
 void EditorLayer::onUpdate(float dt) {
+	hyp::ScriptEngine::onUpdateEntity(m_activeScene, dt);
 	if (m_viewportInfo.focused)
 	{
 		switch (m_cameraType)
@@ -137,6 +155,13 @@ void EditorLayer::onUpdate(float dt) {
 	hyp::RenderCommand::setClearColor(0.1, 0.1, 0.1, 1.f);
 	hyp::RenderCommand::clear();
 
+	// render grid
+	m_gridVao->bind();
+	m_gridProgram->use();
+	m_gridProgram->setMat4("viewProj", m_editorCamera.getViewProjectionMatrix());
+	glDrawArrays(GL_TRIANGLES, 0, 6); // TODO: avoid using explicit opengl call...
+
+
 	switch (m_cameraType)
 	{
 	case CameraType::Perspective:
@@ -154,12 +179,6 @@ void EditorLayer::onUpdate(float dt) {
 	}
 	m_activeScene->onUpdate(dt);
 	hyp::Renderer2D::endScene();
-
-	// render grid
-	m_gridVao->bind();
-	m_gridProgram->use();
-	m_gridProgram->setMat4("viewProj", m_editorCamera.getViewProjectionMatrix());
-	glDrawArrays(GL_TRIANGLES, 0, 6); // TODO: avoid using explicit opengl call...
 
 	m_framebuffer->clearAttachment(1, -1);
 	auto [mx, my] = ImGui::GetMousePos();

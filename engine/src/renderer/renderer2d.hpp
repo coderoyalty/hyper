@@ -209,7 +209,7 @@ namespace hyp {
 			vertices.resize(0);
 			vertices.shrink_to_fit();
 
-			vertices.clear();
+			transforms.clear();
 			transforms.resize(0);
 			transforms.shrink_to_fit();
 

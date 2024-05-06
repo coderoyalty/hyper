@@ -12,8 +12,6 @@
 using namespace hyp;
 using namespace editor;
 
-static glm::mat4 gridTransform = glm::mat4(1.0);
-
 namespace utils {
 	static bool decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
 
@@ -60,8 +58,6 @@ namespace utils {
 
 EditorLayer::EditorLayer()
     : Layer("editor-layer"), m_cameraController(600.f, 600.f), m_cameraType(CameraType::Perspective) {
-	hyp::TransformComponent tc;
-	gridTransform = tc.getTransform();
 
 	m_gridProgram = hyp::ShaderProgram::create("assets/shaders/grid.vert", "assets/shaders/grid.frag");
 	m_gridProgram->link();
@@ -104,22 +100,9 @@ void hyp::editor::EditorLayer::onAttach() {
 	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_activeScene);
 
 	m_editorCamera.setPosition(glm::vec3(0.f, 0.5f, 2.f));
-
-	auto& s_entity = m_activeScene->createEntity("Player");
-	auto& sc = s_entity.add<hyp::ScriptComponent>();
-	sc.className = "Player";
-
-	auto& src = s_entity.add<hyp::SpriteRendererComponent>();
-	src.color = glm::vec4(1.0, 0.0, 0.0, 1.0);
-
-	hyp::ScriptEngine::init();
-
-	hyp::ScriptEngine::load_script("assets/scripts/test.lua");
-	hyp::ScriptEngine::onCreateEntity(s_entity);
 }
 
 void hyp::editor::EditorLayer::onDetach() {
-	hyp::ScriptEngine::deinit();
 }
 
 void EditorLayer::onEvent(hyp::Event& event) {
@@ -131,7 +114,6 @@ void EditorLayer::onEvent(hyp::Event& event) {
 }
 
 void EditorLayer::onUpdate(float dt) {
-	hyp::ScriptEngine::onUpdateEntity(m_activeScene, dt);
 	if (m_viewportInfo.focused)
 	{
 		switch (m_cameraType)

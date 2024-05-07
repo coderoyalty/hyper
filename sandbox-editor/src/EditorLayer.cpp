@@ -15,15 +15,13 @@ using namespace editor;
 namespace utils {
 	static bool decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
 
-	static bool showUserGuideWindow = false;
-
-	static void editorUserGuide() {
-		if (!utils::showUserGuideWindow)
+	static void editorUserGuide(bool& show) {
+		if (!show)
 		{
 			return;
 		}
 
-		ImGui::Begin("Dev Guide", &showUserGuideWindow);
+		ImGui::Begin("Dev Guide", &show);
 
 		ImGui::Text("Welcome to Hyper-Engine %d.%d.%d!", HYPER_VERSION_MAJOR, HYPER_VERSION_MINOR, HYPER_VERSION_PATCH);
 		ImGui::Spacing();
@@ -49,7 +47,7 @@ namespace utils {
 
 		if (ImGui::Button("Close"))
 		{
-			showUserGuideWindow = false;
+			show = false;
 		}
 
 		ImGui::End();
@@ -57,8 +55,7 @@ namespace utils {
 }
 
 EditorLayer::EditorLayer()
-    : Layer("editor-layer"), m_cameraController(600.f, 600.f), m_cameraType(CameraType::Perspective) {
-
+    : Layer("editor-layer"), m_cameraController(600.f, 600.f) {
 	m_gridProgram = hyp::ShaderProgram::create("assets/shaders/grid.vert", "assets/shaders/grid.frag");
 	m_gridProgram->link();
 
@@ -73,7 +70,7 @@ EditorLayer::EditorLayer()
 	};
 
 	m_gridVao = hyp::VertexArray::create();
-	auto & m_gridVbo = hyp::VertexBuffer::create(vertices, sizeof(vertices));
+	auto& m_gridVbo = hyp::VertexBuffer::create(vertices, sizeof(vertices));
 
 	m_gridVbo->setLayout({
 	    hyp::VertexAttribDescriptor(hyp::ShaderDataType::Vec3, "aPos", false),
@@ -105,6 +102,7 @@ void hyp::editor::EditorLayer::onAttach() {
 	auto script = hyp::ScriptEngine::load_script("assets/scripts/test.lua");
 
 	entity.add<hyp::ScriptComponent>(script.call());
+	entity.add<hyp::CircleRendererComponent>();
 }
 
 void hyp::editor::EditorLayer::onDetach() {
@@ -121,7 +119,7 @@ void EditorLayer::onEvent(hyp::Event& event) {
 void EditorLayer::onUpdate(float dt) {
 	if (m_viewportInfo.focused)
 	{
-		switch (m_cameraType)
+		switch (m_settings.cameraType)
 		{
 		case CameraType::Perspective:
 		{
@@ -143,13 +141,15 @@ void EditorLayer::onUpdate(float dt) {
 	hyp::RenderCommand::clear();
 
 	// render grid
-	m_gridVao->bind();
-	m_gridProgram->use();
-	m_gridProgram->setMat4("viewProj", m_editorCamera.getViewProjectionMatrix());
-	glDrawArrays(GL_TRIANGLES, 0, 6); // TODO: avoid using explicit opengl call...
+	if (m_settings.showGrid)
+	{
+		m_gridVao->bind();
+		m_gridProgram->use();
+		m_gridProgram->setMat4("viewProj", m_editorCamera.getViewProjectionMatrix());
+		glDrawArrays(GL_TRIANGLES, 0, 6); // TODO: avoid using explicit opengl call...
+	}
 
-
-	switch (m_cameraType)
+	switch (m_settings.cameraType)
 	{
 	case CameraType::Perspective:
 	{
@@ -213,11 +213,18 @@ void EditorLayer::onUIRender() {
 			ImGui::EndMenu();
 		}
 
+		if (ImGui::BeginMenu("Tools"))
+		{
+			if (ImGui::MenuItem("Editor Grid", "Ctrl+Shift+G", &m_settings.showGrid))
+			{
+			}
+			ImGui::EndMenu();
+		}
+
 		if (ImGui::BeginMenu("Help"))
 		{
-			if (ImGui::MenuItem("Dev Guide"))
+			if (ImGui::MenuItem("Dev Guide", "F2", &m_settings.showHelpGuide))
 			{
-				utils::showUserGuideWindow = true;
 			}
 			ImGui::EndMenu();
 		}
@@ -228,19 +235,19 @@ void EditorLayer::onUIRender() {
 
 	//-- camera choice
 	ImGui::Begin("Camera Properties");
-	if (ImGui::RadioButton("Orthographic", m_cameraType == CameraType::Orthographic))
+	if (ImGui::RadioButton("Orthographic", m_settings.cameraType == CameraType::Orthographic))
 	{
-		m_cameraType = CameraType::Orthographic;
+		m_settings.cameraType = CameraType::Orthographic;
 	}
 	ImGui::SameLine();
-	if (ImGui::RadioButton("Perspective", m_cameraType == CameraType::Perspective))
+	if (ImGui::RadioButton("Perspective", m_settings.cameraType == CameraType::Perspective))
 	{
-		m_cameraType = CameraType::Perspective;
+		m_settings.cameraType = CameraType::Perspective;
 	}
 	ImGui::End();
 
 	//-- editor user guide
-	utils::editorUserGuide();
+	utils::editorUserGuide(m_settings.showHelpGuide);
 	//-- render hierarchy panel
 	m_hierarchyPanel->onUIRender();
 
@@ -280,7 +287,7 @@ void EditorLayer::onUIRender() {
 	glm::mat4 cameraProjection;
 	glm::mat4 cameraView;
 
-	if (m_cameraType == CameraType::Perspective)
+	if (m_settings.cameraType == CameraType::Perspective)
 	{
 		cameraProjection = m_editorCamera.getProjectionMatrix();
 		cameraView = m_editorCamera.getViewMatrix();
@@ -291,7 +298,7 @@ void EditorLayer::onUIRender() {
 		cameraView = m_cameraController.getCamera().getViewMatrix();
 	}
 
-	ImGuizmo::SetOrthographic(m_cameraType == CameraType::Orthographic);
+	ImGuizmo::SetOrthographic(m_settings.cameraType == CameraType::Orthographic);
 	ImGuizmo::SetDrawlist();
 	ImGuizmo::SetRect(
 	    m_viewportInfo.min_bound.x, m_viewportInfo.min_bound.y,
@@ -405,9 +412,21 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	}
 	case hyp::Key::G: // translate
 	{
-		if (selectedEntity && !ImGuizmo::IsUsing())
+		if (control && shift)
+		{
+			m_settings.showGrid = !m_settings.showGrid;
+		}
+		else if (selectedEntity && !ImGuizmo::IsUsing())
 		{
 			m_gizmoType = ImGuizmo::TRANSLATE;
+		}
+		break;
+	}
+	case hyp::Key::F2:
+	{
+		if (!m_settings.showHelpGuide)
+		{
+			m_settings.showHelpGuide = true;
 		}
 		break;
 	}
@@ -443,7 +462,7 @@ void hyp::editor::EditorLayer::openScene(const fs::path& path) {
 		m_hierarchyPanel->setContext(m_editorScene);
 
 		m_activeScene = m_editorScene;
-		m_editorScenePath = path;
+		m_settings.scenePath = path;
 	}
 }
 
@@ -451,13 +470,13 @@ void hyp::editor::EditorLayer::newScene() {
 	m_activeScene = hyp::CreateRef<Scene>();
 	m_hierarchyPanel->setContext(m_activeScene);
 
-	m_editorScenePath = fs::path();
+	m_settings.scenePath = fs::path();
 }
 
 void hyp::editor::EditorLayer::saveScene() {
-	if (!m_editorScenePath.empty())
+	if (!m_settings.scenePath.empty())
 	{
-		serializerScene(m_activeScene, m_editorScenePath);
+		serializerScene(m_activeScene, m_settings.scenePath);
 	}
 	else
 		saveSceneAs();
@@ -469,7 +488,7 @@ void hyp::editor::EditorLayer::saveSceneAs() {
 	if (!path.empty())
 	{
 		serializerScene(m_activeScene, path);
-		m_editorScenePath = path;
+		m_settings.scenePath = path;
 	}
 }
 

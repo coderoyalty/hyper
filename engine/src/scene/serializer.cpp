@@ -194,13 +194,14 @@ void hyp::SceneSerializer::serializer(const std::string& path) {
 		emitter << YAML::Key << "Scene" << YAML::Value << "Untitled-Hyper Scene";
 		emitter << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
-		m_scene->m_registry.each([&](auto entityId)
-		{
+		// must only serialize entities with a tag & transform component
+		auto view = m_scene->m_registry.view<hyp::TagComponent, hyp::TransformComponent>();
+		for (auto entityId : view) {
 			hyp::Entity entity { entityId, m_scene.get() };
 			if (!entity) return;
 
 			utils::serializeEntity(emitter, entity);
-		});
+		}
 
 		emitter << YAML::EndSeq;
 	}

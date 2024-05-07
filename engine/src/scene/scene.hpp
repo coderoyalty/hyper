@@ -2,7 +2,7 @@
 #ifndef HYP_SCENE_HPP
 	#define HYP_SCENE_HPP
 
-	#include <entt.hpp>
+	#include <entt/entt.hpp>
 	#include <string>
 
 namespace hyp {
@@ -12,6 +12,7 @@ namespace hyp {
 		friend class Entity;
 		friend class HierarchyPanel;
 		friend class SceneSerializer;
+
 	public:
 		Scene();
 		~Scene();

@@ -27,11 +27,12 @@ void hyp::HierarchyPanel::onUIRender() {
 	ImGui::Begin("Scene Hierarchy");
 	if (m_context)
 	{
-		m_context->m_registry.each([&](auto entityId)
+		auto view = m_context->m_registry.view<hyp::TagComponent, hyp::TransformComponent>();
+		for (auto entityId : view)
 		{
 			Entity entity(entityId, m_context.get());
 			drawEntityNode(entity);
-		});
+		}
 
 		if (ImGui::BeginPopupContextWindow(0,
 		        ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))

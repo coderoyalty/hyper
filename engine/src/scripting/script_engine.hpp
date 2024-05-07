@@ -6,6 +6,7 @@
 	#include <scene/entity.hpp>
 	#include <scene/components.hpp>
 	#include <string>
+	#include <entt/entt.hpp>
 
 namespace utils {
 
@@ -22,16 +23,12 @@ namespace hyp {
 	class ScriptEngine {
 	public:
 		static void init();
-		static void deinit();
 
-		static void run_script(const std::string& file);
+		static sol::load_result load_script(const std::string& file);
 
-		static void load_script(const std::string& file);
-
-		static void onCreateEntity(hyp::Entity entity);
-		static void onDestroyEntity(hyp::Entity entity);
-		static void onUpdateEntity(hyp::Entity entity, float dt);
-		static void onUpdateEntity(const hyp::Ref<hyp::Scene>& scene, float dt);
+		static void init_script(entt::registry& registry, entt::entity entity);
+		static void free_script(entt::registry& registry, entt::entity entity);
+		static void update_script(entt::registry& registry, float dt);
 	};
 }
 

@@ -1,44 +1,40 @@
--- CODE OF CONDUCT
--- must match the file name, be a global variable,
--- be unique (at least for entities)
+local Player = {}
 
-Player = {
-}
-
-local pos = vec3:new()
-local size = vec3:new()
-local color = vec4:new()
-
-size.x = 1.0
-size.y = 1.0
-size.z = 0.0
-
-color.x = 1.0
-color.y = 0.0
-color.z = 0.0
-color.w = 1.0
-
-function Player.onCreate()
-  print(pos)
-  print(size)
-  print(color)
+function Player:init()
+  -- Retrieve the Transform component from the owner entity
+  transform = self.owner:get(self.id(), Transform)
+  -- Set the initial direction of movement
+  self.direction = 1 -- 1 for moving to the right, -1 for moving to the left
+  -- Set the initial time
+  self.time = 0
+  self.bound = 2
 end
 
-
-function Player.onDestroy()
-  print("onDestroy called!")
-end
-
-local time = 0.0
-local fps = 0
-
-function Player.onUpdate(dt)
-  fps = fps + 1
-  time = time + dt
-
-  if time >= 1.0 then
-    fps = 0
-    time = 0.0
+function Player:update(dt)
+  -- Retrieve the Transform component from the owner entity
+  transform = self.owner:get(self.id(), Transform)
+  -- Check if the transform component exists
+  if transform then
+    -- Update time
+    self.time = self.time + dt
+    -- Update the horizontal position based on the direction of movement
+    local newX = transform.position.x + dt * 2.0 * self.direction -- Adjust the speed as needed
+    -- Check if the horizontal position exceeds the bounds
+    if newX > self.bound or newX < -self.bound then
+      -- Invert the direction of movement
+      self.direction = -self.direction
+    else
+      -- Update the horizontal position
+      transform.position.x = newX
+    end
+    -- Update the vertical position using a sine-wave pattern
+    -- transform.position.y = math.sin(self.time) * 2 -- Adjust the amplitude as needed
   end
 end
 
+function Player:destroy()
+  -- Print a message when the player is destroyed
+  print("Player destroyed")
+end
+
+return Player

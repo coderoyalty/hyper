@@ -14,11 +14,11 @@ namespace hyp {
 		static void register_all();
 	private:
 		// exposes gl maths related program entities
-		static void register_maths(sol::state* state);
+		static void register_maths(sol::state& state);
 		// exposes utility-based program entities
-		static void register_utils(sol::state* state);
+		static void register_utils(sol::state& state);
 		//
-		static void register_components(sol::state* state);
+		static void register_components(sol::state& state);
 	};
 }
 

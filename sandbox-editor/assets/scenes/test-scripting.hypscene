@@ -1,0 +1,34 @@
+Scene: Untitled-Hyper Scene
+Entities:
+  - TagComponent:
+      Name: Scripted-Circle
+    TransformComponent:
+      Position: [1.06694615, -1.69163406, 0]
+      Rotation: [0, 0.911046743, 0]
+      Scale: [0.99999994, 1, 0.99999994]
+    CircleRendererComponent:
+      Color: [1, 0, 0, 1]
+      Fade: 0
+      Thickness: 1
+    ScriptComponent:
+      Path: assets/scripts/test.lua
+  - TagComponent:
+      Name: Square
+    TransformComponent:
+      Position: [-2.80637193, 1.01143408, -4.27462643e-09]
+      Rotation: [1.30640137, 4.65661343e-10, 3.13494515]
+      Scale: [2.74266601, 1.15022206, 0.99995327]
+    SpriteRendererComponent:
+      Color: [0, 0.558823586, 1, 1]
+      TilingFactor: 1
+  - TagComponent:
+      Name: Text
+    TransformComponent:
+      Position: [-4.12674713, 0.963371873, 0.0881135911]
+      Rotation: [-3.05038261, 0, 0]
+      Scale: [1, 0.999926448, 0.999926448]
+    TextComponent:
+      Color: [1, 1, 1, 1]
+      Text: Text Component
+      FontSize: 16
+      LineSpacing: 0

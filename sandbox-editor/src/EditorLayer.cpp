@@ -96,13 +96,7 @@ void hyp::editor::EditorLayer::onAttach() {
 
 	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_activeScene);
 
-	m_editorCamera.setPosition(glm::vec3(0.f, 0.5f, 2.f));
-
-	auto entity = m_activeScene->createEntity("ScriptEntity");
-	auto script = hyp::ScriptEngine::load_script("assets/scripts/test.lua");
-
-	entity.add<hyp::ScriptComponent>(script.call());
-	entity.add<hyp::CircleRendererComponent>();
+	m_editorCamera.setPosition(glm::vec3(0.f, 1.f, 5.f));
 }
 
 void hyp::editor::EditorLayer::onDetach() {

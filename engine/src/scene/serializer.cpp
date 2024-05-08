@@ -2,6 +2,7 @@
 #include <scene/entity.hpp>
 #include <scene/components.hpp>
 #include <fstream>
+#include <scripting/script_engine.hpp>
 
 namespace YAML {
 
@@ -174,6 +175,17 @@ namespace utils {
 
 				emitter << YAML::EndMap; // TextComponent
 			}
+
+			if (entity.has<hyp::ScriptComponent>())
+			{
+				emitter << YAML::Key << "ScriptComponent";
+				emitter << YAML::BeginMap; // ScriptComponent
+
+				auto& script = entity.get<hyp::ScriptComponent>();
+				emitter << YAML::Key << "Path" << YAML::Value << script.script_file;
+
+				emitter << YAML::EndMap; // ScriptComponent
+			}
 		}
 
 		emitter << YAML::EndMap;
@@ -194,13 +206,15 @@ void hyp::SceneSerializer::serializer(const std::string& path) {
 		emitter << YAML::Key << "Scene" << YAML::Value << "Untitled-Hyper Scene";
 		emitter << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
-		m_scene->m_registry.each([&](auto entityId)
+		// must only serialize entities with a tag & transform component
+		auto view = m_scene->m_registry.view<hyp::TagComponent, hyp::TransformComponent>();
+		for (auto entityId : view)
 		{
 			hyp::Entity entity { entityId, m_scene.get() };
 			if (!entity) return;
 
 			utils::serializeEntity(emitter, entity);
-		});
+		}
 
 		emitter << YAML::EndSeq;
 	}
@@ -236,8 +250,10 @@ bool hyp::SceneSerializer::deserializer(const std::string& path) {
 
 	auto entities = node["Entities"];
 
-	if (entities) {
-		for (auto entity : entities) {
+	if (entities)
+	{
+		for (auto entity : entities)
+		{
 			std::string name;
 			auto tagComponent = entity["TagComponent"];
 			if (tagComponent)
@@ -250,7 +266,8 @@ bool hyp::SceneSerializer::deserializer(const std::string& path) {
 			hyp::Entity deserializedEntity = m_scene->createEntity(name);
 
 			auto transformComponent = entity["TransformComponent"];
-			if (transformComponent) {
+			if (transformComponent)
+			{
 				auto& tc = deserializedEntity.getOrAdd<hyp::TransformComponent>();
 				tc.position = transformComponent["Position"].as<glm::vec3>();
 				tc.rotation = transformComponent["Rotation"].as<glm::vec3>();
@@ -258,22 +275,26 @@ bool hyp::SceneSerializer::deserializer(const std::string& path) {
 			}
 
 			auto spriteComponent = entity["SpriteRendererComponent"];
-			if (spriteComponent) {
+			if (spriteComponent)
+			{
 				auto& sc = deserializedEntity.add<hyp::SpriteRendererComponent>();
 				sc.color = spriteComponent["Color"].as<glm::vec4>();
 
-				if (spriteComponent["TilingFactor"]) {
+				if (spriteComponent["TilingFactor"])
+				{
 					sc.tilingFactor = spriteComponent["TilingFactor"].as<float>();
 				}
 
-				if (spriteComponent["Texture"]) {
+				if (spriteComponent["Texture"])
+				{
 					auto texturePath = spriteComponent["Texture"].as<std::string>();
 					sc.texture = hyp::Texture2D::create(texturePath);
 				}
 			}
 
 			auto circleComponent = entity["CircleRendererComponent"];
-			if (circleComponent) {
+			if (circleComponent)
+			{
 				auto& cc = deserializedEntity.add<hyp::CircleRendererComponent>();
 
 				cc.color = circleComponent["Color"].as<glm::vec4>();
@@ -282,12 +303,26 @@ bool hyp::SceneSerializer::deserializer(const std::string& path) {
 			}
 
 			auto textComponent = entity["TextComponent"];
-			if (textComponent) {
+			if (textComponent)
+			{
 				auto& tc = deserializedEntity.add<hyp::TextComponent>();
 				tc.color = textComponent["Color"].as<glm::vec4>();
 				tc.fontSize = textComponent["FontSize"].as<float>();
 				tc.lineSpacing = textComponent["LineSpacing"].as<float>();
 				tc.text = textComponent["Text"].as<std::string>();
+			}
+
+			auto scriptComponent = entity["ScriptComponent"];
+			if (scriptComponent)
+			{
+				auto file = scriptComponent["Path"].as<std::string>();
+				if (!fs::exists(file)) {
+					HYP_WARN("%s does not exist, skipping this operation", file.c_str());
+					continue;
+				}
+				auto script = hyp::ScriptEngine::load_script(file);
+				auto& sc = deserializedEntity.add<hyp::ScriptComponent>(script.call());
+				sc.script_file = file;
 			}
 		}
 	}

@@ -8,6 +8,7 @@ function Player:init()
   -- Set the initial time
   self.time = 0
   self.bound = 10.0
+  self.radius = 2.0
 end
 
 function Player:update(dt)
@@ -18,8 +19,8 @@ function Player:update(dt)
     -- Update time
     self.time = self.time + dt
     -- Update the vertical position using a sine-wave pattern
-    transform.position.x = math.cos(self.time) * 2
-    transform.position.y = math.sin(self.time) * 2 -- Adjust the amplitude as needed
+    transform.position.x = math.cos(self.time) * self.radius
+    transform.position.y = math.sin(self.time) * self.radius -- Adjust the amplitude as needed
   end
 end
 

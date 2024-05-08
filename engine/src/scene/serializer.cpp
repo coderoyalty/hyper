@@ -316,6 +316,10 @@ bool hyp::SceneSerializer::deserializer(const std::string& path) {
 			if (scriptComponent)
 			{
 				auto file = scriptComponent["Path"].as<std::string>();
+				if (!fs::exists(file)) {
+					HYP_WARN("%s does not exist, skipping this operation", file.c_str());
+					continue;
+				}
 				auto script = hyp::ScriptEngine::load_script(file);
 				auto& sc = deserializedEntity.add<hyp::ScriptComponent>(script.call());
 				sc.script_file = file;

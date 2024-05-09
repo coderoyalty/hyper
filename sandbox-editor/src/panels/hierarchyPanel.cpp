@@ -79,20 +79,34 @@ void hyp::HierarchyPanel::onUIRender() {
 				if (ImGui::BeginPopupModal("Add Script", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 				{
 					static bool dont_ask_me_next_time = false;
-					static char buf[2048];
+					static char buf[512];
 
 					ImGui::InputText("##script_path", buf, sizeof(buf) / sizeof(char));
 					ImGui::SameLine();
 					if (ImGui::Button("..."))
 					{
 						auto path = hyp::FileDialog::openFile("Lua Script (*.lua)\0*.lua\0");
+						path = fs::relative(path).string();
 						std::memcpy(buf, path.c_str(), sizeof(buf) / sizeof(char));
 					};
 
+					if (buf[0] != '\0' && !fs::exists(buf))
+					{
+						if (ImGui::Button("Create", ImVec2(200, 0)))
+						{
+							//TODO: provide entity name
+							if (hyp::scripting::create_script_file(buf, ""))
+							{
+								hyp::ScriptEngine::add_script(m_selectedEntity, buf);
+								std::memset(buf, 0, sizeof(buf));
+								ImGui::CloseCurrentPopup();
+							}
+						}
+					}
+
 					if (ImGui::Button("OK", ImVec2(120, 0)))
 					{
-						auto script = hyp::ScriptEngine::load_script(buf);
-						m_selectedEntity.add<hyp::ScriptComponent>(script.call()).script_file = buf;
+						hyp::ScriptEngine::add_script(m_selectedEntity, buf);
 						std::memset(buf, 0, sizeof(buf));
 						ImGui::CloseCurrentPopup();
 					}

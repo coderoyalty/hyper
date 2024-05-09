@@ -432,7 +432,7 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 }
 
 void hyp::editor::EditorLayer::openScene() {
-	std::string path = hyp::FileDialog::openFile("Hyper Scene (*.hypscene)\0*.hypscene\0");
+	std::string path = hyp::FileDialog::openFile("*.hypscene\0*.hyperscene", "Hyper Scene (*.hypscene)");
 
 	if (!path.empty())
 	{
@@ -441,7 +441,7 @@ void hyp::editor::EditorLayer::openScene() {
 }
 
 void hyp::editor::EditorLayer::openScene(const fs::path& path) {
-	if (path.extension().string() != ".hypscene")
+	if (path.extension().string() != ".hypscene") // TODO: scene file identified by its extension?
 	{
 		HYP_WARN("Could not load %s - not a scene file", path.filename().c_str());
 		return;
@@ -477,7 +477,7 @@ void hyp::editor::EditorLayer::saveScene() {
 }
 
 void hyp::editor::EditorLayer::saveSceneAs() {
-	std::string path = hyp::FileDialog::saveFile("Hyper Scene (*.hypscene)\0*.hypscene\0");
+	std::string path = hyp::FileDialog::saveFile("*.hypscene\0", "Hyper Scene (*.hypscene)");
 
 	if (!path.empty())
 	{

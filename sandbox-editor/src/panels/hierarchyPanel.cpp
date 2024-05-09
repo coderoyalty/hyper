@@ -85,7 +85,7 @@ void hyp::HierarchyPanel::onUIRender() {
 					ImGui::SameLine();
 					if (ImGui::Button("..."))
 					{
-						auto path = hyp::FileDialog::openFile("Lua Script (*.lua)\0*.lua\0");
+						auto path = hyp::FileDialog::openFile("*.lua\0", "Lua Script (*.lua)");
 						path = fs::relative(path).string();
 						std::memcpy(buf, path.c_str(), sizeof(buf) / sizeof(char));
 					};

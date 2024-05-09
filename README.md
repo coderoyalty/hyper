@@ -37,3 +37,9 @@ An example of what I built using Hyper during development
 ![](./screenshots/pong1.png)
 
 ![](./screenshots/pong2.png)
+
+### Appreciations
+
+- [Joey's learnopengl.com](https://learnopengl.com/)
+- [Marie's asliceofrendering.com](https://asliceofrendering.com/scene%20helper/2020/01/05/InfiniteGrid/)
+- [TheCherno's Hazel Engine](https://github.com/TheCherno/Hazel)

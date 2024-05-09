@@ -22,6 +22,7 @@ group "Dependencies"
 	include "dependencies/freetype"
 	include "dependencies/yaml-cpp"
 	include "dependencies/lua"
+	include "dependencies/tinyfiledialogs"
 
 group "Hyper"
 	include "engine"

@@ -34,13 +34,15 @@ project "Hyper"
 		"%{includes.FREETYPE}",
 		"%{includes.YAML_CPP}",
 		"%{includes.LUA}",
-		"%{includes.SOL}"
+		"%{includes.SOL}",
+		"%{includes.FILE_DIALOGS}"
 	}
 	
 	links
 	{
 		"GLFW", "GLAD", "IMGUI", "opengl32.lib", "FREETYPE",
-		"YAML-CPP", "LUA" 
+		"YAML-CPP", "LUA",
+		"TinyFileDialogs"
 	}
 
 	filter "files:vendor/imguizmo/**.cpp"

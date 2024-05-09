@@ -37,11 +37,30 @@ namespace hyp {
 			};
 		};
 
+		enum class CameraType
+		{
+			Perspective,
+			Orthographic,
+		};
+
+		struct EditorSettings
+		{
+			bool showHelpGuide = false;
+			bool showGrid = true;
+			fs::path scenePath;
+
+			CameraType cameraType = CameraType::Perspective;
+			//TODO:
+			// bool antialiased = false
+			//
+		};
+
 		class EditorLayer : public hyp::Layer {
 		public:
 			EditorLayer();
 
 			virtual void onAttach() override;
+			virtual void onDetach() override;
 			virtual void onEvent(hyp::Event& event) override;
 			virtual void onUpdate(float dt) override;
 			virtual void onUIRender();
@@ -67,22 +86,14 @@ namespace hyp {
 			hyp::Ref<hyp::ShaderProgram> m_gridProgram;
 			hyp::Ref<hyp::VertexArray> m_gridVao;
 
-			fs::path m_editorScenePath;
-
 		private:
 			ViewportState m_viewportInfo;
+			EditorSettings m_settings;
 
 			int m_gizmoType = -1;
 
 			hyp::Entity m_hoveredEntity;
 
-			enum class CameraType
-			{
-				Perspective,
-				Orthographic,
-			};
-
-			CameraType m_cameraType;
 			hyp::EditorCamera m_editorCamera;
 			hyp::OrthoGraphicCameraController m_cameraController;
 		};

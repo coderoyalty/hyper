@@ -2,6 +2,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui_internal.h>
 #include <filesystem>
+#include <utils/file_dialog.hpp>
+#include <scripting/script_engine.hpp>
 
 namespace fs = std::filesystem;
 
@@ -27,11 +29,12 @@ void hyp::HierarchyPanel::onUIRender() {
 	ImGui::Begin("Scene Hierarchy");
 	if (m_context)
 	{
-		m_context->m_registry.each([&](auto entityId)
+		auto view = m_context->m_registry.view<hyp::TagComponent, hyp::TransformComponent>();
+		for (auto entityId : view)
 		{
 			Entity entity(entityId, m_context.get());
 			drawEntityNode(entity);
-		});
+		}
 
 		if (ImGui::BeginPopupContextWindow(0,
 		        ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
@@ -65,6 +68,45 @@ void hyp::HierarchyPanel::onUIRender() {
 			if (ImGui::Button("Add Component"))
 			{
 				showComponents = true;
+			}
+
+			if (!m_selectedEntity.has<hyp::ScriptComponent>() && ImGui::Button("Add Script Component"))
+			{
+				ImGui::OpenPopup("Add Script");
+			}
+
+			{
+				if (ImGui::BeginPopupModal("Add Script", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+				{
+					static bool dont_ask_me_next_time = false;
+					static char buf[2048];
+
+					ImGui::InputText("##script_path", buf, sizeof(buf) / sizeof(char));
+					ImGui::SameLine();
+					if (ImGui::Button("..."))
+					{
+						auto path = hyp::FileDialog::openFile("Lua Script (*.lua)\0*.lua\0");
+						std::memcpy(buf, path.c_str(), sizeof(buf) / sizeof(char));
+					};
+
+					if (ImGui::Button("OK", ImVec2(120, 0)))
+					{
+						auto script = hyp::ScriptEngine::load_script(buf);
+						m_selectedEntity.add<hyp::ScriptComponent>(script.call()).script_file = buf;
+						std::memset(buf, 0, sizeof(buf));
+						ImGui::CloseCurrentPopup();
+					}
+
+					ImGui::SetItemDefaultFocus();
+					ImGui::SameLine();
+
+					if (ImGui::Button("Cancel", ImVec2(120, 0)))
+					{
+						std::memset(buf, 0, sizeof(buf));
+						ImGui::CloseCurrentPopup();
+					}
+					ImGui::EndPopup();
+				}
 			}
 
 			if (showComponents)
@@ -247,7 +289,7 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 
 		ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
 
-		if (ImGui::BeginDragDropTarget())
+		if (ImGui::BeginDragDropTarget()) // waiting for asset browser..
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("BROWSER_ITEM"))
 			{
@@ -308,6 +350,11 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 		ImGui::Text("Line Spacing");
 		ImGui::SameLine();
 		ImGui::DragFloat("##LineSpacing", &component.lineSpacing, 0.01f, 0.0f, 1.0f);
+	});
+
+	drawComponent<hyp::ScriptComponent>("Script", entity, [](hyp::ScriptComponent& component)
+	{
+		ImGui::Text(component.script_file.c_str());
 	});
 }
 

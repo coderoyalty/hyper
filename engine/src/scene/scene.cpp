@@ -2,8 +2,12 @@
 #include "renderer/renderer2d.hpp"
 #include "scene/components.hpp"
 #include "scene/entity.hpp"
+#include "scripting/script_engine.hpp"
 
-hyp::Scene::Scene() {}
+hyp::Scene::Scene() {
+	m_registry.on_construct<hyp::ScriptComponent>().connect<&hyp::ScriptEngine::init_script>();
+	m_registry.on_destroy<hyp::ScriptComponent>().connect<&hyp::ScriptEngine::free_script>();
+}
 
 hyp::Scene::~Scene() {}
 
@@ -23,6 +27,10 @@ void hyp::Scene::destroyEntity(Entity entity) {
 }
 
 void hyp::Scene::onUpdate(float dt) {
+
+	hyp::ScriptEngine::update_script(m_registry, dt);
+
+
 	{
 		auto& sprite_group = m_registry.group<TransformComponent, hyp::SpriteRendererComponent>();
 

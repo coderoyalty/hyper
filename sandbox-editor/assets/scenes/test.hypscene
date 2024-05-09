@@ -3,41 +3,33 @@ Entities:
   - TagComponent:
       Name: Creator
     TransformComponent:
-      Position: [0, 0, 0]
-      Rotation: [-3.07314062, -0.0363877751, -0.00249418174]
-      Scale: [0.999999821, 0.999990225, 0.999991179]
+      Position: [-2.7127378, -2.45124006, 0.594220221]
+      Rotation: [-3.07314062, -0.0363860279, -0.00249410211]
+      Scale: [0.999986768, 0.999910831, 0.999962509]
     TextComponent:
-      Color: [1, 1, 1, 1]
+      Color: [0.205882072, 0, 1, 1]
       Text: Akanni Emmanuel
-      FontSize: 16
+      FontSize: 32
       LineSpacing: 0
-  - TagComponent:
-      Name: Circle
-    TransformComponent:
-      Position: [0.534977376, 0.305153668, -2.7051053]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CircleRendererComponent:
-      Color: [0.931372523, 0.0319588743, 0.0319588743, 1]
-      Fade: 0
-      Thickness: 1
   - TagComponent:
       Name: Square
     TransformComponent:
-      Position: [0.0931483284, -0.147424012, -0.00871555042]
-      Rotation: [-1.63451326, 0.0218287483, -3.1392982]
-      Scale: [6.64113808, 4.37276793, 0.99999392]
+      Position: [-0.110222682, -2.29752994, -3.82291317]
+      Rotation: [-1.63451326, 0.0218290891, -3.1392982]
+      Scale: [14.5940523, 11.8154879, 0.99993968]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       Texture: assets/textures/checkerboard.png
-      TilingFactor: 4
+      TilingFactor: 1
   - TagComponent:
       Name: Sun
     TransformComponent:
-      Position: [-1.22706831, 0.650497556, -1.49011612e-08]
+      Position: [0.343596786, 1.97026432, -1.49011612e-08]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     CircleRendererComponent:
       Color: [1, 1, 0, 1]
-      Fade: 0
-      Thickness: 0.230000004
+      Fade: 0.610000014
+      Thickness: 1
+    ScriptComponent:
+      Path: C:\Users\User\opengl-cpp-template\sandbox-editor\assets\scripts\test.lua

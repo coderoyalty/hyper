@@ -9,6 +9,8 @@
 	#include <glm/glm.hpp>
 	#include <glm/gtc/matrix_transform.hpp>
 
+	#include <sol/sol.hpp>
+
 namespace hyp {
 
 	struct TagComponent
@@ -61,6 +63,20 @@ namespace hyp {
 		glm::vec4 color { 1.f };
 		float lineSpacing = 0.f;
 		float fontSize = 16.f;
+	};
+
+	struct ScriptComponent
+	{
+		sol::table self;
+		std::string script_file; //TODO:
+
+		struct
+		{
+			sol::function update;
+		} hooks;
+
+		ScriptComponent() = default;
+		ScriptComponent(const ScriptComponent&) = default;
 	};
 
 } // namespace hyp

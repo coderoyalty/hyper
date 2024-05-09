@@ -32,13 +32,15 @@ project "Hyper"
 		"%{includes.ENTT}",
 		"%{includes.IMGUIZMO}",
 		"%{includes.FREETYPE}",
-		"%{includes.YAML_CPP}"
+		"%{includes.YAML_CPP}",
+		"%{includes.LUA}",
+		"%{includes.SOL}"
 	}
 	
 	links
 	{
 		"GLFW", "GLAD", "IMGUI", "opengl32.lib", "FREETYPE",
-		"YAML-CPP"
+		"YAML-CPP", "LUA" 
 	}
 
 	filter "files:vendor/imguizmo/**.cpp"

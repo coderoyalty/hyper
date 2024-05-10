@@ -97,7 +97,7 @@ void hyp::HierarchyPanel::onUIRender() {
 							//TODO: provide entity name
 							if (hyp::scripting::create_script_file(buf, ""))
 							{
-								hyp::ScriptEngine::add_script(m_selectedEntity, buf);
+								hyp::ScriptEngine::addScriptComponent(m_selectedEntity, buf);
 								std::memset(buf, 0, sizeof(buf));
 								ImGui::CloseCurrentPopup();
 							}
@@ -106,7 +106,7 @@ void hyp::HierarchyPanel::onUIRender() {
 
 					if (ImGui::Button("OK", ImVec2(120, 0)))
 					{
-						hyp::ScriptEngine::add_script(m_selectedEntity, buf);
+						hyp::ScriptEngine::addScriptComponent(m_selectedEntity, buf);
 						std::memset(buf, 0, sizeof(buf));
 						ImGui::CloseCurrentPopup();
 					}
@@ -194,10 +194,10 @@ void hyp::HierarchyPanel::onUIRender() {
 void hyp::HierarchyPanel::drawEntityNode(Entity entity) {
 	static Entity hoveredEntity;
 
-	auto& tag = entity.get<hyp::TagComponent>().name;
+	auto& tag = entity.getName();
 
 	std::stringstream id_ss;
-	id_ss << tag << entity;
+	id_ss << tag << entity.getUUID();
 
 	ImGuiTreeNodeFlags flags = ((m_selectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 	flags |= ImGuiTreeNodeFlags_SpanAvailWidth;

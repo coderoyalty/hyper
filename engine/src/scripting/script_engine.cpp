@@ -63,21 +63,26 @@ namespace hyp {
 		return load_result;
 	}
 
-	bool ScriptEngine::add_script(hyp::Entity& entity, const std::string& scriptPath, bool update_if_exist) {
+	bool ScriptEngine::addScriptComponent(hyp::Entity& entity, const std::string& scriptPath, bool update_if_exist) {
 		if (!fs::exists(scriptPath)) return false;
 
 		if (entity.has<hyp::ScriptComponent>() && !update_if_exist) return false;
 
 		auto path = fs::relative(scriptPath).string();
-		auto result = load_script(path);
-		auto& script = entity.add<hyp::ScriptComponent>(result.call());
+		auto& script = entity.add<hyp::ScriptComponent>();
 		script.script_file = path;
-
 		return true;
 	}
 
-	void ScriptEngine::init_script(entt::registry& registry, entt::entity entity) {
+	void ScriptEngine::onCreateEntity(entt::registry& registry, entt::entity entity) {
 		auto& script = registry.get<hyp::ScriptComponent>(entity);
+		// load script
+		if (!script.self.valid())
+		{ // presumed that script is not loaded yet
+			auto loaded_result = load_script(script.script_file);
+			script.self = loaded_result.call();
+		}
+
 		HYP_ASSERT(script.self.valid());
 		script.hooks.update = script.self["update"];
 		HYP_ASSERT(script.hooks.update.valid());
@@ -90,13 +95,13 @@ namespace hyp {
 		if (auto&& f = script.self["init"]; f.valid()) f(script.self);
 	}
 
-	void ScriptEngine::free_script(entt::registry& registry, entt::entity entity) {
+	void ScriptEngine::onDestroyEntity(entt::registry& registry, entt::entity entity) {
 		auto& script = registry.get<ScriptComponent>(entity);
 		if (auto&& f = script.self["destroy"]; f.valid()) f(script.self);
 		script.self.abandon();
 	}
 
-	void ScriptEngine::update_script(entt::registry& registry, float dt) {
+	void ScriptEngine::onUpdateEntities(entt::registry& registry, float dt) {
 		auto& view = registry.view<hyp::ScriptComponent>();
 
 		for (auto entity : view)

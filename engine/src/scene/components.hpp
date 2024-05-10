@@ -11,7 +11,17 @@
 
 	#include <sol/sol.hpp>
 
+	#include <core/uuid.hpp>
+
 namespace hyp {
+
+	struct IDComponent
+	{
+		hyp::UUID id;
+
+		IDComponent() = default;
+		IDComponent(const IDComponent&) = default;
+	};
 
 	struct TagComponent
 	{
@@ -72,7 +82,9 @@ namespace hyp {
 
 		struct
 		{
+			sol::function init;
 			sol::function update;
+			sol::function destroy;
 		} hooks;
 
 		ScriptComponent() = default;

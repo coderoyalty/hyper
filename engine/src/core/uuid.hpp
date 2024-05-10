@@ -12,13 +12,25 @@ namespace hyp {
 
 		UUID(const UUID&) = default;
 
-		uint64_t operator()() const {
-			return m_uuid;
-		}
+		operator uint64_t() const { return m_uuid; }
 
 	private:
 		uint64_t m_uuid;
 	};
+}
+
+namespace std {
+	template <typename T>
+	struct hash;
+
+	template <>
+	struct hash<hyp::UUID>
+	{
+		std::size_t operator()(const hyp::UUID& uuid) const {
+			return (uint64_t)uuid;
+		}
+	};
+
 }
 
 #endif

@@ -4,6 +4,7 @@
 
 	#include <core/application.hpp>
 	#include <scene/scene.hpp>
+	#include <scene/components.hpp>
 
 namespace hyp {
 
@@ -25,9 +26,10 @@ namespace hyp {
 
 		// [Debug]
 		// for safely adding a component to the entity without getting an assertion error
-		template<typename T, typename... Args>
+		template <typename T, typename... Args>
 		T& getOrAdd(Args&... args) {
-			if (has<T>()) {
+			if (has<T>())
+			{
 				return get<T>();
 			}
 
@@ -54,6 +56,14 @@ namespace hyp {
 		bool operator!=(const Entity& other) const { return !(*this == other); }
 
 		operator bool() { return m_handle != entt::null; }
+
+		hyp::UUID getUUID() {
+			return get<hyp::IDComponent>().id; // all hyp::Entity instances are presumed to have an id component
+		};
+
+		const std::string& getName() {
+			return get<hyp::TagComponent>().name; // all hyp::Entity instances are presumed to have a tag component
+		}
 
 	private:
 		entt::entity m_handle { entt::null };

@@ -47,6 +47,21 @@ namespace utils {
 		HYP_ASSERT(false);
 		return 0;
 	}
+
+	static uint32_t toGlTexParam(hyp::TextureParam format) {
+		switch (format)
+		{
+		case hyp::TextureParam::LINEAR:
+			return GL_LINEAR;
+		case hyp::TextureParam::NEAREST:
+			return GL_NEAREST;
+		case hyp::TextureParam::REPEAT:
+			return GL_REPEAT;
+		default:
+			HYP_ASSERT(false);
+			break;
+		}
+	}
 }
 
 hyp::Texture::Texture(const TextureSpecification& spec) {
@@ -63,8 +78,8 @@ hyp::Texture::Texture(const TextureSpecification& spec) {
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, utils::toGlTexParam(m_spec.min_filter));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, utils::toGlTexParam(m_spec.max_filter));
 
 	glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, m_width, m_height, 0, m_dataFormat, GL_UNSIGNED_BYTE, nullptr);
 }
@@ -122,8 +137,8 @@ hyp::Texture::Texture(const std::string& path)
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, utils::toGlTexParam(m_spec.min_filter));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, utils::toGlTexParam(m_spec.max_filter));
 
 	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, pixels);
 
@@ -165,4 +180,15 @@ void hyp::Texture::setData(void* pixels, uint32_t size) {
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	m_loaded = true;
+}
+
+void hyp::Texture::setFilter(TextureParam filter) {
+	setFilter(filter, filter);
+}
+
+void hyp::Texture::setFilter(TextureParam min_filter, TextureParam max_filter) {
+	glBindTexture(GL_TEXTURE_2D, m_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, utils::toGlTexParam(min_filter));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, utils::toGlTexParam(max_filter));
+	glBindTexture(GL_TEXTURE_2D, 0);
 }

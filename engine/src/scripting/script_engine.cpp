@@ -12,6 +12,7 @@
 	#define SCRIPT_ERROR(message, ...) HYP_ERROR("[ScriptEngine] "##message, ##__VA_ARGS__)
 #else // error message is important!
 	#include <stdio.h>
+	#define SCRIPT_TRACE(message, ...)
 	#define SCRIPT_ERROR(message, ...) printf(message, ##__VA_ARGS__);
 #endif
 
@@ -34,6 +35,7 @@ namespace hyp {
 	void ScriptEngine::init() {
 		SCRIPT_TRACE("Initializing");
 
+		register_meta_component<hyp::TextComponent>();
 		register_meta_component<hyp::IDComponent>();
 		register_meta_component<hyp::TagComponent>();
 		register_meta_component<hyp::TransformComponent>();

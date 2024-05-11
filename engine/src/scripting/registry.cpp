@@ -99,5 +99,15 @@ namespace hyp {
 		    "color", (&hyp::CircleRendererComponent::color),
 		    "fade", &hyp::CircleRendererComponent::fade,
 		    "thickness", &hyp::CircleRendererComponent::thickness);
+
+		// circle
+		lua.new_usertype<hyp::TextComponent>(
+		    "TextComponent",
+		    sol::constructors<hyp::TextComponent()>(),
+		    "type_id", &entt::type_hash<hyp::TextComponent>::value,
+		    "text", (&hyp::TextComponent::text),
+		    "color", (&hyp::TextComponent::color),
+		    "lineSpacing", &hyp::TextComponent::lineSpacing,
+		    "fontSize", &hyp::TextComponent::fontSize);
 	}
 }

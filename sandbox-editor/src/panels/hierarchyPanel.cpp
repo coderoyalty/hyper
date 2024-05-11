@@ -370,7 +370,7 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 
 		ImGui::Text("Text");
 		ImGui::SameLine();
-		if (ImGui::InputText("##Text", buffer, sizeof(buffer)))
+		if (ImGui::InputTextMultiline("##Text", buffer, sizeof(buffer)))
 		{
 			component.text = std::string(buffer);
 		}
@@ -381,7 +381,7 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 
 		ImGui::Text("Line Spacing");
 		ImGui::SameLine();
-		ImGui::DragFloat("##LineSpacing", &component.lineSpacing, 0.01f, 0.0f, 1.0f);
+		ImGui::DragFloat("##LineSpacing", &component.lineSpacing, 0.01f, 0.1f, 1.0f);
 	});
 
 	drawComponent<hyp::ScriptComponent>("Script", entity, [](hyp::ScriptComponent& component)

@@ -514,6 +514,14 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 		}
 		break;
 	}
+	case hyp::Key::F5: //F5 to play and stop a scene
+	{
+		if (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate)
+			onScenePlay();
+		else if (m_sceneState == SceneState::Play)
+			onSceneStop();
+		break;
+	}
 	default:
 		break;
 	}

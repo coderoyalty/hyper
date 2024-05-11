@@ -114,8 +114,8 @@ void EditorLayer::onEvent(hyp::Event& event) {
 }
 
 void EditorLayer::onUpdate(float dt) {
-
-	if (m_sceneState == SceneState::Play) {
+	if (m_sceneState == SceneState::Play)
+	{
 		m_activeScene->onUpdateRuntime(dt);
 	}
 
@@ -403,7 +403,6 @@ void hyp::editor::EditorLayer::onSceneStop() {
 	else if (m_sceneState == SceneState::Simulate) // stop simulation
 		;
 
-
 	m_sceneState = SceneState::Edit;
 
 	m_activeScene = m_editorScene;
@@ -434,10 +433,17 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 
 	auto selectedEntity = m_hierarchyPanel->getSelectedEntity();
 
+	//hmmm? should this be allowed outside of edit mode
 	switch (event.getkey())
 	{
 	case hyp::Key::O:
 	{
+		if (m_sceneState != SceneState::Edit)
+		{ // mitigates opening new scenes while playing/simulating a scene.
+			HYP_WARN("Cannot open a scene outside Edit Mode");
+			break;
+		}
+
 		if (control)
 		{
 			openScene();
@@ -446,9 +452,13 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	}
 	case hyp::Key::N: // create new scene
 	{
-		if (control)
+		if (m_sceneState == SceneState::Edit && control)
 		{
 			newScene();
+		}
+		else
+		{
+			HYP_WARN("Cannot create a scene outside Edit Mode");
 		}
 		break;
 	}
@@ -561,6 +571,11 @@ void hyp::editor::EditorLayer::saveSceneAs() {
 
 	if (!path.empty())
 	{
+		if (!fs::path(path).has_extension())
+		{
+			path += ".hypscene";
+		}
+
 		serializerScene(m_activeScene, path);
 		m_settings.scenePath = path;
 	}

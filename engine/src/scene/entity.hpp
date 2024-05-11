@@ -24,6 +24,13 @@ namespace hyp {
 			return component;
 		}
 
+		template <typename T, typename... Args>
+		T& addOrReplace(Args&&... args) {
+			T& component = m_scene->m_registry.emplace_or_replace<T>(m_handle, std::forward<Args>(args)...);
+
+			return component;
+		}
+
 		// [Debug]
 		// for safely adding a component to the entity without getting an assertion error
 		template <typename T, typename... Args>

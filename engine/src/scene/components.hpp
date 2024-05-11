@@ -91,6 +91,15 @@ namespace hyp {
 		ScriptComponent(const ScriptComponent&) = default;
 	};
 
+	template <typename... Component>
+	struct ComponentGroup
+	{
+	};
+
+	using AllComponents =
+	    ComponentGroup<TransformComponent, SpriteRendererComponent,
+	        CircleRendererComponent, ScriptComponent, TextComponent>;
+
 } // namespace hyp
 
 #endif

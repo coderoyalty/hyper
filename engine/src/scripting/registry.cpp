@@ -60,6 +60,20 @@ namespace hyp {
 	}
 
 	void ScriptRegistry::register_components(sol::state& lua) {
+		lua.new_usertype<hyp::UUID>("UUID", sol::constructors<hyp::UUID(), hyp::UUID(uint64_t)>(),
+		    "operator", &hyp::UUID::operator size_t);
+		// id component
+
+		lua.new_usertype<hyp::IDComponent>(
+		    "IDComponent", sol::constructors<hyp::IDComponent()>(),
+		    "type_id", &entt::type_hash<hyp::IDComponent>::value,
+		    "id", &hyp::IDComponent::id);
+
+		lua.new_usertype<hyp::TagComponent>(
+		    "TagComponent", sol::constructors<hyp::TagComponent()>(),
+		    "type_id", &entt::type_hash<hyp::TagComponent>::value,
+		    "name", &hyp::TagComponent::name);
+
 		// transform
 		lua.new_usertype<hyp::TransformComponent>(
 		    "Transform",

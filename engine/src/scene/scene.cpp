@@ -4,10 +4,63 @@
 #include "scene/entity.hpp"
 #include "scripting/script_engine.hpp"
 
-hyp::Scene::Scene() {
+template <typename... Component>
+static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<hyp::UUID, entt::entity>& enttMap) {
+	([&]()
+	{
+		auto view = src.view<Component>();
+		for (auto srcEntity : view)
+		{
+			entt::entity dstEntity = enttMap.at(src.get<hyp::IDComponent>(srcEntity).id);
+
+			auto& srcComponent = src.get<Component>(srcEntity);
+			dst.emplace_or_replace<Component>(dstEntity, srcComponent);
+		}
+	}(),
+	    ...);
 }
 
-hyp::Scene::~Scene() {}
+template <typename... Component>
+static void CopyComponent(hyp::ComponentGroup<Component...>, entt::registry& dst, entt::registry& src, const std::unordered_map<hyp::UUID, entt::entity>& enttMap) {
+	CopyComponent<Component...>(dst, src, enttMap);
+}
+
+template <typename... Component>
+static void CopyComponentIfExists(hyp::Entity dst, hyp::Entity src) {
+	([&]()
+	{
+		if (src.has<Component>())
+			dst.addOrReplace<Component>(src.get<Component>());
+	}(),
+	    ...);
+}
+
+template <typename... Component>
+static void CopyComponentIfExists(hyp::ComponentGroup<Component...>, hyp::Entity dst, hyp::Entity src) {
+	CopyComponentIfExists<Component...>(dst, src);
+}
+
+hyp::Ref<hyp::Scene> hyp::Scene::copy(hyp::Ref<hyp::Scene> other) {
+	auto& newScene = CreateRef<hyp::Scene>();
+
+	auto& srcRegistry = other->m_registry;
+	auto& dstRegistry = newScene->m_registry;
+
+	std::unordered_map<UUID, entt::entity> enttMap;
+
+	auto idView = srcRegistry.view<IDComponent>();
+	for (auto e : idView)
+	{
+		UUID uuid = srcRegistry.get<IDComponent>(e).id;
+		const auto& name = srcRegistry.get<TagComponent>(e).name;
+		Entity newEntity = newScene->createEntity(uuid, name);
+		enttMap[uuid] = (entt::entity)newEntity;
+	}
+
+	CopyComponent(AllComponents {}, dstRegistry, srcRegistry, enttMap);
+
+	return newScene;
+}
 
 hyp::Entity hyp::Scene::createEntity(const std::string& name) {
 	return createEntity(UUID(), name);

@@ -18,8 +18,10 @@ namespace hyp {
 		friend class ScriptEngine;
 
 	public:
-		Scene();
-		~Scene();
+		Scene() = default;
+		~Scene() = default;
+
+		static hyp::Ref<Scene> copy(hyp::Ref<Scene> other);
 
 		template <typename... Components>
 		auto getEntities() {

@@ -34,6 +34,8 @@ namespace hyp {
 	void ScriptEngine::init() {
 		SCRIPT_TRACE("Initializing");
 
+		register_meta_component<hyp::IDComponent>();
+		register_meta_component<hyp::TagComponent>();
 		register_meta_component<hyp::TransformComponent>();
 		register_meta_component<hyp::SpriteRendererComponent>();
 		register_meta_component<hyp::CircleRendererComponent>();

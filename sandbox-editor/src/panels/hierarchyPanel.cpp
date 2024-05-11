@@ -301,7 +301,17 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 	{
 		ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
 
-		ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
+		if (ImGui::Button("Texture", ImVec2(100.0f, 0.0f)))
+		{
+			auto texturePath = hyp::FileDialog::openFile("*.png\0*.jpg\*.jpeg\0", "Image file");
+
+			hyp::Ref<hyp::Texture2D> texture = hyp::Texture2D::create(fs::relative(texturePath).string());
+			texture->setFilter(hyp::TextureParam::NEAREST);
+			if (texture->isLoaded())
+			{
+				component.texture = texture;
+			}
+		}
 
 		if (ImGui::BeginDragDropTarget()) // waiting for asset browser..
 		{
@@ -323,6 +333,14 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 
 			ImGui::EndDragDropTarget();
 		}
+
+		if (component.texture)
+		{
+			ImGui::SameLine();
+			auto texturePath = component.texture->getPath();
+			ImGui::Text(texturePath.c_str());
+		}
+
 		ImGui::Text("Tiling Factor");
 		ImGui::SameLine();
 		ImGui::DragFloat("##TilingFactor", &component.tilingFactor, 0.1f, 0.0f, 100.0f);

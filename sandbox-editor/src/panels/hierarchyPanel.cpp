@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <utils/file_dialog.hpp>
 #include <scripting/script_engine.hpp>
+#include <functional>
+#include <unordered_map>
 
 namespace fs = std::filesystem;
 
@@ -26,169 +28,114 @@ void hyp::HierarchyPanel::setSelectedEntity(Entity entity) {
 }
 
 void hyp::HierarchyPanel::onUIRender() {
+	drawHierarchyPanel();
+	drawPropertiesPanel();
+}
+
+void hyp::HierarchyPanel::drawHierarchyPanel() {
 	ImGui::Begin("Scene Hierarchy");
-	if (m_context)
+	if (!m_context)
 	{
-		auto view = m_context->m_registry.view<hyp::TagComponent, hyp::TransformComponent>();
-		for (auto entityId : view)
-		{
-			Entity entity(entityId, m_context.get());
-			drawEntityNode(entity);
-		}
-
-		if (ImGui::BeginPopupContextWindow(0,
-		        ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
-		{
-			if (ImGui::MenuItem("Create Empty Entity"))
-			{
-				Entity entity = m_context->createEntity("Empty Entity");
-				entity.get<TransformComponent>();
-			}
-
-			ImGui::EndPopup();
-		}
+		ImGui::End();
+		return;
 	}
-	ImGui::End();
 
+	auto view = m_context->getEntities<hyp::TagComponent, hyp::TransformComponent>();
+	for (auto entityId : view)
+	{
+		Entity entity(entityId, m_context.get());
+		drawEntityNode(entity);
+	}
+
+	if (ImGui::BeginPopupContextWindow(0,
+	        ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+	{
+		if (ImGui::MenuItem("Create Empty Entity"))
+		{
+			Entity entity = m_context->createEntity("Empty Entity");
+			entity.get<TransformComponent>();
+		}
+
+		ImGui::EndPopup();
+	}
+
+	ImGui::End();
+}
+
+void hyp::HierarchyPanel::drawPropertiesPanel() {
 	ImGui::Begin("Properties");
+
+	static int selectedItemIndex = 0;
+	drawComponents(m_selectedEntity); // OpenPopup("AddComponent") is called here, within the tag component
+
+	if (ImGui::BeginPopup("AddComponent"))
 	{
-		static bool showComponents;
-		static const char* componentsName[] = {
-			"None",
-			"TransformComponent",
-			"SpriteComponent",
-			"CircleComponent",
-			"TextComponent"
-		};
-		static int selectedItemIndex = 0;
-		drawComponents(m_selectedEntity);
+		drawAddComponentEntry<ScriptComponent>("Script"); // TODO: work with script modal
+		drawAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
+		drawAddComponentEntry<CircleRendererComponent>("Circle Renderer");
+		drawAddComponentEntry<TextComponent>("Text Component");
 
-		if (m_selectedEntity)
+		ImGui::EndPopup();
+	}
+
+	drawAddScriptModal();
+
+	ImGui::End();
+}
+
+void hyp::HierarchyPanel::drawAddScriptModal() {
+	if (!m_selectedEntity) return;
+
+	if (!m_selectedEntity.has<hyp::ScriptComponent>() && ImGui::Button("Add Script"))
+	{
+		ImGui::OpenPopup("Add Script");
+	}
+
+	if (ImGui::BeginPopupModal("Add Script", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		static bool dont_ask_me_next_time = false;
+		static char buf[512];
+
+		ImGui::InputText("##script_path", buf, sizeof(buf) / sizeof(char));
+		ImGui::SameLine();
+		if (ImGui::Button("..."))
 		{
-			if (ImGui::Button("Add Component"))
+			auto path = hyp::FileDialog::openFile("*.lua\0", "Lua Script (*.lua)");
+			path = fs::relative(path).string();
+			std::memcpy(buf, path.c_str(), sizeof(buf) / sizeof(char));
+		};
+
+		if (buf[0] != '\0' && !fs::exists(buf))
+		{
+			if (ImGui::Button("Create", ImVec2(200, 0)))
 			{
-				showComponents = true;
-			}
-
-			if (!m_selectedEntity.has<hyp::ScriptComponent>() && ImGui::Button("Add Script Component"))
-			{
-				ImGui::OpenPopup("Add Script");
-			}
-
-			{
-				if (ImGui::BeginPopupModal("Add Script", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+				//TODO: provide entity name
+				if (hyp::scripting::create_script_file(buf, ""))
 				{
-					static bool dont_ask_me_next_time = false;
-					static char buf[512];
-
-					ImGui::InputText("##script_path", buf, sizeof(buf) / sizeof(char));
-					ImGui::SameLine();
-					if (ImGui::Button("..."))
-					{
-						auto path = hyp::FileDialog::openFile("*.lua\0", "Lua Script (*.lua)");
-						path = fs::relative(path).string();
-						std::memcpy(buf, path.c_str(), sizeof(buf) / sizeof(char));
-					};
-
-					if (buf[0] != '\0' && !fs::exists(buf))
-					{
-						if (ImGui::Button("Create", ImVec2(200, 0)))
-						{
-							//TODO: provide entity name
-							if (hyp::scripting::create_script_file(buf, ""))
-							{
-								hyp::ScriptEngine::addScriptComponent(m_selectedEntity, buf);
-								std::memset(buf, 0, sizeof(buf));
-								ImGui::CloseCurrentPopup();
-							}
-						}
-					}
-
-					if (ImGui::Button("OK", ImVec2(120, 0)))
-					{
-						hyp::ScriptEngine::addScriptComponent(m_selectedEntity, buf);
-						std::memset(buf, 0, sizeof(buf));
-						ImGui::CloseCurrentPopup();
-					}
-
-					ImGui::SetItemDefaultFocus();
-					ImGui::SameLine();
-
-					if (ImGui::Button("Cancel", ImVec2(120, 0)))
-					{
-						std::memset(buf, 0, sizeof(buf));
-						ImGui::CloseCurrentPopup();
-					}
-					ImGui::EndPopup();
+					hyp::ScriptEngine::addScriptComponent(m_selectedEntity, buf);
+					std::memset(buf, 0, sizeof(buf));
+					ImGui::CloseCurrentPopup();
 				}
-			}
-
-			if (showComponents)
-			{
-				if (ImGui::BeginCombo("##component_combos", componentsName[selectedItemIndex]))
-				{
-					for (int i = 0; i < 5; i++)
-					{
-						bool isSelected = (selectedItemIndex == i);
-						if (ImGui::Selectable(componentsName[i], isSelected))
-						{
-							showComponents = false;
-							selectedItemIndex = i;
-						}
-						if (isSelected)
-						{
-							ImGui::SetItemDefaultFocus(); // Set focus on the selected item
-						}
-					}
-					ImGui::EndCombo();
-				}
-			}
-
-			if (selectedItemIndex != 0)
-			{
-				switch (selectedItemIndex)
-				{
-				case 1: // TransformComponent
-				{
-					m_selectedEntity.getOrAdd<hyp::TransformComponent>();
-					break;
-				}
-				case 2: // Sprite
-				{
-					if (!m_selectedEntity.has<hyp::CircleRendererComponent>() && !m_selectedEntity.has<hyp::TextComponent>())
-					// shouldn't have sprite and circle component to an entity
-					{
-						m_selectedEntity.getOrAdd<hyp::SpriteRendererComponent>(glm::vec4(1.f));
-					}
-					break;
-				}
-				case 3: // Circle
-				{
-					if (!m_selectedEntity.has<hyp::SpriteRendererComponent>() && !m_selectedEntity.has<hyp::TextComponent>())
-					// shouldn't have sprite and circle component to an entity
-					{
-						m_selectedEntity.getOrAdd<hyp::CircleRendererComponent>(glm::vec4(1.f));
-					}
-					break;
-				}
-				case 4: // Text
-				{
-					if (!(m_selectedEntity.has<hyp::SpriteRendererComponent>() || m_selectedEntity.has<hyp::CircleRendererComponent>()))
-					{
-						auto& text = m_selectedEntity.getOrAdd<hyp::TextComponent>();
-						text.text = text.text.length() == 0 ? "Untitled" : text.text;
-					}
-					break;
-				}
-				default:
-					break;
-				}
-
-				selectedItemIndex = 0;
 			}
 		}
+
+		if (ImGui::Button("OK", ImVec2(120, 0)))
+		{
+			hyp::ScriptEngine::addScriptComponent(m_selectedEntity, buf);
+			std::memset(buf, 0, sizeof(buf));
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SetItemDefaultFocus();
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel", ImVec2(120, 0)))
+		{
+			std::memset(buf, 0, sizeof(buf));
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
 	}
-	ImGui::End();
 }
 
 void hyp::HierarchyPanel::drawEntityNode(Entity entity) {
@@ -287,6 +234,12 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 		if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
 		{
 			tag = std::string(buffer);
+		}
+		ImGui::SameLine();
+
+		if (ImGui::Button("Add Component"))
+		{
+			ImGui::OpenPopup("AddComponent");
 		}
 	}
 
@@ -504,4 +457,18 @@ void utils::drawVec2Control(const std::string& label, glm::vec2& values, float r
 	ImGui::Columns(1);
 
 	ImGui::PopID();
+}
+
+template <typename T>
+void hyp::HierarchyPanel::drawAddComponentEntry(const std::string& entryName) {
+	if (!m_selectedEntity || m_selectedEntity.has<T>())
+	{
+		return;
+	}
+
+	if (ImGui::MenuItem(entryName.c_str()))
+	{
+		m_selectedEntity.add<T>();
+		ImGui::CloseCurrentPopup();
+	}
 }

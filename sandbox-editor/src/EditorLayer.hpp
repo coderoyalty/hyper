@@ -78,6 +78,26 @@ namespace hyp {
 			void serializerScene(hyp::Ref<hyp::Scene> scene, const fs::path& path);
 
 		private:
+			void render_toolbar();
+
+			void onScenePlay();
+			void onSceneStop();
+
+			enum class SceneState
+			{
+				Play,
+				Edit,
+				Simulate,
+				Stop
+			};
+
+
+			SceneState m_sceneState = SceneState::Edit;
+
+			hyp::Ref<hyp::Texture2D> m_iconPlay;
+			hyp::Ref<hyp::Texture2D> m_iconStop;
+
+		private:
 			hyp::Ref<hyp::Framebuffer> m_framebuffer;
 			hyp::Ref<hyp::Scene> m_editorScene;
 			hyp::Ref<hyp::Scene> m_activeScene; // mostly used for interacting with the outside world :)

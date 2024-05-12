@@ -57,7 +57,7 @@ namespace hyp {
 		{
 			glm::vec4 color { 1.f };
 			// range 0.0 - 1.0
-			float leading = 0.f; // line-spacing
+			float leading = 0.1f; // line-spacing
 			float fontSize = 48.f;
 		};
 		static void drawString(const std::string& text, hyp::Ref<hyp::Font> font, const glm::mat4& transform, const TextParams& textParams, int entityId = -1);

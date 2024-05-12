@@ -4,6 +4,9 @@
 
 	#include <entt/entt.hpp>
 	#include <string>
+	#include <core/uuid.hpp>
+	#include <core/base.hpp>
+	#include <unordered_map>
 
 namespace hyp {
 	class Entity;
@@ -12,25 +15,37 @@ namespace hyp {
 		friend class Entity;
 		friend class HierarchyPanel;
 		friend class SceneSerializer;
+		friend class ScriptEngine;
 
 	public:
-		Scene();
-		~Scene();
+		Scene() = default;
+		~Scene() = default;
 
-		Entity createEntity(const std::string& name);
-
-		void destroyEntity(Entity entity);
-
-		void onUpdate(float dt);
+		static hyp::Ref<Scene> copy(hyp::Ref<Scene> other);
 
 		template <typename... Components>
 		auto getEntities() {
 			return m_registry.view<Components...>();
 		}
 
+	public:
+		Entity createEntity(const std::string& name);
+		Entity createEntity(hyp::UUID uuid, const std::string& name);
+		void destroyEntity(Entity entity);
+
+		void onUpdate(float dt);
+
+		void onRuntimeStart();
+		void onRuntimeStop();
+
+		void onUpdateRuntime(float dt);
+
 	private:
+		bool m_running = false;
+		bool m_paused = false;
+
 		entt::registry m_registry;
-		friend class ScriptEngine;
+		std::unordered_map<hyp::UUID, entt::entity> m_entityMap;
 	};
 } // namespace hyp
 

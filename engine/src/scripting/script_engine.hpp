@@ -8,27 +8,23 @@
 	#include <string>
 	#include <entt/entt.hpp>
 
-namespace utils {
-
-	enum ComponentType
-	{
-		None,
-		Transform,
-		Sprite,
-		Circle
-	};
-}
-
 namespace hyp {
+
+	namespace scripting {
+		bool create_script_file(const std::string& filePath, std::string entityName);
+	}
+
 	class ScriptEngine {
 	public:
 		static void init();
 
 		static sol::load_result load_script(const std::string& file);
 
-		static void init_script(entt::registry& registry, entt::entity entity);
-		static void free_script(entt::registry& registry, entt::entity entity);
-		static void update_script(entt::registry& registry, float dt);
+		static bool addScriptComponent(hyp::Entity& entity, const std::string& scriptPath, bool update_if_exist = false);
+
+		static void onCreateEntity(entt::registry& registry, entt::entity entity);
+		static void onDestroyEntity(entt::registry& registry, entt::entity entity);
+		static void onUpdateEntities(entt::registry& registry, float dt);
 	};
 }
 

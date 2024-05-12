@@ -74,6 +74,21 @@ namespace YAML {
 			return true;
 		}
 	};
+
+	template <>
+	struct convert<hyp::UUID>
+	{
+		static Node encode(const hyp::UUID& uuid) {
+			Node node;
+			node.push_back((uint64_t)uuid);
+			return node;
+		}
+
+		static bool decode(const Node& node, hyp::UUID& uuid) {
+			uuid = node.as<uint64_t>();
+			return true;
+		}
+	};
 }
 
 YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v) {
@@ -102,6 +117,7 @@ namespace utils {
 
 	static void serializeEntity(YAML::Emitter& emitter, hyp::Entity entity) {
 		emitter << YAML::BeginMap;
+		emitter << YAML::Key << "Entity" << YAML::Value << entity.getUUID();
 
 		{
 			if (entity.has<hyp::TagComponent>())
@@ -109,7 +125,7 @@ namespace utils {
 				emitter << YAML::Key << "TagComponent";
 				emitter << YAML::BeginMap; // TagComponent
 
-				auto& tag = entity.get<hyp::TagComponent>().name;
+				auto& tag = entity.getName();
 				emitter << YAML::Key << "Name" << YAML::Value << tag;
 
 				emitter << YAML::EndMap; // TagComponent
@@ -254,6 +270,17 @@ bool hyp::SceneSerializer::deserializer(const std::string& path) {
 	{
 		for (auto entity : entities)
 		{
+			uint64_t uuid = {};
+
+			if (entity["Entity"])
+			{
+				uuid = entity["Entity"].as<uint64_t>();
+			}
+			else
+			{
+				uuid = UUID();
+			}
+
 			std::string name;
 			auto tagComponent = entity["TagComponent"];
 			if (tagComponent)
@@ -263,7 +290,7 @@ bool hyp::SceneSerializer::deserializer(const std::string& path) {
 
 			HYP_TRACE("Deserialized entity with name = %s", name.c_str());
 
-			hyp::Entity deserializedEntity = m_scene->createEntity(name);
+			hyp::Entity deserializedEntity = m_scene->createEntity(UUID(uuid), name);
 
 			auto transformComponent = entity["TransformComponent"];
 			if (transformComponent)
@@ -316,7 +343,8 @@ bool hyp::SceneSerializer::deserializer(const std::string& path) {
 			if (scriptComponent)
 			{
 				auto file = scriptComponent["Path"].as<std::string>();
-				if (!fs::exists(file)) {
+				if (!fs::exists(file))
+				{
 					HYP_WARN("%s does not exist, skipping this operation", file.c_str());
 					continue;
 				}

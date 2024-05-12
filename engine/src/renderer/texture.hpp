@@ -20,12 +20,22 @@ namespace hyp {
 		RGBA32F,
 	};
 
+	enum class TextureParam
+	{
+		LINEAR,
+		NEAREST,
+
+		REPEAT,
+	};
+
 	struct TextureSpecification
 	{
 		TextureFormat format = hyp::TextureFormat::RGBA;
 		uint32_t width = 1;
 		uint32_t height = 1;
 		bool mipmap = true;
+		TextureParam min_filter = TextureParam::LINEAR;
+		TextureParam max_filter = TextureParam::LINEAR;
 	};
 
 	class HYPER_API Texture {
@@ -64,6 +74,9 @@ namespace hyp {
 		std::string getPath() const {
 			return m_path;
 		}
+
+		void setFilter(TextureParam filter);
+		void setFilter(TextureParam min_filter, TextureParam max_filter);
 
 		bool isLoaded() const {
 			return m_loaded;

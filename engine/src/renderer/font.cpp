@@ -109,6 +109,8 @@ hyp::Font::Font(const fs::path& fontFilePath) {
 		texSpec.format = hyp::TextureFormat::RED;
 		texSpec.width = textureWidth;
 		texSpec.height = textureHeight;
+		texSpec.min_filter = hyp::TextureParam::NEAREST;
+		texSpec.max_filter = hyp::TextureParam::NEAREST;
 		texSpec.mipmap = false;
 		m_texture = hyp::Texture2D::create(texSpec);
 		m_texture->setData(textureBuffer, textureWidth * textureHeight);

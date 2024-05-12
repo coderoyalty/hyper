@@ -60,6 +60,20 @@ namespace hyp {
 	}
 
 	void ScriptRegistry::register_components(sol::state& lua) {
+		lua.new_usertype<hyp::UUID>("UUID", sol::constructors<hyp::UUID(), hyp::UUID(uint64_t)>(),
+		    "operator", &hyp::UUID::operator size_t);
+		// id component
+
+		lua.new_usertype<hyp::IDComponent>(
+		    "IDComponent", sol::constructors<hyp::IDComponent()>(),
+		    "type_id", &entt::type_hash<hyp::IDComponent>::value,
+		    "id", &hyp::IDComponent::id);
+
+		lua.new_usertype<hyp::TagComponent>(
+		    "TagComponent", sol::constructors<hyp::TagComponent()>(),
+		    "type_id", &entt::type_hash<hyp::TagComponent>::value,
+		    "name", &hyp::TagComponent::name);
+
 		// transform
 		lua.new_usertype<hyp::TransformComponent>(
 		    "Transform",
@@ -85,5 +99,15 @@ namespace hyp {
 		    "color", (&hyp::CircleRendererComponent::color),
 		    "fade", &hyp::CircleRendererComponent::fade,
 		    "thickness", &hyp::CircleRendererComponent::thickness);
+
+		// circle
+		lua.new_usertype<hyp::TextComponent>(
+		    "TextComponent",
+		    sol::constructors<hyp::TextComponent()>(),
+		    "type_id", &entt::type_hash<hyp::TextComponent>::value,
+		    "text", (&hyp::TextComponent::text),
+		    "color", (&hyp::TextComponent::color),
+		    "lineSpacing", &hyp::TextComponent::lineSpacing,
+		    "fontSize", &hyp::TextComponent::fontSize);
 	}
 }

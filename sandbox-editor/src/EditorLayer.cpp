@@ -91,6 +91,9 @@ void hyp::editor::EditorLayer::onAttach() {
 	fbSpec.height = 600;
 	m_framebuffer = hyp::Framebuffer::create(fbSpec);
 
+	m_iconPlay = hyp::Texture2D::create("assets/textures/play.png");
+	m_iconStop = hyp::Texture2D::create("assets/textures/stop.png");
+
 	m_editorScene = hyp::CreateRef<hyp::Scene>();
 	m_activeScene = m_editorScene;
 
@@ -111,6 +114,11 @@ void EditorLayer::onEvent(hyp::Event& event) {
 }
 
 void EditorLayer::onUpdate(float dt) {
+	if (m_sceneState == SceneState::Play)
+	{
+		m_activeScene->onUpdateRuntime(dt);
+	}
+
 	if (m_viewportInfo.focused)
 	{
 		switch (m_settings.cameraType)
@@ -327,8 +335,79 @@ void EditorLayer::onUIRender() {
 		}
 	}
 
-	ImGui::End();
 	ImGui::PopStyleVar();
+	ImGui::End();
+
+	render_toolbar();
+}
+
+void hyp::editor::EditorLayer::render_toolbar() {
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+	auto& colors = ImGui::GetStyle().Colors;
+	const auto& buttonHovered = colors[ImGuiCol_ButtonHovered];
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
+	const auto& buttonActive = colors[ImGuiCol_ButtonActive];
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
+
+	ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+	bool toolbarEnabled = (bool)m_activeScene;
+
+	ImVec4 tintColor = ImVec4(1, 1, 1, 1);
+	if (!toolbarEnabled)
+		tintColor.w = 0.5f;
+
+	float size = ImGui::GetWindowHeight() - 4.0f;
+	ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+
+	bool hasPlayButton = m_sceneState == SceneState::Edit || m_sceneState == SceneState::Play;
+	bool hasSimulateButton = m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate;
+	bool hasPauseButton = m_sceneState != SceneState::Edit;
+
+	if (hasPlayButton)
+	{
+		Ref<Texture2D> icon = (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate) ? m_iconPlay : m_iconStop;
+		if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->getTextureId(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
+		{
+			if (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate)
+				onScenePlay();
+			else if (m_sceneState == SceneState::Play)
+				onSceneStop();
+		}
+	}
+
+	ImGui::PopStyleVar(2);
+	ImGui::PopStyleColor(3);
+	ImGui::End();
+}
+
+void hyp::editor::EditorLayer::onScenePlay() {
+	if (m_sceneState == SceneState::Simulate)
+		onSceneStop();
+
+	m_sceneState = SceneState::Play;
+
+	m_activeScene = hyp::Scene::copy(m_editorScene);
+	m_activeScene->onRuntimeStart();
+
+	m_hierarchyPanel->setContext(m_activeScene);
+}
+
+void hyp::editor::EditorLayer::onSceneStop() {
+	HYP_ASSERT(m_sceneState == SceneState::Play || m_sceneState == SceneState::Simulate);
+
+	if (m_sceneState == SceneState::Play) // stop runtime
+		m_activeScene->onRuntimeStop();
+	else if (m_sceneState == SceneState::Simulate) // stop simulation
+		;
+
+	m_sceneState = SceneState::Edit;
+
+	m_activeScene = m_editorScene;
+
+	m_hierarchyPanel->setContext(m_activeScene);
 }
 
 bool EditorLayer::onMousePressed(hyp::MouseBtnPressedEvent& event) {
@@ -354,10 +433,17 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 
 	auto selectedEntity = m_hierarchyPanel->getSelectedEntity();
 
+	//hmmm? should this be allowed outside of edit mode
 	switch (event.getkey())
 	{
 	case hyp::Key::O:
 	{
+		if (m_sceneState != SceneState::Edit)
+		{ // mitigates opening new scenes while playing/simulating a scene.
+			HYP_WARN("Cannot open a scene outside Edit Mode");
+			break;
+		}
+
 		if (control)
 		{
 			openScene();
@@ -366,9 +452,13 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	}
 	case hyp::Key::N: // create new scene
 	{
-		if (control)
+		if (m_sceneState == SceneState::Edit && control)
 		{
 			newScene();
+		}
+		else
+		{
+			HYP_WARN("Cannot create a scene outside Edit Mode");
 		}
 		break;
 	}
@@ -424,6 +514,14 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 		}
 		break;
 	}
+	case hyp::Key::F5: //F5 to play and stop a scene
+	{
+		if (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate)
+			onScenePlay();
+		else if (m_sceneState == SceneState::Play)
+			onSceneStop();
+		break;
+	}
 	default:
 		break;
 	}
@@ -432,7 +530,7 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 }
 
 void hyp::editor::EditorLayer::openScene() {
-	std::string path = hyp::FileDialog::openFile("Hyper Scene (*.hypscene)\0*.hypscene\0");
+	std::string path = hyp::FileDialog::openFile("*.hypscene\0*.hyperscene", "Hyper Scene (*.hypscene)");
 
 	if (!path.empty())
 	{
@@ -441,7 +539,7 @@ void hyp::editor::EditorLayer::openScene() {
 }
 
 void hyp::editor::EditorLayer::openScene(const fs::path& path) {
-	if (path.extension().string() != ".hypscene")
+	if (path.extension().string() != ".hypscene") // TODO: scene file identified by its extension?
 	{
 		HYP_WARN("Could not load %s - not a scene file", path.filename().c_str());
 		return;
@@ -477,10 +575,15 @@ void hyp::editor::EditorLayer::saveScene() {
 }
 
 void hyp::editor::EditorLayer::saveSceneAs() {
-	std::string path = hyp::FileDialog::saveFile("Hyper Scene (*.hypscene)\0*.hypscene\0");
+	std::string path = hyp::FileDialog::saveFile("*.hypscene\0", "Hyper Scene (*.hypscene)");
 
 	if (!path.empty())
 	{
+		if (!fs::path(path).has_extension())
+		{
+			path += ".hypscene";
+		}
+
 		serializerScene(m_activeScene, path);
 		m_settings.scenePath = path;
 	}

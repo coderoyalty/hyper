@@ -22,11 +22,22 @@ namespace hyp {
 		void onUIRender();
 
 	private:
+		void drawHierarchyPanel();
+		void drawPropertiesPanel();
+		void drawAddScriptModal();
+
+	private:
 		void drawEntityNode(Entity entity);
 		void drawComponents(Entity entity);
+		template <typename T>
+		void drawAddComponentEntry(const std::string& entryName);
+
 	private:
 		hyp::Ref<hyp::Scene> m_context;
 		Entity m_selectedEntity;
+
+		std::unordered_map<std::string, ComponentAdder> m_componentAdders;
+		bool m_listComponents = false;
 	};
 }
 

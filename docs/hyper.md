@@ -25,6 +25,8 @@ It is a game engine that can be used for prototyping, and educational purposes.
 - **Project Launcher**: A standalone application that will run a project outside the editor
 - **Animation System**
 
+**Created by [coderoyalty](https://github.com/coderoyalty)**
+
 ### References
 
 [Editor Reference](./editor-ref.md)<br>

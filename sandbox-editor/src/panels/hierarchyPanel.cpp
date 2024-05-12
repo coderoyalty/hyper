@@ -54,6 +54,7 @@ void hyp::HierarchyPanel::drawHierarchyPanel() {
 		{
 			Entity entity = m_context->createEntity("Empty Entity");
 			entity.get<TransformComponent>();
+			this->setSelectedEntity(entity);
 		}
 
 		ImGui::EndPopup();

@@ -6,6 +6,8 @@
 
 Hyper is a 2D game engine developed as a hobby project, aimed at providing a ~~flexible~~ and efficient platform for creating 2D games.
 
+Refer to the documentation [here](./docs/hyper.md).
+
 ## Key Features
 
 > Note: some of these features are currently not available.

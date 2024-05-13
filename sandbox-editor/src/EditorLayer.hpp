@@ -96,6 +96,7 @@ namespace hyp {
 
 			hyp::Ref<hyp::Texture2D> m_iconPlay;
 			hyp::Ref<hyp::Texture2D> m_iconStop;
+			hyp::Ref<hyp::Texture2D> m_iconPause;
 
 		private:
 			hyp::Ref<hyp::Framebuffer> m_framebuffer;

@@ -156,6 +156,7 @@ void hyp::Scene::onRuntimeStop() {
 }
 
 void hyp::Scene::onUpdateRuntime(float dt) {
+	if (m_paused) { return; }
 	hyp::ScriptEngine::onUpdateEntities(m_registry, dt);
 }
 

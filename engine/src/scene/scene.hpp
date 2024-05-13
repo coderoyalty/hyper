@@ -40,6 +40,9 @@ namespace hyp {
 
 		void onUpdateRuntime(float dt);
 
+		Entity findEntity(const std::string& tagName);
+		Entity getEntity(UUID uuid);
+
 	private:
 		bool m_running = false;
 		bool m_paused = false;

@@ -43,6 +43,16 @@ namespace hyp {
 		Entity findEntity(const std::string& tagName);
 		Entity getEntity(UUID uuid);
 
+		void setPause(bool value) {
+			m_paused = value;
+		}
+		bool isPaused() const {
+			return m_paused;
+		};
+		bool isRunning() const {
+			return m_running;
+		}
+
 	private:
 		bool m_running = false;
 		bool m_paused = false;

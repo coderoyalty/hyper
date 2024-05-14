@@ -322,12 +322,20 @@ void EditorLayer::onUIRender() {
 		auto& tc = selectedEntity.get<hyp::TransformComponent>();
 		glm::mat4 transform = tc.getTransform();
 
+		bool snap = Input::isKeyPressed(Key::LEFT_CONTROL);
+		float snapValue = 0.5f; // Snap to 0.5m for translation/scale
+		// Snap to 45 degrees for rotation
+		if (m_gizmoType == ImGuizmo::OPERATION::ROTATE)
+			snapValue = 45.0f;
+
+		float snapValues[] = { snapValue, snapValue, snapValue };
+
 		ImGuizmo::Manipulate(
 		    glm::value_ptr(cameraView),
 		    glm::value_ptr(cameraProjection),
 		    (ImGuizmo::OPERATION)m_gizmoType,
 		    ImGuizmo::LOCAL,
-		    glm::value_ptr(transform));
+		    glm::value_ptr(transform), nullptr, snap ? snapValues : nullptr);
 
 		if (ImGuizmo::IsUsing())
 		{

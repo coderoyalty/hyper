@@ -10,6 +10,7 @@ includes["LUA"] = "%{wks.location}/dependencies/lua/src"
 includes["SOL"] = "%{wks.location}/dependencies/sol/include"
 includes["ENTT"] = "%{wks.location}/dependencies/vendor/entt/include"
 includes["FILE_DIALOGS"] = "%{wks.location}/dependencies/tinyfiledialogs"
+includes["BOX2D"] = "%{wks.location}/dependencies/box2d/include"
 
 -- vendor
 includes["GLM"] = "%{wks.location}/dependencies/vendor/glm/include"

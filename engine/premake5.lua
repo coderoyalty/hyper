@@ -35,14 +35,16 @@ project "Hyper"
 		"%{includes.YAML_CPP}",
 		"%{includes.LUA}",
 		"%{includes.SOL}",
-		"%{includes.FILE_DIALOGS}"
+		"%{includes.FILE_DIALOGS}",
+		"%{includes.BOX2D}"
 	}
 	
 	links
 	{
 		"GLFW", "GLAD", "IMGUI", "opengl32.lib", "FREETYPE",
 		"YAML-CPP", "LUA",
-		"TinyFileDialogs"
+		"TinyFileDialogs",
+		"Box2D"
 	}
 
 	filter "files:vendor/imguizmo/**.cpp"

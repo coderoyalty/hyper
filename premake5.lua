@@ -23,6 +23,7 @@ group "Dependencies"
 	include "dependencies/yaml-cpp"
 	include "dependencies/lua"
 	include "dependencies/tinyfiledialogs"
+	include "dependencies/box2d"
 
 group "Hyper"
 	include "engine"

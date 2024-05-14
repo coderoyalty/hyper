@@ -11,3 +11,6 @@
 [submodule "dependencies/freetype"]
 	path = dependencies/freetype
 	url = https://github.com/positron-dev/freetype.git
+[submodule "dependencies/box2d"]
+	path = dependencies/box2d
+	url = https://github.com/positron-dev/box2d.git

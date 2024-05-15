@@ -176,8 +176,8 @@ void hyp::Scene::onRuntimeStop() {
 
 void hyp::Scene::onUpdateRuntime(float dt) {
 	if (m_paused) { return; }
-	hyp::ScriptEngine::onUpdateEntities(m_registry, dt);
 
+	hyp::ScriptEngine::onUpdateEntities(m_registry, dt);
 	{
 		const int32_t velocityIterations = 6;
 		const int32_t positionIterations = 2;

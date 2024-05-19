@@ -184,6 +184,31 @@ void hyp::Scene::onUpdateRuntime(float dt) {
 
 		auto view = getEntities<RigidBodyComponent>();
 
+		for (auto e : view)
+		{
+			Entity entity = { e, this };
+			auto& transform = entity.get<TransformComponent>();
+			auto& rb2d = entity.get<RigidBodyComponent>();
+
+			b2Body* body = (b2Body*)rb2d.runtime;
+
+			if (!body) continue;
+
+			const auto& position = transform.position;
+			const auto& rotation = transform.rotation.z;
+
+			const auto& body_pos = body->GetPosition();
+
+			// Check if position or rotation has changed
+			if ((position.x != body_pos.x || position.y != body_pos.y) || rotation != body->GetAngle())
+			{
+				body->SetTransform(b2Vec2 { position.x, position.y }, rotation);
+
+				body->SetAwake(true);
+			}
+
+		}
+
 		m_physicsWorld->Step(dt, velocityIterations, positionIterations);
 
 		// Retrieve transform from Box2D
@@ -201,8 +226,8 @@ void hyp::Scene::onUpdateRuntime(float dt) {
 			transform.position.x = position.x;
 			transform.position.y = position.y;
 			transform.rotation.z = body->GetAngle();
-
 		}
+
 	}
 }
 

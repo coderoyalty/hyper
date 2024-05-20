@@ -36,22 +36,22 @@ void hyp::EditorCamera::onUpdate(float dt) {
 
 	if (hyp::Input::isKeyPressed(hyp::Key::W))
 	{
-		m_focalPoint += getForwardDirection() * dt;
+		m_position += getForwardDirection() * dt;
 	}
 
 	else if (hyp::Input::isKeyPressed(hyp::Key::S))
 	{
-		m_focalPoint -= getForwardDirection() * dt;
+		m_position -= getForwardDirection() * dt;
 	}
 
 	if (hyp::Input::isKeyPressed(hyp::Key::A))
 	{
-		m_focalPoint += getRightDirection() * dt;
+		m_position -= getRightDirection() * dt;
 	}
 
 	else if (hyp::Input::isKeyPressed(hyp::Key::D))
 	{
-		m_focalPoint -= getRightDirection() * dt;
+		m_position += getRightDirection() * dt;
 	}
 
 	updateView();
@@ -93,14 +93,7 @@ void hyp::EditorCamera::updateProjection() {
 }
 
 void hyp::EditorCamera::updateView() {
-	m_position = calcPosition();
-
-	glm::quat orientation = getOrientation();
-	m_viewMatrix = glm::translate(glm::mat4(1.0f), m_position) * glm::toMat4(orientation);
-	m_viewMatrix = glm::inverse(m_viewMatrix);
-
-
-	//m_viewMatrix = glm::lookAt(m_position, m_position + getForwardDirection(), getUpDirection());
+	m_viewMatrix = glm::lookAt(m_position, m_position + getForwardDirection(), getUpDirection());
 }
 
 glm::vec3 hyp::EditorCamera::calcPosition() {
@@ -114,7 +107,7 @@ void hyp::EditorCamera::mousePan(const glm::vec2& delta) {
 }
 
 void hyp::EditorCamera::mouseRotate(const glm::vec2& delta) {
-	float rotationSpeed = 0.2f;
+	float rotationSpeed = 0.8f;
 	float yawSign = getUpDirection().y < 0 ? -1.0f : 1.0f;
 	m_yaw += yawSign * delta.x * rotationSpeed; // rotation speed
 	m_pitch += delta.y * rotationSpeed;

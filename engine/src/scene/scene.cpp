@@ -100,6 +100,14 @@ void hyp::Scene::destroyEntity(Entity entity) {
 	m_registry.destroy(entity);
 }
 
+hyp::Entity hyp::Scene::duplicateEntity(Entity entity) {
+	std::string name = entity.getName();
+	Entity newEntity = createEntity(name);
+
+	CopyComponentIfExists(AllComponents {}, newEntity, entity);
+	return newEntity;
+}
+
 void hyp::Scene::onUpdate(float dt) {
 	{
 		auto& sprite_group = m_registry.group<TransformComponent, hyp::SpriteRendererComponent>();
@@ -206,7 +214,6 @@ void hyp::Scene::onUpdateRuntime(float dt) {
 
 				body->SetAwake(true);
 			}
-
 		}
 
 		m_physicsWorld->Step(dt, velocityIterations, positionIterations);
@@ -227,7 +234,6 @@ void hyp::Scene::onUpdateRuntime(float dt) {
 			transform.position.y = position.y;
 			transform.rotation.z = body->GetAngle();
 		}
-
 	}
 }
 

@@ -156,6 +156,11 @@ void hyp::HierarchyPanel::drawEntityNode(Entity entity) {
 	{
 		if (ImGui::MenuItem("Delete Entity"))
 			entityDeleted = true;
+		if (ImGui::MenuItem("Duplicate Entity"))
+		{
+			Entity duplicate = m_context->duplicateEntity(entity);
+			m_selectedEntity = duplicate;
+		}
 
 		ImGui::EndPopup();
 	}

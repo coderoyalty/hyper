@@ -35,6 +35,8 @@ namespace hyp {
 		Entity createEntity(hyp::UUID uuid, const std::string& name);
 		void destroyEntity(Entity entity);
 
+		Entity duplicateEntity(Entity entity);
+
 		void onUpdate(float dt);
 
 		void onRuntimeStart();

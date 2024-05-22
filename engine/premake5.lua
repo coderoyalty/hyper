@@ -5,8 +5,12 @@ project "Hyper"
 	targetdir ("%{wks.location}/bin/%{wks.name}/%{cfg.longname}")
 	objdir ("%{wks.location}/bin-int/%{wks.name}/%{cfg.longname}")
 
+	pchheader "pch.h"
+	pchsource "src/pch.cpp"
+
 	files
 	{
+		"src/**.h",
 		"src/**.hpp", "src/**.cpp",
 		"../dependencies/vendor/stb/**.cpp",
 
@@ -53,6 +57,14 @@ project "Hyper"
 	filter "system:windows"
 		systemversion "latest"
 
+		links
+		{
+			"%{library.WinSock}",
+			"%{library.WinMM}",
+			"%{library.WinVersion}",
+			"%{library.BCrypt}",
+		}
+
 	filter "configurations:Debug"
 		defines {"HYPER_DEBUG", "HYPER_ASSERTION_ENABLED"}
 		runtime "Debug"
@@ -62,3 +74,6 @@ project "Hyper"
 		defines "HYPER_RELEASE"
 		runtime "Release"
 		optimize "on"
+
+	-- filter "action:vs*"
+    --     buildoptions { "/Zm200" }

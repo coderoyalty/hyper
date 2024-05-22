@@ -15,3 +15,11 @@ includes["BOX2D"] = "%{wks.location}/dependencies/box2d/include"
 -- vendor
 includes["GLM"] = "%{wks.location}/dependencies/vendor/glm/include"
 includes["STB"] = "%{wks.location}/dependencies/vendor/stb"
+
+
+library = {}
+
+library["WinSock"] = "Ws2_32.lib"
+library["WinMM"] = "Winmm.lib"
+library["WinVersion"] = "Version.lib"
+library["BCrypt"] = "Bcrypt.lib"

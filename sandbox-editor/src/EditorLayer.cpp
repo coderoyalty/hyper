@@ -91,15 +91,21 @@ void hyp::editor::EditorLayer::onAttach() {
 	fbSpec.height = 600;
 	m_framebuffer = hyp::Framebuffer::create(fbSpec);
 
-	m_iconPlay = hyp::Texture2D::create("assets/textures/play.png");
-	m_iconStop = hyp::Texture2D::create("assets/textures/stop.png");
+	m_iconPlay = hyp::Texture2D::create("resources/icons/play.png");
+	m_iconStop = hyp::Texture2D::create("resources/icons/stop.png");
+	m_iconPause = hyp::Texture2D::create("resources/icons/pause.png");
+
+	m_iconPlay->setFilter(hyp::TextureParam::NEAREST);
+	m_iconPause->setFilter(hyp::TextureParam::NEAREST);
+	m_iconStop->setFilter(hyp::TextureParam::NEAREST);
 
 	m_editorScene = hyp::CreateRef<hyp::Scene>();
 	m_activeScene = m_editorScene;
 
 	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_activeScene);
 
-	m_editorCamera.setPosition(glm::vec3(0.f, 1.f, 5.f));
+
+	m_editorCamera = hyp::EditorCamera(30.f, 1.778f, 0.1, 1000.f);
 }
 
 void hyp::editor::EditorLayer::onDetach() {
@@ -344,6 +350,7 @@ void EditorLayer::onUIRender() {
 void hyp::editor::EditorLayer::render_toolbar() {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(m_iconPlay->getWidth() * 2.5f, m_iconPlay->getHeight()));
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 	auto& colors = ImGui::GetStyle().Colors;
 	const auto& buttonHovered = colors[ImGuiCol_ButtonHovered];
@@ -351,7 +358,7 @@ void hyp::editor::EditorLayer::render_toolbar() {
 	const auto& buttonActive = colors[ImGuiCol_ButtonActive];
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
 
-	ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+	ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoTitleBar  | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollWithMouse);
 
 	bool toolbarEnabled = (bool)m_activeScene;
 
@@ -359,7 +366,7 @@ void hyp::editor::EditorLayer::render_toolbar() {
 	if (!toolbarEnabled)
 		tintColor.w = 0.5f;
 
-	float size = ImGui::GetWindowHeight() - 4.0f;
+	float size = ImGui::GetWindowHeight() - 4.f;
 	ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
 
 	bool hasPlayButton = m_sceneState == SceneState::Edit || m_sceneState == SceneState::Play;
@@ -378,7 +385,20 @@ void hyp::editor::EditorLayer::render_toolbar() {
 		}
 	}
 
-	ImGui::PopStyleVar(2);
+	if (hasPauseButton)
+	{
+		bool isPaused = m_activeScene->isPaused();
+		ImGui::SameLine();
+		{
+			Ref<Texture2D> icon = isPaused ? m_iconPlay : m_iconPause;
+			if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->getTextureId(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
+			{
+				m_activeScene->setPause(!isPaused);
+			}
+		}
+	}
+
+	ImGui::PopStyleVar(3);
 	ImGui::PopStyleColor(3);
 	ImGui::End();
 }

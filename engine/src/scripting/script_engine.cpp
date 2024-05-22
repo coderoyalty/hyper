@@ -1,9 +1,9 @@
+#include <pch.h>
 #include <scripting/script_engine.hpp>
 #include <scripting/registry.hpp>
-#include <utils/logger.hpp>
 #include "entt_registry.hpp"
-#include <fstream>
-
+#include "hyp_registry.hpp"
+#include <io/input.hpp>
 #define SOL_ALL_SAFETIES_ON 1
 #include <sol/sol.hpp>
 
@@ -30,6 +30,28 @@ namespace hyp {
 		}
 	}
 
+	static void append_enum_values(sol::table& table, const std::initializer_list<std::pair<std::string, hyp::Key>>& values) {
+		for (const auto& pair : values)
+		{
+			table[pair.first] = pair.second;
+		}
+	}
+
+	static sol::table open_hyper(sol::this_state s) {
+		sol::state_view lua { s };
+
+		sol::table& hyper_module = lua["hyper"].get_or_create<sol::table>();
+
+		hyper_module.set_function("find_entity", find_entity);
+		hyper_module.set_function("create_entity", create_entity);
+		hyper_module.set_function("destroy_entity", sol::overload(destroy_entity, destroy_entity_name));
+
+		hyper_module.set_function("keyPressed", hyp::Input::isKeyPressed);
+		hyper_module.set_function("mousePressed", hyp::Input::isMouseBtnPressed);
+
+		return hyper_module;
+	}
+
 #define AUTO_ARG(x) decltype(x), x
 
 	void ScriptEngine::init() {
@@ -46,13 +68,19 @@ namespace hyp {
 
 		lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::package, sol::lib::string);
 		lua.require("registry", sol::c_call<AUTO_ARG(&open_registry)>, false);
+		lua.require("hyper", sol::c_call<AUTO_ARG(&open_hyper)>, false);
+
+		std::string scriptsPath = "resources/hyper/lib/";
+
+		if (fs::exists(scriptsPath))
+		{
+			lua["package"]["path"] = lua["package"]["path"].get<std::string>() + ";" + scriptsPath + "?.lua";
+		}
 
 		ScriptRegistry::register_all();
 	}
 
 	sol::load_result ScriptEngine::load_script(const std::string& file) {
-		SCRIPT_TRACE("Loading script: %s", file.c_str());
-
 		auto load_result = s_data.lua_state.load_file(file);
 
 		if (!load_result.valid())
@@ -80,12 +108,9 @@ namespace hyp {
 
 	void ScriptEngine::onCreateEntity(entt::registry& registry, entt::entity entity) {
 		auto& script = registry.get<hyp::ScriptComponent>(entity);
-		// load script
-		if (!script.self.valid())
-		{ // presumed that script is not loaded yet
-			auto loaded_result = load_script(script.script_file);
-			script.self = loaded_result.call();
-		}
+
+		auto loaded_result = load_script(script.script_file);
+		script.self = loaded_result.call();
 
 		HYP_ASSERT(script.self.valid());
 		script.hooks.update = script.self["update"];

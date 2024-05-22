@@ -156,5 +156,24 @@ void hyp::Scene::onRuntimeStop() {
 }
 
 void hyp::Scene::onUpdateRuntime(float dt) {
+	if (m_paused) { return; }
 	hyp::ScriptEngine::onUpdateEntities(m_registry, dt);
+}
+
+hyp::Entity hyp::Scene::findEntity(const std::string& tagName) {
+	auto view = getEntities<TagComponent>();
+	for (auto entity : view)
+	{
+		const auto& tag = view.get<TagComponent>(entity);
+		if (tag.name == tagName)
+			return Entity { entity, this };
+	}
+	return Entity();
+}
+
+hyp::Entity hyp::Scene::getEntity(UUID uuid) {
+	if (m_entityMap.find(uuid) != m_entityMap.end())
+		return Entity { m_entityMap[uuid], this };
+
+	return Entity();
 }

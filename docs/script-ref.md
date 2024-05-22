@@ -158,5 +158,39 @@ hyper {
 }
 ```
 
+### Input
+
+Key and Mouse inputs can be detected this way in Hyper.
+
+```lua
+
+require "input_keys" -- to access KEY and MOUSE table
+
+function Player:onUpdate(dt)
+  -- adjust vertical position
+  if hyper.keyPressed(KEY.W) then
+    -- adjust user position
+  elseif hyper.keyPressed(KEY.S) then
+    -- something else also
+  end
+
+  -- horizontal input
+  if hyper.keyPressed(KEY.A) then
+    --
+  elseif hyper.keyPressed(KEY.D) then
+    --
+  end
+
+  -- mouse input
+  if hyper.mousePressed(MOUSE.LEFT) then
+    --
+  elseif hyper.mousePressed(MOUSE.RIGHT) then
+    --
+  end
+end
+```
+
+The method provided are fairly straightforward. `KEY.<...>` is an enumeration of the keyboard keys, while `MOUSE.<LEFT | MIDDLE | RIGHT | ...>` is an enumeration of the mouse buttons. You can refer to `resources/hyper/lib/input_keys.lua` to see available `KEY`s and `MOUSE`s.
+
 [Home 🏠](./hyper.md)<br/>
 [Editor Reference 🚝](./editor-ref.md)

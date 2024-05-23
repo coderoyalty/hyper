@@ -104,7 +104,6 @@ void hyp::editor::EditorLayer::onAttach() {
 
 	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_activeScene);
 
-
 	m_editorCamera = hyp::EditorCamera(30.f, 1.778f, 0.1, 1000.f);
 }
 
@@ -120,33 +119,40 @@ void EditorLayer::onEvent(hyp::Event& event) {
 }
 
 void EditorLayer::onUpdate(float dt) {
-	if (m_sceneState == SceneState::Play)
+	if (auto spec = m_framebuffer->getSpecification();
+	    m_viewportInfo.size.x > 0.0f && m_viewportInfo.size.y > 0.0f &&
+	    (spec.width != m_viewportInfo.size.x || spec.height != m_viewportInfo.size.y))
 	{
-		m_activeScene->onUpdateRuntime(dt);
-	}
-
-	if (m_viewportInfo.focused)
-	{
-		switch (m_settings.cameraType)
-		{
-		case CameraType::Perspective:
-		{
-			m_editorCamera.onUpdate(dt);
-			break;
-		}
-		case CameraType::Orthographic:
-		{
-			m_cameraController.onUpdate(dt);
-			break;
-		}
-		default:
-			break;
-		};
+		m_framebuffer->resize((uint32_t)m_viewportInfo.size.x, (uint32_t)m_viewportInfo.size.y);
+		m_editorCamera.setViewport(m_viewportInfo.size.x, m_viewportInfo.size.y);
+		m_cameraController.onResize(m_viewportInfo.size.x, m_viewportInfo.size.y);
 	}
 
 	m_framebuffer->bind();
 	hyp::RenderCommand::setClearColor(0.1, 0.1, 0.1, 1.f);
 	hyp::RenderCommand::clear();
+
+	m_framebuffer->clearAttachment(1, -1);
+
+	switch (m_sceneState)
+	{
+	case hyp::editor::EditorLayer::SceneState::Play:
+	{
+		m_activeScene->onUpdateRuntime(dt);
+		break;
+	}
+	case hyp::editor::EditorLayer::SceneState::Edit:
+	{
+		if (m_viewportInfo.focused)
+		{
+			m_cameraController.onUpdate(dt);
+		}
+		m_editorCamera.onUpdate(dt);
+		break;
+	}
+	default:
+		break;
+	}
 
 	// render grid
 	if (m_settings.showGrid)
@@ -173,9 +179,9 @@ void EditorLayer::onUpdate(float dt) {
 		break;
 	}
 	m_activeScene->onUpdate(dt);
+
 	hyp::Renderer2D::endScene();
 
-	m_framebuffer->clearAttachment(1, -1);
 	auto [mx, my] = ImGui::GetMousePos();
 
 	//--> mouse selection logic...
@@ -322,12 +328,20 @@ void EditorLayer::onUIRender() {
 		auto& tc = selectedEntity.get<hyp::TransformComponent>();
 		glm::mat4 transform = tc.getTransform();
 
+		bool snap = Input::isKeyPressed(Key::LEFT_CONTROL);
+		float snapValue = 0.5f; // Snap to 0.5m for translation/scale
+		// Snap to 45 degrees for rotation
+		if (m_gizmoType == ImGuizmo::OPERATION::ROTATE)
+			snapValue = 45.0f;
+
+		float snapValues[] = { snapValue, snapValue, snapValue };
+
 		ImGuizmo::Manipulate(
 		    glm::value_ptr(cameraView),
 		    glm::value_ptr(cameraProjection),
 		    (ImGuizmo::OPERATION)m_gizmoType,
 		    ImGuizmo::LOCAL,
-		    glm::value_ptr(transform));
+		    glm::value_ptr(transform), nullptr, snap ? snapValues : nullptr);
 
 		if (ImGuizmo::IsUsing())
 		{
@@ -358,7 +372,7 @@ void hyp::editor::EditorLayer::render_toolbar() {
 	const auto& buttonActive = colors[ImGuiCol_ButtonActive];
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
 
-	ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoTitleBar  | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollWithMouse);
+	ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollWithMouse);
 
 	bool toolbarEnabled = (bool)m_activeScene;
 

@@ -28,7 +28,8 @@ project "hyper-editor"
 		"%{includes.IMGUIZMO}",
 		"%{includes.YAML_CPP}",
 		"%{includes.LUA}",
-		"%{includes.SOL}"
+		"%{includes.SOL}",
+		"%{includes.BOX2D}"
 	}
 	links
 	{

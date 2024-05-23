@@ -82,13 +82,48 @@ namespace hyp {
 
 		struct
 		{
-			sol::function init;
 			sol::function update;
-			sol::function destroy;
 		} hooks;
 
 		ScriptComponent() = default;
 		ScriptComponent(const ScriptComponent&) = default;
+	};
+
+	struct RigidBodyComponent
+	{
+		enum class BodyType
+		{
+			Static = 0, // immovable, can't collide with other static bodies.
+			Dynamic,    // movable and affected by forces
+			Kinematic,  // manually controlled and not affected by forces. like a Static | Dynamic :)
+		};
+		BodyType type = BodyType::Static;
+		bool fixedRotation = false;
+
+		// runtime storage for the physics engine
+		void* runtime = nullptr;
+	};
+
+	struct BoxColliderComponent
+	{
+		glm::vec2 offset = { 0.f, 0.f };
+		glm::vec2 size = { 0.5f, 0.5f }; // 0.5 by default because box2d works well with half width, height.
+
+		float density = 1.f;
+		float friction = 0.5f;
+		float restitution = 0.f;
+		float restitutionThreshold = 0.5f;
+	};
+
+	struct CircleColliderComponent
+	{
+		glm::vec2 offset = { 0.0f, 0.0f };
+		float radius = 0.5f;
+
+		float density = 1.0f;
+		float friction = 0.5f;
+		float restitution = 0.0f;
+		float restitutionThreshold = 0.5f;
 	};
 
 	template <typename... Component>
@@ -98,7 +133,8 @@ namespace hyp {
 
 	using AllComponents =
 	    ComponentGroup<TransformComponent, SpriteRendererComponent,
-	        CircleRendererComponent, ScriptComponent, TextComponent>;
+	        CircleRendererComponent, ScriptComponent, TextComponent,
+	        RigidBodyComponent, BoxColliderComponent, CircleColliderComponent>;
 
 } // namespace hyp
 

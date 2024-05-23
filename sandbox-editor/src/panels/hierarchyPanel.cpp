@@ -67,17 +67,7 @@ void hyp::HierarchyPanel::drawPropertiesPanel() {
 	ImGui::Begin("Properties");
 
 	static int selectedItemIndex = 0;
-	drawComponents(m_selectedEntity); // OpenPopup("AddComponent") is called here, within the tag component
-
-	if (ImGui::BeginPopup("AddComponent"))
-	{
-		drawAddComponentEntry<ScriptComponent>("Script"); // TODO: work with script modal
-		drawAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
-		drawAddComponentEntry<CircleRendererComponent>("Circle Renderer");
-		drawAddComponentEntry<TextComponent>("Text Component");
-
-		ImGui::EndPopup();
-	}
+	drawComponents(m_selectedEntity);
 
 	drawAddScriptModal();
 
@@ -166,6 +156,11 @@ void hyp::HierarchyPanel::drawEntityNode(Entity entity) {
 	{
 		if (ImGui::MenuItem("Delete Entity"))
 			entityDeleted = true;
+		if (ImGui::MenuItem("Duplicate Entity"))
+		{
+			Entity duplicate = m_context->duplicateEntity(entity);
+			m_selectedEntity = duplicate;
+		}
 
 		ImGui::EndPopup();
 	}
@@ -236,13 +231,30 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 		{
 			tag = std::string(buffer);
 		}
-		ImGui::SameLine();
-
-		if (ImGui::Button("Add Component"))
-		{
-			ImGui::OpenPopup("AddComponent");
-		}
 	}
+
+	ImGui::SameLine();
+	ImGui::PushItemWidth(-1);
+
+	if (ImGui::Button("Add Component"))
+	{
+		ImGui::OpenPopup("AddComponent");
+	}
+
+	if (ImGui::BeginPopup("AddComponent"))
+	{
+		drawAddComponentEntry<ScriptComponent>("Script"); // TODO: work with script modal
+		drawAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
+		drawAddComponentEntry<CircleRendererComponent>("Circle Renderer");
+		drawAddComponentEntry<TextComponent>("Text Component");
+		drawAddComponentEntry<RigidBodyComponent>("Rigid Body");
+		drawAddComponentEntry<BoxColliderComponent>("Box Collider");
+		drawAddComponentEntry<CircleColliderComponent>("Circle Collider");
+
+		ImGui::EndPopup();
+	}
+
+	ImGui::PopItemWidth();
 
 	drawComponent<hyp::TransformComponent>("Transform", entity, [](hyp::TransformComponent& component)
 	{
@@ -250,6 +262,8 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 		utils::drawVec3Control("Scale", component.scale, 0.f, 65.f);
 		utils::drawVec3Control("Rotation", component.rotation, 0.f, 65.f);
 	});
+
+
 
 	drawComponent<hyp::SpriteRendererComponent>("Sprite Renderer", entity, [](hyp::SpriteRendererComponent& component)
 	{
@@ -310,7 +324,7 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 
 		ImGui::Text("Fade");
 		ImGui::SameLine();
-		ImGui::DragFloat("##Fade", &component.fade, 0.01f, 0.0f, 1.0f);
+		ImGui::DragFloat("##Fade", &component.fade, 0.00025f, 0.0f, 1.0f);
 	});
 
 	drawComponent<hyp::TextComponent>("Text Renderer", entity, [](hyp::TextComponent& component)
@@ -338,9 +352,60 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 		ImGui::DragFloat("##LineSpacing", &component.lineSpacing, 0.01f, 0.1f, 1.0f);
 	});
 
+	drawComponent<RigidBodyComponent>("Rigid Body", entity, [](hyp::RigidBodyComponent& component)
+	{
+		const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
+		const char* currentBodyTypeString = bodyTypeStrings[(int)component.type];
+		if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
+				if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
+				{
+					currentBodyTypeString = bodyTypeStrings[i];
+					component.type = (RigidBodyComponent::BodyType)i;
+				}
+
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+			}
+
+			ImGui::EndCombo();
+		}
+
+		ImGui::Checkbox("Fixed Rotation", &component.fixedRotation);
+	});
+
+	drawComponent<hyp::BoxColliderComponent>("Box Collider", entity, [](hyp::BoxColliderComponent& component)
+	{
+		ImGui::DragFloat2("Offset", glm::value_ptr(component.offset));
+		ImGui::DragFloat2("Size", glm::value_ptr(component.size));
+
+		ImGui::DragFloat("Density", &component.density, 0.01f, 0.0, 1.f);
+		ImGui::DragFloat("Friction", &component.friction, 0.01f, 0.0, 1.f);
+		ImGui::DragFloat("Restitution", &component.restitution, 0.01f, 0.0, 1.f);
+		ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.f);
+	});
+
+	drawComponent<hyp::CircleColliderComponent>("Circle Collider", entity, [](hyp::CircleColliderComponent& component)
+	{
+		ImGui::DragFloat2("Offset", glm::value_ptr(component.offset));
+
+		ImGui::DragFloat("Radius", &component.radius, 0.1f);
+		ImGui::DragFloat("Density", &component.density, 0.01f, 0.0, 1.f);
+		ImGui::DragFloat("Friction", &component.friction, 0.01f, 0.0, 1.f);
+		ImGui::DragFloat("Restitution", &component.restitution, 0.01f, 0.0, 1.f);
+		ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.f);
+	});
+
 	drawComponent<hyp::ScriptComponent>("Script", entity, [](hyp::ScriptComponent& component)
 	{
-		ImGui::Text(component.script_file.c_str());
+		static char buffer[128];
+		strcpy_s(buffer, sizeof(buffer), component.script_file.c_str());
+		if (ImGui::InputText("Script File Path", buffer, sizeof(buffer))) {
+			component.script_file = buffer;
+		}
 	});
 }
 

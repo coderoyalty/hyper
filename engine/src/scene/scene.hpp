@@ -8,6 +8,8 @@
 	#include <core/base.hpp>
 	#include <unordered_map>
 
+class b2World;
+
 namespace hyp {
 	class Entity;
 
@@ -33,6 +35,8 @@ namespace hyp {
 		Entity createEntity(hyp::UUID uuid, const std::string& name);
 		void destroyEntity(Entity entity);
 
+		Entity duplicateEntity(Entity entity);
+
 		void onUpdate(float dt);
 
 		void onRuntimeStart();
@@ -53,9 +57,13 @@ namespace hyp {
 			return m_running;
 		}
 
+		void onPhysicsStart();
+		void onPhysicsStop();
 	private:
 		bool m_running = false;
 		bool m_paused = false;
+
+		b2World* m_physicsWorld;
 
 		entt::registry m_registry;
 		std::unordered_map<hyp::UUID, entt::entity> m_entityMap;

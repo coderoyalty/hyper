@@ -115,6 +115,31 @@ namespace utils {
 		emitter << YAML::Key << key << YAML::Value << value;
 	}
 
+	static std::string serializeRigidBodyType(hyp::RigidBodyComponent::BodyType type) {
+		switch (type)
+		{
+		case hyp::RigidBodyComponent::BodyType::Static:
+			return "Static";
+		case hyp::RigidBodyComponent::BodyType::Dynamic:
+			return "Dynamic";
+		case hyp::RigidBodyComponent::BodyType::Kinematic:
+			return "Kinematic";
+		default:
+			break;
+		}
+
+		return "Static";
+	};
+
+	static hyp::RigidBodyComponent::BodyType deserializeRigidBodyType(const std::string& name) {
+		if (name == "Static") return hyp::RigidBodyComponent::BodyType::Static;
+		if (name == "Dynamic") return hyp::RigidBodyComponent::BodyType::Dynamic;
+		if (name == "Kinematic") return hyp::RigidBodyComponent::BodyType::Kinematic;
+
+		HYP_ASSERT(false);
+		return hyp::RigidBodyComponent::BodyType::Static;
+	}
+
 	static void serializeEntity(YAML::Emitter& emitter, hyp::Entity entity) {
 		emitter << YAML::BeginMap;
 		emitter << YAML::Key << "Entity" << YAML::Value << entity.getUUID();
@@ -201,6 +226,54 @@ namespace utils {
 				emitter << YAML::Key << "Path" << YAML::Value << script.script_file;
 
 				emitter << YAML::EndMap; // ScriptComponent
+			}
+
+			if (entity.has<hyp::RigidBodyComponent>())
+			{
+				emitter << YAML::Key << "RigidBodyComponent";
+				emitter << YAML::BeginMap; // RigidBodyComponent
+
+				const auto& rigidBody = entity.get<hyp::RigidBodyComponent>();
+
+				emitter << YAML::Key << "Type" << YAML::Value << serializeRigidBodyType(rigidBody.type);
+
+				emitter << YAML::Key << "FixedRotation" << YAML::Value << rigidBody.fixedRotation;
+
+				emitter << YAML::EndMap;
+			}
+
+			if (entity.has<hyp::BoxColliderComponent>())
+			{
+				emitter << YAML::Key << "BoxColliderComponent";
+				emitter << YAML::BeginMap;
+
+				const auto& bc = entity.get<hyp::BoxColliderComponent>();
+
+				emitter << YAML::Key << "Offset" << YAML::Value << bc.offset;
+				emitter << YAML::Key << "Size" << YAML::Value << bc.size;
+				emitter << YAML::Key << "Density" << YAML::Value << bc.density;
+				emitter << YAML::Key << "Friction" << YAML::Value << bc.friction;
+				emitter << YAML::Key << "Restitution" << YAML::Value << bc.restitution;
+				emitter << YAML::Key << "RestitutionThreshold" << YAML::Value << bc.restitutionThreshold;
+
+				emitter << YAML::EndMap;
+			}
+
+			if (entity.has<hyp::CircleColliderComponent>())
+			{
+				emitter << YAML::Key << "CircleColliderComponent";
+				emitter << YAML::BeginMap;
+
+				const auto& bc = entity.get<hyp::CircleColliderComponent>();
+
+				emitter << YAML::Key << "Offset" << YAML::Value << bc.offset;
+				emitter << YAML::Key << "Radius" << YAML::Value << bc.radius;
+				emitter << YAML::Key << "Density" << YAML::Value << bc.density;
+				emitter << YAML::Key << "Friction" << YAML::Value << bc.friction;
+				emitter << YAML::Key << "Restitution" << YAML::Value << bc.restitution;
+				emitter << YAML::Key << "RestitutionThreshold" << YAML::Value << bc.restitutionThreshold;
+
+				emitter << YAML::EndMap;
 			}
 		}
 
@@ -351,6 +424,41 @@ bool hyp::SceneSerializer::deserializer(const std::string& path) {
 				auto script = hyp::ScriptEngine::load_script(file);
 				auto& sc = deserializedEntity.add<hyp::ScriptComponent>(script.call());
 				sc.script_file = file;
+			}
+
+			auto rigidBodyComponent = entity["RigidBodyComponent"];
+			if (rigidBodyComponent)
+			{
+				auto& rb = deserializedEntity.add<hyp::RigidBodyComponent>();
+				if (rigidBodyComponent["FixedRotation"])
+				{
+					rb.fixedRotation = rigidBodyComponent["FixedRotation"].as<bool>();
+				}
+				rb.type = utils::deserializeRigidBodyType(rigidBodyComponent["Type"].as<std::string>());
+			}
+
+			auto boxCollider = entity["BoxColliderComponent"];
+			if (boxCollider)
+			{
+				auto& bc = deserializedEntity.add<hyp::BoxColliderComponent>();
+				bc.density = boxCollider["Density"].as<float>();
+				bc.offset = boxCollider["Offset"].as<glm::vec2>();
+				bc.size = boxCollider["Size"].as<glm::vec2>();
+				bc.restitutionThreshold = boxCollider["RestitutionThreshold"].as<float>();
+				bc.restitution = boxCollider["Restitution"].as<float>();
+				bc.friction = boxCollider["Friction"].as<float>();
+			}
+
+			auto circleCollider = entity["CircleColliderComponent"];
+			if (circleCollider)
+			{
+				auto& cc = deserializedEntity.add<hyp::CircleColliderComponent>();
+				cc.density = circleCollider["Density"].as<float>();
+				cc.offset = circleCollider["Offset"].as<glm::vec2>();
+				cc.radius = circleCollider["Radius"].as<float>();
+				cc.restitutionThreshold = circleCollider["RestitutionThreshold"].as<float>();
+				cc.restitution = circleCollider["Restitution"].as<float>();
+				cc.friction = circleCollider["Friction"].as<float>();
 			}
 		}
 	}

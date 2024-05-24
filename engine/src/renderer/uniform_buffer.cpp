@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "uniform_buffer.hpp"
 
 hyp::UniformBuffer::UniformBuffer(uint32_t size, uint32_t binding) {

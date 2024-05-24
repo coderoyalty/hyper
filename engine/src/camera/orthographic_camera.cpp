@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "orthographic_camera.hpp"
 
 hyp::OrthoGraphicCamera::OrthoGraphicCamera(float l, float r, float b, float t) : m_viewMatrix(1.0f) {

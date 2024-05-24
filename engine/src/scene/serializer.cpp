@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "serializer.hpp"
 #include <scene/entity.hpp>
 #include <scene/components.hpp>

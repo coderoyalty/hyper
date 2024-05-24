@@ -63,8 +63,13 @@ namespace hyp {
 		register_meta_component<hyp::TransformComponent>();
 		register_meta_component<hyp::SpriteRendererComponent>();
 		register_meta_component<hyp::CircleRendererComponent>();
+		register_meta_component<hyp::RigidBodyComponent>();
+		register_meta_component<hyp::CircleColliderComponent>();
+		register_meta_component<hyp::BoxColliderComponent>();
 
 		auto& lua = scripting::getState();
+
+		ScriptRegistry::register_all();
 
 		lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::package, sol::lib::string);
 		lua.require("registry", sol::c_call<AUTO_ARG(&open_registry)>, false);
@@ -76,8 +81,6 @@ namespace hyp {
 		{
 			lua["package"]["path"] = lua["package"]["path"].get<std::string>() + ";" + scriptsPath + "?.lua";
 		}
-
-		ScriptRegistry::register_all();
 	}
 
 	sol::load_result ScriptEngine::load_script(const std::string& file) {

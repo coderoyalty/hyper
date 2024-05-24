@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "input.hpp"
 #include <core/application.hpp>
 

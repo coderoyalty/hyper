@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "layer_stack.hpp"
 
 hyp::LayerStack::~LayerStack() {

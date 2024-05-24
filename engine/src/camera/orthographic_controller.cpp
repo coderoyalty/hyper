@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "orthographic_controller.hpp"
 #include <iostream>
 

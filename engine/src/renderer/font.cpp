@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "font.hpp"
 #include <ft2build.h>
 #include FT_FREETYPE_H

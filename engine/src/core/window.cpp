@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "core/window.hpp"
 #include <utils/logger.hpp>
 #include "timer.hpp"

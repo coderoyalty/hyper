@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "scene.hpp"
 #include "renderer/renderer2d.hpp"
 #include "scene/components.hpp"
@@ -206,13 +207,18 @@ void hyp::Scene::onUpdateRuntime(float dt) {
 			const auto& rotation = transform.rotation.z;
 
 			const auto& body_pos = body->GetPosition();
+			const auto& body_rotation = body->GetAngle();
 
 			// Check if position or rotation has changed
-			if ((position.x != body_pos.x || position.y != body_pos.y) || rotation != body->GetAngle())
+			if ((position.x != body_pos.x || position.y != body_pos.y))
 			{
-				body->SetTransform(b2Vec2 { position.x, position.y }, rotation);
-
+				body->SetTransform(b2Vec2 { position.x, position.y }, body_rotation);
 				body->SetAwake(true);
+			}
+
+			if (rotation != body->GetAngle())
+			{
+				body->SetTransform(body_pos, rotation);
 			}
 		}
 

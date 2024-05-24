@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "registry.hpp"
 #include "script_engine.hpp"
 #undef UNDEF_SOL
@@ -109,5 +110,39 @@ namespace hyp {
 		    "color", (&hyp::TextComponent::color),
 		    "lineSpacing", &hyp::TextComponent::lineSpacing,
 		    "fontSize", &hyp::TextComponent::fontSize);
+
+		lua.new_enum<hyp::RigidBodyComponent::BodyType>("BodyType",
+		    {
+		        { "Static", hyp::RigidBodyComponent::BodyType::Static },
+		        { "Dynamic", hyp::RigidBodyComponent::BodyType::Dynamic },
+		        { "Kinematic", hyp::RigidBodyComponent::BodyType::Kinematic },
+		    });
+
+		lua.new_usertype<hyp::RigidBodyComponent>(
+		    "RigidBodyComponent",
+		    sol::constructors<hyp::RigidBodyComponent()>(),
+		    "type_id", &entt::type_hash<hyp::RigidBodyComponent>::value,
+		    "fixedRotation", (&hyp::RigidBodyComponent::fixedRotation),
+		    "type", (&hyp::RigidBodyComponent::type));
+
+		lua.new_usertype<hyp::BoxColliderComponent>("BoxColliderComponent",
+		    sol::constructors<hyp::BoxColliderComponent()>(),
+		    "type_id", &entt::type_hash<hyp::BoxColliderComponent>::value,
+		    "density", (&hyp::BoxColliderComponent::density),
+		    "restitution", (&hyp::BoxColliderComponent::restitution),
+		    "friction", (&hyp::BoxColliderComponent::friction),
+		    "restitutionThreshold", (&hyp::BoxColliderComponent::restitutionThreshold),
+		    "offset", (&hyp::BoxColliderComponent::offset),
+		    "size", (&hyp::BoxColliderComponent::size));
+
+		lua.new_usertype<hyp::CircleColliderComponent>("CircleColliderComponent",
+		    sol::constructors<hyp::CircleColliderComponent()>(),
+		    "type_id", &entt::type_hash<hyp::CircleColliderComponent>::value,
+		    "density", (&hyp::CircleColliderComponent::density),
+		    "restitution", (&hyp::CircleColliderComponent::restitution),
+		    "friction", (&hyp::CircleColliderComponent::friction),
+		    "restitutionThreshold", (&hyp::CircleColliderComponent::restitutionThreshold),
+		    "offset", (&hyp::CircleColliderComponent::offset),
+		    "radius", (&hyp::CircleColliderComponent::radius));
 	}
 }

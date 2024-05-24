@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "uuid.hpp"
 
 static std::random_device s_randomDevice;

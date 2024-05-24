@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "texture.hpp"
 #include <utils/logger.hpp>
 #include <utils/assert.hpp>

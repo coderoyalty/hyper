@@ -4,11 +4,58 @@
 #undef UNDEF_SOL
 #define SOL_ALL_SAFETIES_ON 1
 #include <sol/sol.hpp>
-
 #include <glm/glm.hpp>
+
+#include <box2d/box2d.h>
+
 namespace hyp {
 	namespace scripting {
 		extern sol::state& getState();
+	}
+
+	namespace {
+		struct PhysicsBody
+		{
+			b2Body* body = nullptr;
+
+			PhysicsBody(entt::registry* registry, entt::entity entity) {
+				HYP_ASSERT(registry);
+				if (!registry->valid(entity))
+				{
+					body = nullptr;
+				}
+
+				if (registry->any_of<hyp::RigidBodyComponent>(entity))
+				{
+					auto& rbc = registry->get<hyp::RigidBodyComponent>(entity);
+
+					this->body = (b2Body*)rbc.runtime;
+				}
+			}
+
+			void applyImpulseToCenter(const glm::vec2& impulse, bool wake = true) {
+				if (!body) return;
+
+				body->ApplyLinearImpulseToCenter(b2Vec2 { impulse.x, impulse.y }, wake);
+			}
+
+			void applyForceToCenter(const glm::vec2& force, bool wake = true) {
+				if (!body) return;
+
+				body->ApplyForceToCenter(b2Vec2 { force.x, force.y }, wake);
+			}
+
+			void applyTorque(float torque, bool wake = true) {
+				if (!body) return;
+
+				body->ApplyTorque(torque, wake);
+			}
+
+			bool isAwake() const {
+				if (!body) return false;
+				return body->IsAwake();
+			}
+		};
 	}
 
 	void ScriptRegistry::register_all() {
@@ -58,6 +105,14 @@ namespace hyp {
 
 	//Hmmm?
 	void ScriptRegistry::register_utils(sol::state& lua) {
+		lua.new_usertype<hyp::PhysicsBody>("PhysicsBody",
+		    sol::constructors<hyp::PhysicsBody(entt::registry * registry, entt::entity entity)>(),
+		    "applyImpulseToCenter", &hyp::PhysicsBody::applyImpulseToCenter,
+		    "applyForceToCenter", &hyp::PhysicsBody::applyForceToCenter,
+		    "applyTorque", &hyp::PhysicsBody::applyTorque,
+		    "isAwake", &hyp::PhysicsBody::isAwake);
+
+		auto& module = lua["hyper"].get_or_create<sol::table>();
 	}
 
 	void ScriptRegistry::register_components(sol::state& lua) {

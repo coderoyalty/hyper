@@ -44,12 +44,14 @@ Entities:
     TagComponent:
       Name: box
     TransformComponent:
-      Position: [1.05578017, -0.203833684, 0]
+      Position: [1.07187855, 4.44914103, 0]
       Rotation: [0, 0, 1.56733656]
       Scale: [0.339999527, 0.339999527, 0.340000033]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
+    ScriptComponent:
+      Path: assets\scripts\player.lua
     RigidBodyComponent:
       Type: Dynamic
       FixedRotation: false
@@ -58,7 +60,7 @@ Entities:
       Size: [0.5, 0.5]
       Density: 1
       Friction: 0.5
-      Restitution: 0.479999989
+      Restitution: 0.189999998
       RestitutionThreshold: 0.5
   - Entity: 10074010674731447122
     TagComponent:
@@ -99,7 +101,7 @@ Entities:
       Size: [0.5, 0.5]
       Density: 1
       Friction: 0.5
-      Restitution: 1
+      Restitution: 0
       RestitutionThreshold: 0.5
   - Entity: 10297446316736190949
     TagComponent:
@@ -119,7 +121,7 @@ Entities:
       Size: [0.5, 0.5]
       Density: 1
       Friction: 0.5
-      Restitution: 1
+      Restitution: 0.25999999
       RestitutionThreshold: 0.5
   - Entity: 12040867359423827329
     TagComponent:

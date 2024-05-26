@@ -111,12 +111,19 @@ namespace hyp {
 
 	void ScriptEngine::onCreateEntity(entt::registry& registry, entt::entity entity) {
 		auto& script = registry.get<hyp::ScriptComponent>(entity);
+		script.failed = false;
 
 		auto loaded_result = load_script(script.script_file);
 		script.self = loaded_result.call();
 
+		if (!script.self.valid())
+		{
+			script.failed = true;
+			return;
+		}
 		HYP_ASSERT(script.self.valid());
 		script.hooks.update = script.self["update"];
+
 		HYP_ASSERT(script.hooks.update.valid());
 
 		script.self["id"] = sol::readonly_property([entity]
@@ -124,7 +131,17 @@ namespace hyp {
 			return entity;
 		});
 		script.self["owner"] = std::ref(registry);
-		if (auto&& f = script.self["init"]; f.valid()) f(script.self);
+		sol::protected_function init = script.self["init"];
+
+		auto result = init(script.self);
+		if (!result.valid())
+		{
+			sol::error err = result;
+			script.failed = true;
+			SCRIPT_ERROR("%s", err.what());
+		}
+
+		script.failed = false;
 	}
 
 	void ScriptEngine::onDestroyEntity(entt::registry& registry, entt::entity entity) {
@@ -139,8 +156,16 @@ namespace hyp {
 		for (auto entity : view)
 		{
 			auto& script = registry.get<hyp::ScriptComponent>(entity);
-			assert(script.self.valid());
-			script.hooks.update(script.self, dt);
+			if (!script.failed)
+			{
+				auto result = script.hooks.update(script.self, dt);
+				if (!result.valid())
+				{
+					sol::error err = result;
+					script.failed = true;
+					SCRIPT_ERROR("%s", err.what());
+				}
+			}
 		}
 	}
 }

@@ -7,7 +7,7 @@ function node:init()
 	-- body
 	self.body = PhysicsBody:new(self.owner, self.id())
 
-	self.is_jumping = false
+	self.is_jumping = true
 end
 
 function node:update(dt)
@@ -29,13 +29,19 @@ function node:update(dt)
 	strength = vec2:new()
 	strength.y =  0.5
 
+	floor = hyper.find_entity(self.owner, "upper-floor")
+	floor_pos = self.owner:get(floor, Transform).position
+
+
 	if not self.is_jumping and hyper.keyPressed(KEY.SPACE) then
 		self.body:applyImpulseToCenter(strength, true)
 
 		self.is_jumping = true		
 	end
 
-	if transform.position.y <= 1.96 then
+	abs_pos = transform.position.y - transform.scale.y
+
+	if abs_pos <= floor_pos.y or abs_pos <= 0.0 then
 		self.is_jumping = false
 	end
 

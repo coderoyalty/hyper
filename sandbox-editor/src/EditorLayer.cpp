@@ -8,6 +8,7 @@
 #include <scene/serializer.hpp>
 #include <utils/file_dialog.hpp>
 #include <scripting/script_engine.hpp>
+#include <utils/console.hpp>
 
 using namespace hyp;
 using namespace editor;
@@ -246,6 +247,9 @@ void EditorLayer::onUIRender() {
 	}
 
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+
+
+	hyp::Console::get().render("Console", nullptr);
 
 	//-- camera choice
 	ImGui::Begin("Camera Properties");

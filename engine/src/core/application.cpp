@@ -1,3 +1,4 @@
+#include "pch.h"
 #include <core/application.hpp>
 #include <core/timer.hpp>
 #include <utils/logger.hpp>

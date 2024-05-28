@@ -9,12 +9,12 @@
 	#include <set>
 
 template <typename Component>
-auto is_valid(const entt::registry* registry, entt::entity entity) {
+inline auto is_valid(const entt::registry* registry, entt::entity entity) {
 	assert(registry);
 	return registry->valid(entity);
 }
 template <typename Component>
-auto emplace_component(entt::registry* registry, entt::entity entity,
+inline auto emplace_component(entt::registry* registry, entt::entity entity,
     const sol::table& instance, sol::this_state s) {
 	assert(registry);
 	auto& comp = registry->emplace_or_replace<Component>(
@@ -22,30 +22,30 @@ auto emplace_component(entt::registry* registry, entt::entity entity,
 	return sol::make_reference(s, std::ref(comp));
 }
 template <typename Component>
-auto get_component(entt::registry* registry, entt::entity entity,
+inline auto get_component(entt::registry* registry, entt::entity entity,
     sol::this_state s) {
 	assert(registry);
 	auto& comp = registry->get_or_emplace<Component>(entity);
 	return sol::make_reference(s, std::ref(comp));
 }
 template <typename Component>
-bool has_component(entt::registry* registry, entt::entity entity) {
+inline bool has_component(entt::registry* registry, entt::entity entity) {
 	assert(registry);
 	return registry->any_of<Component>(entity);
 }
 template <typename Component>
-auto remove_component(entt::registry* registry, entt::entity entity) {
+inline auto remove_component(entt::registry* registry, entt::entity entity) {
 	assert(registry);
 	return registry->remove<Component>(entity);
 }
 template <typename Component>
-void clear_component(entt::registry* registry) {
+inline void clear_component(entt::registry* registry) {
 	assert(registry);
 	registry->clear<Component>();
 }
 
 template <typename Component>
-void register_meta_component() {
+inline void register_meta_component() {
 	using namespace entt::literals;
 
 	entt::meta<Component>()
@@ -57,7 +57,7 @@ void register_meta_component() {
 	    .template func<&remove_component<Component>>("remove"_hs);
 }
 
-auto collect_types(const sol::variadic_args& va) {
+inline auto collect_types(const sol::variadic_args& va) {
 	std::set<entt::id_type> types;
 	std::transform(va.cbegin(), va.cend(), std::inserter(types, types.begin()),
 	    [](const auto& obj)

@@ -79,10 +79,11 @@ namespace hyp {
 	{
 		sol::table self;
 		std::string script_file; //TODO:
+		bool failed = false;
 
 		struct
 		{
-			sol::function update;
+			sol::protected_function update;
 		} hooks;
 
 		ScriptComponent() = default;

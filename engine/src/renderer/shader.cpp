@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "shader.hpp"
 #include "utils/logger.hpp"
 #include <fstream>

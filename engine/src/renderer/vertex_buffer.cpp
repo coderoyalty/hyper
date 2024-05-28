@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "vertex_buffer.hpp"
 
 namespace hyp {

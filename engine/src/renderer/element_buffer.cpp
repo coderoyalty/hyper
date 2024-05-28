@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "element_buffer.hpp"
 
 hyp::ElementBuffer::ElementBuffer(uint32_t* indices, uint32_t count)

@@ -1,3 +1,4 @@
+#include "pch.h"
 #define RENDERER_2D_DATA_STRUCTURES
 #include <renderer/renderer2d.hpp>
 #include <array>

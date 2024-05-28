@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "editor_camera.hpp"
 #include <utils/assert.hpp>
 

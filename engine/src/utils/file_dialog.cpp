@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "file_dialog.hpp"
 #include <core/application.hpp>
 #include <utils/assert.hpp>

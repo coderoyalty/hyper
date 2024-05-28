@@ -1,13 +1,61 @@
+#include "pch.h"
 #include "registry.hpp"
 #include "script_engine.hpp"
 #undef UNDEF_SOL
 #define SOL_ALL_SAFETIES_ON 1
 #include <sol/sol.hpp>
-
 #include <glm/glm.hpp>
+
+#include <box2d/box2d.h>
+
 namespace hyp {
 	namespace scripting {
 		extern sol::state& getState();
+	}
+
+	namespace {
+		struct PhysicsBody
+		{
+			b2Body* body = nullptr;
+
+			PhysicsBody(entt::registry* registry, entt::entity entity) {
+				HYP_ASSERT(registry);
+				if (!registry->valid(entity))
+				{
+					body = nullptr;
+				}
+
+				if (registry->any_of<hyp::RigidBodyComponent>(entity))
+				{
+					auto& rbc = registry->get<hyp::RigidBodyComponent>(entity);
+
+					this->body = (b2Body*)rbc.runtime;
+				}
+			}
+
+			void applyImpulseToCenter(const glm::vec2& impulse, bool wake = true) {
+				if (!body) return;
+
+				body->ApplyLinearImpulseToCenter(b2Vec2 { impulse.x, impulse.y }, wake);
+			}
+
+			void applyForceToCenter(const glm::vec2& force, bool wake = true) {
+				if (!body) return;
+
+				body->ApplyForceToCenter(b2Vec2 { force.x, force.y }, wake);
+			}
+
+			void applyTorque(float torque, bool wake = true) {
+				if (!body) return;
+
+				body->ApplyTorque(torque, wake);
+			}
+
+			bool isAwake() const {
+				if (!body) return false;
+				return body->IsAwake();
+			}
+		};
 	}
 
 	void ScriptRegistry::register_all() {
@@ -57,6 +105,14 @@ namespace hyp {
 
 	//Hmmm?
 	void ScriptRegistry::register_utils(sol::state& lua) {
+		lua.new_usertype<hyp::PhysicsBody>("PhysicsBody",
+		    sol::constructors<hyp::PhysicsBody(entt::registry * registry, entt::entity entity)>(),
+		    "applyImpulseToCenter", &hyp::PhysicsBody::applyImpulseToCenter,
+		    "applyForceToCenter", &hyp::PhysicsBody::applyForceToCenter,
+		    "applyTorque", &hyp::PhysicsBody::applyTorque,
+		    "isAwake", &hyp::PhysicsBody::isAwake);
+
+		auto& module = lua["hyper"].get_or_create<sol::table>();
 	}
 
 	void ScriptRegistry::register_components(sol::state& lua) {
@@ -109,5 +165,39 @@ namespace hyp {
 		    "color", (&hyp::TextComponent::color),
 		    "lineSpacing", &hyp::TextComponent::lineSpacing,
 		    "fontSize", &hyp::TextComponent::fontSize);
+
+		lua.new_enum<hyp::RigidBodyComponent::BodyType>("BodyType",
+		    {
+		        { "Static", hyp::RigidBodyComponent::BodyType::Static },
+		        { "Dynamic", hyp::RigidBodyComponent::BodyType::Dynamic },
+		        { "Kinematic", hyp::RigidBodyComponent::BodyType::Kinematic },
+		    });
+
+		lua.new_usertype<hyp::RigidBodyComponent>(
+		    "RigidBodyComponent",
+		    sol::constructors<hyp::RigidBodyComponent()>(),
+		    "type_id", &entt::type_hash<hyp::RigidBodyComponent>::value,
+		    "fixedRotation", (&hyp::RigidBodyComponent::fixedRotation),
+		    "type", (&hyp::RigidBodyComponent::type));
+
+		lua.new_usertype<hyp::BoxColliderComponent>("BoxColliderComponent",
+		    sol::constructors<hyp::BoxColliderComponent()>(),
+		    "type_id", &entt::type_hash<hyp::BoxColliderComponent>::value,
+		    "density", (&hyp::BoxColliderComponent::density),
+		    "restitution", (&hyp::BoxColliderComponent::restitution),
+		    "friction", (&hyp::BoxColliderComponent::friction),
+		    "restitutionThreshold", (&hyp::BoxColliderComponent::restitutionThreshold),
+		    "offset", (&hyp::BoxColliderComponent::offset),
+		    "size", (&hyp::BoxColliderComponent::size));
+
+		lua.new_usertype<hyp::CircleColliderComponent>("CircleColliderComponent",
+		    sol::constructors<hyp::CircleColliderComponent()>(),
+		    "type_id", &entt::type_hash<hyp::CircleColliderComponent>::value,
+		    "density", (&hyp::CircleColliderComponent::density),
+		    "restitution", (&hyp::CircleColliderComponent::restitution),
+		    "friction", (&hyp::CircleColliderComponent::friction),
+		    "restitutionThreshold", (&hyp::CircleColliderComponent::restitutionThreshold),
+		    "offset", (&hyp::CircleColliderComponent::offset),
+		    "radius", (&hyp::CircleColliderComponent::radius));
 	}
 }

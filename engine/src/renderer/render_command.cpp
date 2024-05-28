@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "render_command.hpp"
 
 void hyp::RenderCommand::init() {

@@ -15,44 +15,6 @@ using namespace editor;
 
 namespace utils {
 	static bool decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
-
-	static void editorUserGuide(bool& show) {
-		if (!show)
-		{
-			return;
-		}
-
-		ImGui::Begin("Dev Guide", &show);
-
-		ImGui::Text("Welcome to Hyper-Engine %d.%d.%d!", HYPER_VERSION_MAJOR, HYPER_VERSION_MINOR, HYPER_VERSION_PATCH);
-		ImGui::Spacing();
-
-		ImGui::Text("Controls:");
-		ImGui::BulletText("LEFT_ALT + Mouse: For Editor Camera Movement");
-		ImGui::BulletText("Q: For Disabling Gizmo operation");
-		ImGui::BulletText("G: To Move the selected entity");
-		ImGui::BulletText("R: To Rotate the selected entity");
-		ImGui::BulletText("S: To scale the selected entity");
-		ImGui::Spacing();
-
-		ImGui::Text("Simple Guide");
-
-		ImGui::TextWrapped("%s %s\n\n%s %s\n%s",
-		    "Firstly, in the scene hierarchy panel, right-click and select the popup menu to create an entity.",
-		    "Select the new entity (already done by default), you should see its components rendered in the properties panel.",
-		    "Nothing is rendered on the viewport for now, that's because the current entity does not have any drawable component yet.",
-		    "You should see a button labeled `add component`, click it and select your prefered drawable component (for the sake of this doc, choose SpriteComponent).",
-		    "Congrats! You can play around with the entity, and also try using the controls (see above) to manipulate your entity");
-
-		ImGui::Spacing();
-
-		if (ImGui::Button("Close"))
-		{
-			show = false;
-		}
-
-		ImGui::End();
-	}
 }
 
 EditorLayer::EditorLayer()
@@ -197,7 +159,7 @@ void EditorLayer::onUpdate(float dt) {
 	{
 		int pixel = m_framebuffer->readPixel(1, mouseX, mouseY);
 		// Note: buggy assumption... (10k maximum entities)
-		m_hoveredEntity = pixel > 10000 ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_activeScene.get());
+		m_hoveredEntity = pixel > 10000 ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_editorScene.get());
 	}
 	//<-- mouse selection logic...
 
@@ -264,8 +226,6 @@ void EditorLayer::onUIRender() {
 	}
 	ImGui::End();
 
-	//-- editor user guide
-	utils::editorUserGuide(m_settings.showHelpGuide);
 	//-- render hierarchy panel
 	m_hierarchyPanel->onUIRender();
 
@@ -474,6 +434,15 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	//hmmm? should this be allowed outside of edit mode
 	switch (event.getkey())
 	{
+	case hyp::Key::D:
+	{
+		if (control && !m_activeScene->isRunning() && selectedEntity)
+		{
+			auto newEntity = m_editorScene->duplicateEntity(selectedEntity);
+			m_hierarchyPanel->setSelectedEntity(newEntity);
+		}
+		break;
+	}
 	case hyp::Key::O:
 	{
 		if (m_sceneState != SceneState::Edit)
@@ -558,6 +527,15 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 			onScenePlay();
 		else if (m_sceneState == SceneState::Play)
 			onSceneStop();
+		break;
+	}
+	case hyp::Key::DEL:
+	{
+		if (selectedEntity) {
+			m_hierarchyPanel->setSelectedEntity({});
+			m_editorScene->destroyEntity(selectedEntity);
+			selectedEntity = {};
+		}
 		break;
 	}
 	default:

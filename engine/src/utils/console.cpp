@@ -22,6 +22,8 @@ void hyp::Console::log(const char* fmt, ...) IM_FMTARGS(2) {
 	m_buffer.appendfv(fmt, args);
 	va_end(args);
 
+	m_buffer.append("\n");
+
 	for (int new_size = m_buffer.size(); old_size < new_size; old_size++)
 		if (m_buffer[old_size] == '\n')
 			m_lineOffsets.push_back(old_size + 1);

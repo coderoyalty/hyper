@@ -67,7 +67,7 @@ void hyp::editor::EditorLayer::onAttach() {
 
 	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_activeScene);
 
-	m_editorCamera = hyp::EditorCamera(30.f, 1.778f, 0.1, 1000.f);
+	m_editorCamera = hyp::EditorCamera(30.f, 1.778f, 0.1f, 1000.f);
 }
 
 void hyp::editor::EditorLayer::onDetach() {
@@ -92,7 +92,7 @@ void EditorLayer::onUpdate(float dt) {
 	}
 
 	m_framebuffer->bind();
-	hyp::RenderCommand::setClearColor(0.1, 0.1, 0.1, 1.f);
+	hyp::RenderCommand::setClearColor(0.1f, 0.1f, 0.1f, 1.f);
 	hyp::RenderCommand::clear();
 
 	m_framebuffer->clearAttachment(1, -1);
@@ -159,7 +159,7 @@ void EditorLayer::onUpdate(float dt) {
 	{
 		int pixel = m_framebuffer->readPixel(1, mouseX, mouseY);
 		// Note: buggy assumption... (10k maximum entities)
-		m_hoveredEntity = pixel > 10000 ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_editorScene.get());
+		m_hoveredEntity = pixel > 10000 ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_activeScene.get());
 	}
 	//<-- mouse selection logic...
 
@@ -210,7 +210,6 @@ void EditorLayer::onUIRender() {
 
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
-
 	hyp::Console::get().render("Console", nullptr);
 
 	//-- camera choice
@@ -257,7 +256,7 @@ void EditorLayer::onUIRender() {
 	}
 
 	uint32_t textureID = m_framebuffer->getColorAttachmentId(0);
-	ImGui::Image((void*)textureID, ImVec2 { m_viewportInfo.size.x, m_viewportInfo.size.y },
+	ImGui::Image((void*)(textureID), ImVec2 { m_viewportInfo.size.x, m_viewportInfo.size.y },
 	    ImVec2 { 0, 1 }, ImVec2 { 1, 0 });
 
 	//----> ImGuizmo
@@ -328,7 +327,7 @@ void EditorLayer::onUIRender() {
 void hyp::editor::EditorLayer::render_toolbar() {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(m_iconPlay->getWidth() * 2.5f, m_iconPlay->getHeight()));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(m_iconPlay->getWidth() * 2.5f, (float)m_iconPlay->getHeight()));
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 	auto& colors = ImGui::GetStyle().Colors;
 	const auto& buttonHovered = colors[ImGuiCol_ButtonHovered];
@@ -398,8 +397,6 @@ void hyp::editor::EditorLayer::onSceneStop() {
 
 	if (m_sceneState == SceneState::Play) // stop runtime
 		m_activeScene->onRuntimeStop();
-	else if (m_sceneState == SceneState::Simulate) // stop simulation
-		;
 
 	m_sceneState = SceneState::Edit;
 
@@ -447,7 +444,7 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	{
 		if (m_sceneState != SceneState::Edit)
 		{ // mitigates opening new scenes while playing/simulating a scene.
-			HYP_WARN("Cannot open a scene outside Edit Mode");
+			CONSOLE_LOG("Cannot open a scene outside Edit Mode");
 			break;
 		}
 
@@ -465,7 +462,7 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 		}
 		else
 		{
-			HYP_WARN("Cannot create a scene outside Edit Mode");
+			CONSOLE_LOG("Cannot create a scene outside Edit Mode");
 		}
 		break;
 	}
@@ -531,9 +528,10 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	}
 	case hyp::Key::DEL:
 	{
-		if (selectedEntity) {
+		if (selectedEntity && m_sceneState == SceneState::Edit)
+		{
 			m_hierarchyPanel->setSelectedEntity({});
-			m_editorScene->destroyEntity(selectedEntity);
+			m_activeScene->destroyEntity(selectedEntity);
 			selectedEntity = {};
 		}
 		break;
@@ -557,7 +555,7 @@ void hyp::editor::EditorLayer::openScene() {
 void hyp::editor::EditorLayer::openScene(const fs::path& path) {
 	if (path.extension().string() != ".hypscene") // TODO: scene file identified by its extension?
 	{
-		HYP_WARN("Could not load %s - not a scene file", path.filename().c_str());
+		CONSOLE_LOG("Could not load %s - not a scene file", path.filename().c_str());
 		return;
 	}
 

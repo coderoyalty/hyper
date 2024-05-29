@@ -4,16 +4,27 @@
 #include "entt_registry.hpp"
 #include "hyp_registry.hpp"
 #include <io/input.hpp>
+#include <utils/console.hpp>
 #define SOL_ALL_SAFETIES_ON 1
 #include <sol/sol.hpp>
 
 #if defined(HYPER_DEBUG)
-	#define SCRIPT_TRACE(message, ...) HYP_TRACE("[ScriptEngine] "##message, ##__VA_ARGS__)
-	#define SCRIPT_ERROR(message, ...) HYP_ERROR("[ScriptEngine] "##message, ##__VA_ARGS__)
+	#define SCRIPT_TRACE(message, ...)                       \
+		HYP_TRACE("[ScriptEngine] "##message, ##__VA_ARGS__) \
+		hyp::Console::get().log(message, ##__VA_ARGS__);
+
+	#define SCRIPT_ERROR(message, ...)                       \
+		HYP_ERROR("[ScriptEngine] "##message, ##__VA_ARGS__) \
+		hyp::Console::get().log(message, ##__VA_ARGS__);
+
 #else // error message is important!
 	#include <stdio.h>
-	#define SCRIPT_TRACE(message, ...)
-	#define SCRIPT_ERROR(message, ...) printf(message, ##__VA_ARGS__);
+	#define SCRIPT_TRACE(message, ...) \
+		hyp::Console::get().log(message, ##__VA_ARGS__);
+
+	#define SCRIPT_ERROR(message, ...)  \
+		printf(message, ##__VA_ARGS__); \
+		hyp::Console::get().log(message, ##__VA_ARGS__);
 #endif
 
 namespace hyp {
@@ -163,7 +174,9 @@ namespace hyp {
 				{
 					sol::error err = result;
 					script.failed = true;
-					SCRIPT_ERROR("%s", err.what());
+					const auto& name = registry.get<hyp::TagComponent>(entity).name;
+
+					SCRIPT_ERROR("\n%s\n%s: script %s disabled", err.what(), name.c_str(), script.script_file.c_str());
 				}
 			}
 		}

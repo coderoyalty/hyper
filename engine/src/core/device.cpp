@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include "utils/logger.hpp"
 #include <core/version.hpp>
+#include <utils/console.hpp>
 
 void hyp::Device::init(const DeviceSetting& ds) {
 	if (ds.majorVersion < 3)
@@ -27,6 +28,9 @@ void hyp::Device::init(const DeviceSetting& ds) {
 
 	HYP_INFO("OpenGL Version %.d.%.d", ds.majorVersion, ds.minorVersion);
 	HYP_INFO("Hyper Version %d.%d.%d", HYPER_VERSION_MAJOR, HYPER_VERSION_MINOR, HYPER_VERSION_PATCH);
+
+	CONSOLE_LOG("OpenGL Version %.d.%.d", ds.majorVersion, ds.minorVersion);
+	CONSOLE_LOG("Hyper Version %d.%d.%d", HYPER_VERSION_MAJOR, HYPER_VERSION_MINOR, HYPER_VERSION_PATCH);
 }
 
 void hyp::Device::deinit() {

@@ -7,6 +7,7 @@
 	#include <renderer/render_command.hpp>
 	#include <renderer/texture.hpp>
 	#include <renderer/font.hpp>
+	#include <camera/camera.hpp>
 
 namespace hyp {
 	struct Light
@@ -35,6 +36,7 @@ namespace hyp {
 
 	public:
 		static void beginScene(const glm::mat4& viewProjectionMatrix);
+		static void beginScene(const hyp::Camera& camera, const glm::mat4& transform);
 		static void endScene();
 
 		static void addLight(const Light& light);

@@ -42,6 +42,6 @@ void hyp::SceneCamera::recalculateProjection() {
 		float bottom = -m_size * 0.5f;
 		float top = m_size * 0.5f;
 
-		m_projectionMatrix = glm::ortho(left, right, bottom, top);
+		m_projectionMatrix = glm::ortho(left, right, bottom, top, m_orthoNear, m_orthoFar);
 	}
 }

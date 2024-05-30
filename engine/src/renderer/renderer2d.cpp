@@ -68,6 +68,10 @@ void Renderer2D::beginScene(const glm::mat4& viewProjectionMatrix) {
 	s_renderer.cameraUniformBuffer->setData(&s_renderer.cameraBuffer, sizeof(RendererData::CameraData));
 }
 
+void hyp::Renderer2D::beginScene(const hyp::Camera& camera, const glm::mat4& transform) {
+	beginScene(camera.getProjectionMatrix() * glm::inverse(transform));
+}
+
 void Renderer2D::endScene() {
 	flush();
 }

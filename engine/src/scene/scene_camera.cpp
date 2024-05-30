@@ -31,7 +31,7 @@ void hyp::SceneCamera::setViewport(uint32_t width, uint32_t height) {
 }
 
 void hyp::SceneCamera::recalculateProjection() {
-	if (m_projectionType == ProjectionType::OrthoGraphic)
+	if (m_projectionType == ProjectionType::Perspective)
 	{
 		m_projectionMatrix = glm::perspective(m_fov, m_aspectRatio, m_near, m_far);
 	}

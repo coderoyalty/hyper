@@ -25,7 +25,7 @@ namespace hyp {
 
 		float getPerspectiveFOV() const { return m_fov; }
 
-		float setPerspectiveFOV(float fov) {
+		void setPerspectiveFOV(float fov) {
 			m_fov = fov;
 			recalculateProjection();
 		}

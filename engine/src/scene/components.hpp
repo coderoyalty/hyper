@@ -12,6 +12,7 @@
 	#include <sol/sol.hpp>
 
 	#include <core/uuid.hpp>
+	#include "scene_camera.hpp"
 
 namespace hyp {
 
@@ -64,6 +65,16 @@ namespace hyp {
 			thickness = 1.f;
 			fade = 0.f;
 		}
+	};
+
+	struct CameraComponent
+	{
+		hyp::SceneCamera camera;
+		bool primary = true;
+		bool fixedAspectRatio = false;
+
+		CameraComponent() = default;
+		CameraComponent(const CameraComponent&) = default;
 	};
 
 	struct TextComponent
@@ -133,8 +144,8 @@ namespace hyp {
 	};
 
 	using AllComponents =
-	    ComponentGroup<TransformComponent, SpriteRendererComponent,
-	        CircleRendererComponent, ScriptComponent, TextComponent,
+	    ComponentGroup<TransformComponent, CameraComponent,
+	        SpriteRendererComponent, CircleRendererComponent, ScriptComponent, TextComponent,
 	        RigidBodyComponent, BoxColliderComponent, CircleColliderComponent>;
 
 } // namespace hyp

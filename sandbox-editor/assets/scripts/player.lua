@@ -8,6 +8,8 @@ function node:init()
     self.body = PhysicsBody:new(self.owner, self.id())
     self.is_jumping = false
     self.ground_threshold = 0.01  -- Threshold for considering the entity grounded
+
+    self.camera_entity = hyper.find_entity(self.owner, "camera-entity")
 end
 
 function node:update(dt)
@@ -33,6 +35,12 @@ function node:update(dt)
         self.body:applyImpulse(jump_impulse, self.body:getWorldCenter(), true)
         self.is_jumping = true
     end
+
+    camera_transform = self.owner:get(self.camera_entity, Transform)
+    z = camera_transform.position.z
+    camera_transform.position = self.owner:get(self.id(), Transform).position
+    camera_transform.position.z = z
+
 end
 
 function node:destroy()

@@ -160,7 +160,7 @@ void EditorLayer::onUpdate(float dt) {
 	{
 		int pixel = m_framebuffer->readPixel(1, mouseX, mouseY);
 		// Note: buggy assumption... (10k maximum entities)
-		m_hoveredEntity = pixel > 10000 ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_editorScene.get());
+		m_hoveredEntity = pixel > 10000 ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_activeScene.get());
 	}
 	//<-- mouse selection logic...
 
@@ -532,7 +532,7 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 		if (selectedEntity)
 		{
 			m_hierarchyPanel->setSelectedEntity({});
-			m_editorScene->destroyEntity(selectedEntity);
+			m_activeScene->destroyEntity(selectedEntity);
 			selectedEntity = {};
 		}
 		break;

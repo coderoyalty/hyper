@@ -5,6 +5,7 @@
 #include "scene/entity.hpp"
 #include "scripting/script_engine.hpp"
 #include <box2d/box2d.h>
+#include "scene_camera.hpp"
 
 namespace utils {
 	static b2BodyType rigidBodyToBox2D(hyp::RigidBodyComponent::BodyType bodyType) {
@@ -61,6 +62,10 @@ static void CopyComponentIfExists(hyp::ComponentGroup<Component...>, hyp::Entity
 hyp::Ref<hyp::Scene> hyp::Scene::copy(hyp::Ref<hyp::Scene> other) {
 	auto& newScene = CreateRef<hyp::Scene>();
 
+	newScene->m_vwidth = other->m_vwidth;
+	newScene->m_vheight = other->m_vheight;
+
+
 	auto& srcRegistry = other->m_registry;
 	auto& dstRegistry = newScene->m_registry;
 
@@ -109,52 +114,8 @@ hyp::Entity hyp::Scene::duplicateEntity(Entity entity) {
 	return newEntity;
 }
 
-void hyp::Scene::onUpdate(float dt) {
-	{
-		auto& sprite_group = m_registry.group<TransformComponent, hyp::SpriteRendererComponent>();
-
-		for (auto& entity : sprite_group)
-		{
-			auto& [transform, sprite] = sprite_group.get<TransformComponent, hyp::SpriteRendererComponent>(entity);
-			hyp::Renderer2D::drawQuad(transform.getTransform(), sprite.texture, sprite.tilingFactor, sprite.color, (int)entity);
-		}
-	}
-
-	{
-		auto& circle_group = m_registry.view<TransformComponent, hyp::CircleRendererComponent>();
-
-		for (auto& entity : circle_group)
-		{
-			auto& [transform, circle] = circle_group.get<TransformComponent, hyp::CircleRendererComponent>(entity);
-
-			glm::mat4 model(1.0);
-
-			model = glm::translate(model, transform.position);
-			model = glm::scale(model, transform.scale);
-
-			hyp::Renderer2D::drawCircle(transform.getTransform(), circle.thickness, circle.fade, circle.color, (int)entity);
-		}
-	}
-
-	{
-		auto text_group = m_registry.view<TransformComponent, TextComponent>();
-
-		for (auto& entity : text_group)
-		{
-			auto& [transform, text] = text_group.get<TransformComponent, TextComponent>(entity);
-
-			glm::mat4 model(1.f);
-
-			model = glm::translate(model, transform.position);
-			model = glm::scale(model, transform.scale);
-
-			hyp::Renderer2D::TextParams textParams;
-			textParams.fontSize = text.fontSize;
-			textParams.leading = text.lineSpacing;
-			textParams.color = text.color;
-			hyp::Renderer2D::drawString(text.text, text.font, transform.getTransform(), textParams, (int)entity);
-		}
-	}
+void hyp::Scene::onUpdate(const glm::mat4& viewProjection) {
+	renderScene(viewProjection);
 }
 
 void hyp::Scene::onRuntimeStart() {
@@ -184,61 +145,154 @@ void hyp::Scene::onRuntimeStop() {
 }
 
 void hyp::Scene::onUpdateRuntime(float dt) {
-	if (m_paused) { return; }
-
-	hyp::ScriptEngine::onUpdateEntities(m_registry, dt);
-	{
-		const int32_t velocityIterations = 6;
-		const int32_t positionIterations = 2;
-
-		auto view = getEntities<RigidBodyComponent>();
-
-		for (auto e : view)
+	if (!m_paused) {
+		hyp::ScriptEngine::onUpdateEntities(m_registry, dt);
+		// physics
 		{
-			Entity entity = { e, this };
-			auto& transform = entity.get<TransformComponent>();
-			auto& rb2d = entity.get<RigidBodyComponent>();
+			const int32_t velocityIterations = 6;
+			const int32_t positionIterations = 2;
 
-			b2Body* body = (b2Body*)rb2d.runtime;
+			auto view = getEntities<RigidBodyComponent>();
 
-			if (!body) continue;
-
-			const auto& position = transform.position;
-			const auto& rotation = transform.rotation.z;
-
-			const auto& body_pos = body->GetPosition();
-			const auto& body_rotation = body->GetAngle();
-
-			// Check if position or rotation has changed
-			if ((position.x != body_pos.x || position.y != body_pos.y))
+			for (auto e : view)
 			{
-				body->SetTransform(b2Vec2 { position.x, position.y }, body_rotation);
-				body->SetAwake(true);
+				Entity entity = { e, this };
+				auto& transform = entity.get<TransformComponent>();
+				auto& rb2d = entity.get<RigidBodyComponent>();
+
+				b2Body* body = (b2Body*)rb2d.runtime;
+
+				if (!body) continue;
+
+				const auto& position = transform.position;
+				const auto& rotation = transform.rotation.z;
+
+				const auto& body_pos = body->GetPosition();
+				const auto& body_rotation = body->GetAngle();
+
+				// Check if position or rotation has changed
+				if ((position.x != body_pos.x || position.y != body_pos.y))
+				{
+					body->SetTransform(b2Vec2 { position.x, position.y }, body_rotation);
+					body->SetAwake(true);
+				}
+
+				if (rotation != body->GetAngle())
+				{
+					body->SetTransform(body_pos, rotation);
+				}
 			}
 
-			if (rotation != body->GetAngle())
+			m_physicsWorld->Step(dt, velocityIterations, positionIterations);
+
+			// Retrieve transform from Box2D
+			for (auto e : view)
 			{
-				body->SetTransform(body_pos, rotation);
+				Entity entity = { e, this };
+				auto& transform = entity.get<TransformComponent>();
+				auto& rb2d = entity.get<RigidBodyComponent>();
+
+				b2Body* body = (b2Body*)rb2d.runtime;
+
+				if (!body) continue;
+
+				const auto& position = body->GetPosition();
+				transform.position.x = position.x;
+				transform.position.y = position.y;
+				transform.rotation.z = body->GetAngle();
+			}
+		}
+	}
+
+	hyp::Camera* mainCamera = nullptr;
+	glm::mat4 cameraTransform = glm::mat4(1.0);
+	// find primary camera
+	{
+		auto cam_view = this->getEntities<hyp::TransformComponent, hyp::CameraComponent>();
+
+		for (auto entity : cam_view)
+		{
+			auto [transform, camera] = cam_view.get<hyp::TransformComponent, hyp::CameraComponent>(entity);
+
+			if (camera.primary)
+			{
+				mainCamera = &camera.camera;
+				cameraTransform = transform.getTransform();
+				break;
+			}
+		}
+	}
+
+	if (mainCamera)
+	{
+		hyp::Renderer2D::beginScene(*mainCamera, cameraTransform);
+
+		// rects
+		{
+			auto& sprite_group = m_registry.group<TransformComponent, hyp::SpriteRendererComponent>();
+
+			for (auto& entity : sprite_group)
+			{
+				auto [transform, sprite] = sprite_group.get<TransformComponent, hyp::SpriteRendererComponent>(entity);
+				hyp::Renderer2D::drawQuad(transform.getTransform(), sprite.texture, sprite.tilingFactor, sprite.color, (int)entity);
+			}
+		}
+		// circles
+		{
+			auto& circle_group = m_registry.view<TransformComponent, hyp::CircleRendererComponent>();
+
+			for (auto& entity : circle_group)
+			{
+				auto [transform, circle] = circle_group.get<TransformComponent, hyp::CircleRendererComponent>(entity);
+
+				glm::mat4 model(1.0);
+
+				model = glm::translate(model, transform.position);
+				model = glm::scale(model, transform.scale);
+
+				hyp::Renderer2D::drawCircle(transform.getTransform(), circle.thickness, circle.fade, circle.color, (int)entity);
 			}
 		}
 
-		m_physicsWorld->Step(dt, velocityIterations, positionIterations);
-
-		// Retrieve transform from Box2D
-		for (auto e : view)
+		// texts
 		{
-			Entity entity = { e, this };
-			auto& transform = entity.get<TransformComponent>();
-			auto& rb2d = entity.get<RigidBodyComponent>();
+			auto text_group = m_registry.view<TransformComponent, TextComponent>();
 
-			b2Body* body = (b2Body*)rb2d.runtime;
+			for (auto& entity : text_group)
+			{
+				auto [transform, text] = text_group.get<TransformComponent, TextComponent>(entity);
 
-			if (!body) continue;
+				glm::mat4 model(1.f);
 
-			const auto& position = body->GetPosition();
-			transform.position.x = position.x;
-			transform.position.y = position.y;
-			transform.rotation.z = body->GetAngle();
+				model = glm::translate(model, transform.position);
+				model = glm::scale(model, transform.scale);
+
+				hyp::Renderer2D::TextParams textParams;
+				textParams.fontSize = text.fontSize;
+				textParams.leading = text.lineSpacing;
+				textParams.color = text.color;
+				hyp::Renderer2D::drawString(text.text, text.font, transform.getTransform(), textParams, (int)entity);
+			}
+		}
+
+		hyp::Renderer2D::endScene();
+	}
+}
+
+void hyp::Scene::onViewportSize(uint32_t width, uint32_t height) {
+	//if (m_vwidth == width && m_vheight == height) return;
+
+	m_vwidth = width;
+	m_vheight = height;
+
+	auto view = m_registry.view<hyp::CameraComponent>();
+
+	for (auto entity : view)
+	{
+		auto& camera = view.get<hyp::CameraComponent>(entity);
+		if (!camera.fixedAspectRatio)
+		{
+			camera.camera.setViewport(width, height);
 		}
 	}
 }
@@ -304,6 +358,57 @@ void hyp::Scene::onPhysicsStart() {
 void hyp::Scene::onPhysicsStop() {
 	delete m_physicsWorld;
 	m_physicsWorld = nullptr;
+}
+
+void hyp::Scene::renderScene(const glm::mat4& viewProjection) {
+	hyp::Renderer2D::beginScene(viewProjection);
+	{
+		auto& sprite_group = m_registry.group<TransformComponent, hyp::SpriteRendererComponent>();
+
+		for (auto entity : sprite_group)
+		{
+			auto& [transform, sprite] = sprite_group.get<TransformComponent, hyp::SpriteRendererComponent>(entity);
+			hyp::Renderer2D::drawQuad(transform.getTransform(), sprite.texture, sprite.tilingFactor, sprite.color, (int)entity);
+		}
+	}
+
+	{
+		auto& circle_group = m_registry.view<TransformComponent, hyp::CircleRendererComponent>();
+
+		for (auto& entity : circle_group)
+		{
+			auto& [transform, circle] = circle_group.get<TransformComponent, hyp::CircleRendererComponent>(entity);
+
+			glm::mat4 model(1.0);
+
+			model = glm::translate(model, transform.position);
+			model = glm::scale(model, transform.scale);
+
+			hyp::Renderer2D::drawCircle(transform.getTransform(), circle.thickness, circle.fade, circle.color, (int)entity);
+		}
+	}
+
+	{
+		auto text_group = m_registry.view<TransformComponent, TextComponent>();
+
+		for (auto& entity : text_group)
+		{
+			auto& [transform, text] = text_group.get<TransformComponent, TextComponent>(entity);
+
+			glm::mat4 model(1.f);
+
+			model = glm::translate(model, transform.position);
+			model = glm::scale(model, transform.scale);
+
+			hyp::Renderer2D::TextParams textParams;
+			textParams.fontSize = text.fontSize;
+			textParams.leading = text.lineSpacing;
+			textParams.color = text.color;
+			hyp::Renderer2D::drawString(text.text, text.font, transform.getTransform(), textParams, (int)entity);
+		}
+	}
+
+	hyp::Renderer2D::endScene();
 }
 
 hyp::Entity hyp::Scene::findEntity(const std::string& tagName) {

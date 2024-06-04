@@ -7,6 +7,7 @@
 	#include <core/uuid.hpp>
 	#include <core/base.hpp>
 	#include <unordered_map>
+	#include <glm/glm.hpp>
 
 class b2World;
 
@@ -37,12 +38,14 @@ namespace hyp {
 
 		Entity duplicateEntity(Entity entity);
 
-		void onUpdate(float dt);
+		void onUpdate(const glm::mat4& viewProjection);
 
 		void onRuntimeStart();
 		void onRuntimeStop();
 
 		void onUpdateRuntime(float dt);
+
+		void onViewportSize(uint32_t width, uint32_t height);
 
 		Entity findEntity(const std::string& tagName);
 		Entity getEntity(UUID uuid);
@@ -59,11 +62,18 @@ namespace hyp {
 
 		void onPhysicsStart();
 		void onPhysicsStop();
+
+	private:
+		void renderScene(const glm::mat4& viewProjection);
+
 	private:
 		bool m_running = false;
 		bool m_paused = false;
 
-		b2World* m_physicsWorld;
+		uint32_t m_vwidth = 0;
+		uint32_t m_vheight = 0;
+
+		b2World* m_physicsWorld = nullptr;
 
 		entt::registry m_registry;
 		std::unordered_map<hyp::UUID, entt::entity> m_entityMap;

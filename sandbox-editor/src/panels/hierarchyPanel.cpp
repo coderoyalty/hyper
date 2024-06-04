@@ -66,8 +66,8 @@ void hyp::HierarchyPanel::drawHierarchyPanel() {
 void hyp::HierarchyPanel::drawPropertiesPanel() {
 	ImGui::Begin("Properties");
 
-	static int selectedItemIndex = 0;
-	drawComponents(m_selectedEntity);
+	auto selectedEntity = getSelectedEntity();
+	drawComponents(selectedEntity);
 
 	drawAddScriptModal();
 
@@ -243,6 +243,7 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 
 	if (ImGui::BeginPopup("AddComponent"))
 	{
+		drawAddComponentEntry<CameraComponent>("Camera");
 		drawAddComponentEntry<ScriptComponent>("Script"); // TODO: work with script modal
 		drawAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
 		drawAddComponentEntry<CircleRendererComponent>("Circle Renderer");
@@ -263,7 +264,64 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 		utils::drawVec3Control("Rotation", component.rotation, 0.f, 65.f);
 	});
 
+	drawComponent<CameraComponent>("Camera", entity, [](CameraComponent& component)
+	{
+		auto& camera = component.camera;
 
+		ImGui::Checkbox("Primary", &component.primary);
+
+		const char* projectionTypeStrings[] = { "Orthographic", "Perspective" };
+		const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.getProjectionType()];
+		if (ImGui::BeginCombo("Projection", currentProjectionTypeString))
+		{
+			for (int i = 0; i < 2; i++)
+			{
+				bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
+				if (ImGui::Selectable(projectionTypeStrings[i], isSelected))
+				{
+					currentProjectionTypeString = projectionTypeStrings[i];
+					camera.setProjectionType((SceneCamera::ProjectionType)i);
+				}
+
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+			}
+
+			ImGui::EndCombo();
+		}
+
+		if (camera.getProjectionType() == SceneCamera::ProjectionType::Perspective)
+		{
+			float perspectiveVerticalFov = glm::degrees(camera.getPerspectiveFOV());
+			if (ImGui::DragFloat("Vertical FOV", &perspectiveVerticalFov))
+				camera.setPerspectiveFOV(glm::radians(perspectiveVerticalFov));
+
+			float perspectiveNear = camera.getPerspectiveNear();
+			if (ImGui::DragFloat("Near", &perspectiveNear))
+				camera.setPerspectiveNear(perspectiveNear);
+
+			float perspectiveFar = camera.getPerspectiveFar();
+			if (ImGui::DragFloat("Far", &perspectiveFar))
+				camera.setPerspectiveFar(perspectiveFar);
+		}
+
+		if (camera.getProjectionType() == SceneCamera::ProjectionType::OrthoGraphic)
+		{
+			float orthoSize = camera.getOrthoSize();
+			if (ImGui::DragFloat("Size", &orthoSize))
+				camera.setOrthoSize(orthoSize);
+
+			float orthoNear = camera.getOrthoNear();
+			if (ImGui::DragFloat("Near", &orthoNear))
+				camera.setOrthoNear(orthoNear);
+
+			float orthoFar = camera.getOrthoFar();
+			if (ImGui::DragFloat("Far", &orthoFar))
+				camera.setOrthoFar(orthoFar);
+
+			ImGui::Checkbox("Fixed Aspect Ratio", &component.fixedAspectRatio);
+		}
+	});
 
 	drawComponent<hyp::SpriteRendererComponent>("Sprite Renderer", entity, [](hyp::SpriteRendererComponent& component)
 	{
@@ -403,7 +461,8 @@ void hyp::HierarchyPanel::drawComponents(Entity entity) {
 	{
 		static char buffer[128];
 		strcpy_s(buffer, sizeof(buffer), component.script_file.c_str());
-		if (ImGui::InputText("Script File Path", buffer, sizeof(buffer))) {
+		if (ImGui::InputText("Script File Path", buffer, sizeof(buffer)))
+		{
 			component.script_file = buffer;
 		}
 	});

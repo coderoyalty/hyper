@@ -81,6 +81,8 @@ void EditorLayer::onEvent(hyp::Event& event) {
 }
 
 void EditorLayer::onUpdate(float dt) {
+	m_activeScene->onViewportSize((uint32_t)m_viewportInfo.size.x, (uint32_t)m_viewportInfo.size.y);
+
 	if (auto spec = m_framebuffer->getSpecification();
 	    m_viewportInfo.size.x > 0.0f && m_viewportInfo.size.y > 0.0f &&
 	    (spec.width != m_viewportInfo.size.x || spec.height != m_viewportInfo.size.y))
@@ -96,6 +98,24 @@ void EditorLayer::onUpdate(float dt) {
 
 	m_framebuffer->clearAttachment(1, -1);
 
+	glm::mat4 viewProjectionMatrix(1.0);
+
+	switch (m_settings.cameraType)
+	{
+	case CameraType::Perspective:
+	{
+		viewProjectionMatrix = m_editorCamera.getViewProjectionMatrix();
+		break;
+	}
+	case CameraType::Orthographic:
+	{
+		viewProjectionMatrix = m_cameraController.getCamera().getViewProjectionMatrix();
+		break;
+	}
+	default:
+		break;
+	}
+
 	switch (m_sceneState)
 	{
 	case hyp::editor::EditorLayer::SceneState::Play:
@@ -110,39 +130,21 @@ void EditorLayer::onUpdate(float dt) {
 			m_cameraController.onUpdate(dt);
 		}
 		m_editorCamera.onUpdate(dt);
+
+		if (m_settings.showGrid)
+		{
+			m_gridVao->bind();
+			m_gridProgram->use();
+			m_gridProgram->setMat4("viewProj", viewProjectionMatrix);
+			glDrawArrays(GL_TRIANGLES, 0, 6); // TODO: avoid using explicit opengl call...
+		}
+
+		m_activeScene->onUpdate(viewProjectionMatrix);
 		break;
 	}
 	default:
 		break;
 	}
-
-	// render grid
-	if (m_settings.showGrid)
-	{
-		m_gridVao->bind();
-		m_gridProgram->use();
-		m_gridProgram->setMat4("viewProj", m_editorCamera.getViewProjectionMatrix());
-		glDrawArrays(GL_TRIANGLES, 0, 6); // TODO: avoid using explicit opengl call...
-	}
-
-	switch (m_settings.cameraType)
-	{
-	case CameraType::Perspective:
-	{
-		hyp::Renderer2D::beginScene(m_editorCamera.getViewProjectionMatrix());
-		break;
-	}
-	case CameraType::Orthographic:
-	{
-		hyp::Renderer2D::beginScene(m_cameraController.getCamera().getViewProjectionMatrix());
-		break;
-	}
-	default:
-		break;
-	}
-	m_activeScene->onUpdate(dt);
-
-	hyp::Renderer2D::endScene();
 
 	auto [mx, my] = ImGui::GetMousePos();
 
@@ -158,7 +160,7 @@ void EditorLayer::onUpdate(float dt) {
 	{
 		int pixel = m_framebuffer->readPixel(1, mouseX, mouseY);
 		// Note: buggy assumption... (10k maximum entities)
-		m_hoveredEntity = pixel > 10000 ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_editorScene.get());
+		m_hoveredEntity = pixel > 10000 ? hyp::Entity() : hyp::Entity((entt::entity)pixel, m_activeScene.get());
 	}
 	//<-- mouse selection logic...
 
@@ -527,9 +529,10 @@ bool hyp::editor::EditorLayer::onKeyPressed(hyp::KeyPressedEvent& event) {
 	}
 	case hyp::Key::DEL:
 	{
-		if (selectedEntity) {
+		if (selectedEntity)
+		{
 			m_hierarchyPanel->setSelectedEntity({});
-			m_editorScene->destroyEntity(selectedEntity);
+			m_activeScene->destroyEntity(selectedEntity);
 			selectedEntity = {};
 		}
 		break;

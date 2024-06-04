@@ -13,6 +13,16 @@ namespace hyp {
 		extern sol::state& getState();
 	}
 
+	namespace utils {
+		static glm::vec2 toVec2(const b2Vec2& vec) {
+			return { vec.x, vec.y };
+		}
+
+		static b2Vec2 toVec2(const glm::vec2& vec) {
+			return { vec.x, vec.y };
+		}
+	}
+
 	namespace {
 		struct PhysicsBody
 		{
@@ -39,16 +49,48 @@ namespace hyp {
 				body->ApplyLinearImpulseToCenter(b2Vec2 { impulse.x, impulse.y }, wake);
 			}
 
+			void applyImpulse(const glm::vec2& impulse, const glm::vec2& point, bool wake = true) {
+				if (!body) return;
+
+				body->ApplyLinearImpulse(b2Vec2 { impulse.x, impulse.y }, b2Vec2 { point.x, point.y }, wake);
+			}
+
+			glm::vec2 getVelocity() const {
+				if (!body) return glm::vec2();
+
+				const auto& vel = body->GetLinearVelocity();
+
+				return { vel.x, vel.y };
+			}
+
+			void setVelocity(const glm::vec2& vel) {
+				if (!body) return;
+
+				body->SetLinearVelocity(utils::toVec2(vel));
+			}
+
 			void applyForceToCenter(const glm::vec2& force, bool wake = true) {
 				if (!body) return;
 
 				body->ApplyForceToCenter(b2Vec2 { force.x, force.y }, wake);
 			}
 
+			void applyForce(const glm::vec2& force, const glm::vec2& point, bool wake = true) {
+				if (!body) return;
+
+				body->ApplyForce(b2Vec2 { force.x, force.y }, b2Vec2 { point.x, point.y }, wake);
+			}
+
 			void applyTorque(float torque, bool wake = true) {
 				if (!body) return;
 
 				body->ApplyTorque(torque, wake);
+			}
+
+			glm::vec2 getWorldCenter() const {
+				if (!body) return glm::vec2();
+
+				return utils::toVec2(body->GetWorldCenter());
 			}
 
 			bool isAwake() const {
@@ -108,11 +150,14 @@ namespace hyp {
 		lua.new_usertype<hyp::PhysicsBody>("PhysicsBody",
 		    sol::constructors<hyp::PhysicsBody(entt::registry * registry, entt::entity entity)>(),
 		    "applyImpulseToCenter", &hyp::PhysicsBody::applyImpulseToCenter,
+		    "applyImpulse", &hyp::PhysicsBody::applyImpulse,
 		    "applyForceToCenter", &hyp::PhysicsBody::applyForceToCenter,
+		    "applyForce", &hyp::PhysicsBody::applyForce,
 		    "applyTorque", &hyp::PhysicsBody::applyTorque,
-		    "isAwake", &hyp::PhysicsBody::isAwake);
-
-		auto& module = lua["hyper"].get_or_create<sol::table>();
+		    "isAwake", &hyp::PhysicsBody::isAwake,
+		    "getLinearVelocity", &hyp::PhysicsBody::getVelocity,
+		    "setLinearVelocity", &hyp::PhysicsBody::setVelocity,
+		    "getWorldCenter", &hyp::PhysicsBody::getWorldCenter);
 	}
 
 	void ScriptRegistry::register_components(sol::state& lua) {

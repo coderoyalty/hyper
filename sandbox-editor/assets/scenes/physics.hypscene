@@ -1,120 +1,41 @@
 Scene: Untitled-Hyper Scene
 Entities:
-  - Entity: 13577578170243180054
+  - Entity: 4653194944437244647
     TagComponent:
-      Name: text
-    TransformComponent:
-      Position: [-2.89964104, 7.95946741, 0.00116596371]
-      Rotation: [-3.14018512, 0, 0]
-      Scale: [0.999997139, 0.999997139, 1]
-    TextComponent:
-      Color: [1, 1, 1, 1]
-      Text: "Physics Simulation\n"
-      FontSize: 27
-      LineSpacing: 0
-  - Entity: 12040867359423827329
-    TagComponent:
-      Name: circle
-    TransformComponent:
-      Position: [1.07035053, 1.34332132, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.430000007, 0.430000007, 0.430000007]
-    CircleRendererComponent:
-      Color: [1, 0.912197232, 0.00490194559, 1]
-      Fade: 0
-      Thickness: 1
-    RigidBodyComponent:
-      Type: Dynamic
-      FixedRotation: false
-    CircleColliderComponent:
-      Offset: [0, 0]
-      Radius: 0.5
-      Density: 1
-      Friction: 0.5
-      Restitution: 0.529999971
-      RestitutionThreshold: 0.5
-  - Entity: 10297446316736190949
-    TagComponent:
-      Name: ground
+      Name: camera-entity
     TransformComponent:
       Position: [0, 0, 0]
       Rotation: [0, 0, 0]
-      Scale: [57.8662758, 0.134657636, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TilingFactor: 1
-    RigidBodyComponent:
-      Type: Static
-      FixedRotation: false
-    BoxColliderComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0.25999999
-      RestitutionThreshold: 0.5
-  - Entity: 6823199352380103507
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      FixedAspectRatio: false
+      Type: Orthographic
+      OrthoSize: 10
+      OrthoFar: 1
+      OrthoNear: -1
+      PerspectiveFOV: 0.785398185
+      PerspectiveFar: 1000
+      PerspectiveNear: 0.00100000005
+  - Entity: 1376469621975170814
     TagComponent:
-      Name: upper-floor
+      Name: pillar
     TransformComponent:
-      Position: [-0.00484165549, 3.09990644, 0]
-      Rotation: [0, 0, 1.56895685]
-      Scale: [0.262956977, 7.09947491, 0.340000033]
-    SpriteRendererComponent:
-      Color: [0.705882311, 0.404844284, 0.404844284, 1]
-      TilingFactor: 1
-    RigidBodyComponent:
-      Type: Static
-      FixedRotation: false
-    BoxColliderComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 10074010674731447122
-    TagComponent:
-      Name: circle-2
-    TransformComponent:
-      Position: [1.80958986, 0.446135342, 0]
+      Position: [3.39261341, 3.21722937, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.430000007, 0.430000007, 0.430000007]
-    CircleRendererComponent:
-      Color: [0.109332971, 0.857843161, 0.725753009, 1]
-      Fade: 0
-      Thickness: 1
-    RigidBodyComponent:
-      Type: Dynamic
-      FixedRotation: false
-    CircleColliderComponent:
-      Offset: [0, 0]
-      Radius: 0.5
-      Density: 1
-      Friction: 0.5
-      Restitution: 0.400000006
-      RestitutionThreshold: 0.5
-  - Entity: 4216910509808029149
-    TagComponent:
-      Name: box
-    TransformComponent:
-      Position: [1.07354784, 4.93162155, 0]
-      Rotation: [0, 0, 1.56733656]
-      Scale: [0.339999527, 0.339999527, 0.340000033]
+      Scale: [0.262949467, 6.39800501, 0.340000033]
     SpriteRendererComponent:
-      Color: [0, 0.990196049, 0.203863844, 1]
+      Color: [0.30392158, 0.289023459, 0.289023459, 1]
       TilingFactor: 1
-    ScriptComponent:
-      Path: assets\scripts\player.lua
     RigidBodyComponent:
-      Type: Dynamic
+      Type: Static
       FixedRotation: false
     BoxColliderComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
       Density: 1
       Friction: 0.5
-      Restitution: 0.189999998
+      Restitution: 1
       RestitutionThreshold: 0.5
   - Entity: 16067133617651684310
     TagComponent:
@@ -136,15 +57,58 @@ Entities:
       Friction: 0.5
       Restitution: 1
       RestitutionThreshold: 0.5
-  - Entity: 1376469621975170814
+  - Entity: 4216910509808029149
     TagComponent:
-      Name: pillar
+      Name: box
     TransformComponent:
-      Position: [3.39261341, 3.21722937, 0]
+      Position: [-0.757390678, 5.46989632, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.262949467, 6.39800501, 0.340000033]
+      Scale: [0.339999557, 0.339999557, 0.340000033]
     SpriteRendererComponent:
-      Color: [0.30392158, 0.289023459, 0.289023459, 1]
+      Color: [0, 0.990196049, 0.203863844, 1]
+      TilingFactor: 1
+    ScriptComponent:
+      Path: assets\scripts\player.lua
+    RigidBodyComponent:
+      Type: Dynamic
+      FixedRotation: false
+    BoxColliderComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.170000002
+      RestitutionThreshold: 0.5
+  - Entity: 10074010674731447122
+    TagComponent:
+      Name: circle-2
+    TransformComponent:
+      Position: [1.80958986, 0.291460663, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.430000007, 0.430000007, 0.430000007]
+    CircleRendererComponent:
+      Color: [0.109332971, 0.857843161, 0.725753009, 1]
+      Fade: 0
+      Thickness: 1
+    RigidBodyComponent:
+      Type: Dynamic
+      FixedRotation: false
+    CircleColliderComponent:
+      Offset: [0, 0]
+      Radius: 0.5
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.400000006
+      RestitutionThreshold: 0.5
+  - Entity: 6823199352380103507
+    TagComponent:
+      Name: upper-floor
+    TransformComponent:
+      Position: [-0.00484165549, 3.09990644, 0]
+      Rotation: [0, 0, 1.56895685]
+      Scale: [0.262956977, 7.09947491, 0.340000033]
+    SpriteRendererComponent:
+      Color: [0.705882311, 0.404844284, 0.404844284, 1]
       TilingFactor: 1
     RigidBodyComponent:
       Type: Static
@@ -154,5 +118,58 @@ Entities:
       Size: [0.5, 0.5]
       Density: 1
       Friction: 0.5
-      Restitution: 1
+      Restitution: 0
       RestitutionThreshold: 0.5
+  - Entity: 10297446316736190949
+    TagComponent:
+      Name: ground
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [57.8662758, 0.134657636, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+    RigidBodyComponent:
+      Type: Static
+      FixedRotation: false
+    BoxColliderComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.25999999
+      RestitutionThreshold: 0.5
+  - Entity: 12040867359423827329
+    TagComponent:
+      Name: circle
+    TransformComponent:
+      Position: [1.07035053, 0.288922399, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.430000007, 0.430000007, 0.430000007]
+    CircleRendererComponent:
+      Color: [1, 0.912197232, 0.00490194559, 1]
+      Fade: 0
+      Thickness: 1
+    RigidBodyComponent:
+      Type: Dynamic
+      FixedRotation: false
+    CircleColliderComponent:
+      Offset: [0, 0]
+      Radius: 0.5
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.529999971
+      RestitutionThreshold: 0.5
+  - Entity: 13577578170243180054
+    TagComponent:
+      Name: text
+    TransformComponent:
+      Position: [-2.89964104, 7.95946741, 0.00116596371]
+      Rotation: [-3.14018512, 0, 0]
+      Scale: [0.999997139, 0.999997139, 1]
+    TextComponent:
+      Color: [1, 1, 1, 1]
+      Text: "Physics Simulation\n"
+      FontSize: 27
+      LineSpacing: 0

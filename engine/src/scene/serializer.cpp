@@ -141,6 +141,28 @@ namespace utils {
 		return hyp::RigidBodyComponent::BodyType::Static;
 	}
 
+	static std::string serializeProjectionType(hyp::SceneCamera::ProjectionType type) {
+		switch (type)
+		{
+		case hyp::SceneCamera::ProjectionType::OrthoGraphic:
+			return "Orthographic";
+		case hyp::SceneCamera::ProjectionType::Perspective:
+			return "Perspective";
+		default:
+			break;
+		}
+
+		return "Orthographic";
+	};
+
+	static hyp::SceneCamera::ProjectionType deserializeProjectionType(const std::string& name) {
+		if (name == "Orthographic") return hyp::SceneCamera::ProjectionType::OrthoGraphic;
+		if (name == "Perspective") return hyp::SceneCamera::ProjectionType::Perspective;
+
+		HYP_ASSERT(false);
+		return hyp::SceneCamera::ProjectionType::OrthoGraphic;
+	}
+
 	static void serializeEntity(YAML::Emitter& emitter, hyp::Entity entity) {
 		emitter << YAML::BeginMap;
 		emitter << YAML::Key << "Entity" << YAML::Value << entity.getUUID();
@@ -273,6 +295,27 @@ namespace utils {
 				emitter << YAML::Key << "Friction" << YAML::Value << bc.friction;
 				emitter << YAML::Key << "Restitution" << YAML::Value << bc.restitution;
 				emitter << YAML::Key << "RestitutionThreshold" << YAML::Value << bc.restitutionThreshold;
+
+				emitter << YAML::EndMap;
+			}
+
+			if (entity.has<hyp::CameraComponent>())
+			{
+				emitter << YAML::Key << "CameraComponent";
+				emitter << YAML::BeginMap;
+
+				const auto& cc = entity.get<hyp::CameraComponent>();
+
+				emitter << YAML::Key << "Primary" << YAML::Value << cc.primary;
+				emitter << YAML::Key << "FixedAspectRatio" << YAML::Value << cc.fixedAspectRatio;
+				emitter << YAML::Key << "Type" << YAML::Value << serializeProjectionType(cc.camera.getProjectionType());
+
+				emitter << YAML::Key << "OrthoSize" << YAML::Value << cc.camera.getOrthoSize();
+				emitter << YAML::Key << "OrthoFar" << YAML::Value << cc.camera.getOrthoFar();
+				emitter << YAML::Key << "OrthoNear" << YAML::Value << cc.camera.getOrthoNear();
+				emitter << YAML::Key << "PerspectiveFOV" << YAML::Value << cc.camera.getPerspectiveFOV();
+				emitter << YAML::Key << "PerspectiveFar" << YAML::Value << cc.camera.getPerspectiveFar();
+				emitter << YAML::Key << "PerspectiveNear" << YAML::Value << cc.camera.getPerspectiveNear();
 
 				emitter << YAML::EndMap;
 			}
@@ -460,6 +503,27 @@ bool hyp::SceneSerializer::deserializer(const std::string& path) {
 				cc.restitutionThreshold = circleCollider["RestitutionThreshold"].as<float>();
 				cc.restitution = circleCollider["Restitution"].as<float>();
 				cc.friction = circleCollider["Friction"].as<float>();
+			}
+
+			auto cameraComponent = entity["CameraComponent"];
+			if (cameraComponent)
+			{
+				auto& cc = deserializedEntity.add<hyp::CameraComponent>();
+				cc.primary = cameraComponent["Primary"].as<bool>();
+				cc.fixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
+
+				float oFar = cameraComponent["OrthoFar"].as<float>();
+				float oNear = cameraComponent["OrthoNear"].as<float>();
+				float size = cameraComponent["OrthoSize"].as<float>();
+
+				float fov = cameraComponent["PerspectiveFOV"].as<float>();
+				float pNear = cameraComponent["PerspectiveNear"].as<float>();
+				float pFar = cameraComponent["PerspectiveFar"].as<float>();
+
+				cc.camera.setOrthographic(size, oNear, oFar);
+				cc.camera.setPerspective(fov, pNear, pFar);
+
+				cc.camera.setProjectionType(utils::deserializeProjectionType(cameraComponent["Type"].as<std::string>()));
 			}
 		}
 	}

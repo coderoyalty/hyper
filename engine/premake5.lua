@@ -75,5 +75,5 @@ project "Hyper"
 		runtime "Release"
 		optimize "on"
 
-	-- filter "action:vs*"
-    --     buildoptions { "/Zm200" }
+	filter "action:vs*"
+    buildoptions { "/bigobj" }

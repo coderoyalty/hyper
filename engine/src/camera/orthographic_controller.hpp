@@ -9,16 +9,23 @@
 	#include <event/win_event.hpp>
 	#include <io/input.hpp>
 	#include <camera/orthographic_camera.hpp>
+	#include <glm/glm.hpp>
 
 namespace hyp {
+
 	class OrthoGraphicCameraController {
 	public:
-		OrthoGraphicCameraController(float viewport_width, float viewport_height);
+		typedef void (*OrthoGraphicOnProjectionCB)(OrthoGraphicCameraController* controller, float width, float height);
+
+		OrthoGraphicCameraController(float viewport_width, float viewport_height, OrthoGraphicOnProjectionCB projectionCB = nullptr);
 
 		void onEvent(hyp::Event& event);
+
 		void onUpdate(float dt);
 
 		void onResize(float width, float height);
+
+		void setProjectionCallBack(OrthoGraphicOnProjectionCB cb);
 
 		hyp::OrthoGraphicCamera& getCamera() {
 			return m_camera;
@@ -34,6 +41,10 @@ namespace hyp {
 			m_zoomLevel = std::max(zoom, 0.25f);
 		}
 
+		float getCameraSpeed() const { return m_cameraSpeed; }
+
+		void setCameraSpeed(float speed) { m_cameraSpeed = speed; }
+
 	private:
 		bool onMouseScrolled(hyp::MouseScrolledEvent& event);
 		bool onWindowResized(hyp::WindowResizeEvent& event);
@@ -47,6 +58,7 @@ namespace hyp {
 		float m_cameraRotationSpeed = 45.f;
 
 		hyp::OrthoGraphicCamera m_camera;
+		OrthoGraphicOnProjectionCB m_projectionCB = nullptr;
 	};
 }
 

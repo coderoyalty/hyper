@@ -2,12 +2,21 @@
 #include "orthographic_controller.hpp"
 #include <iostream>
 
-hyp::OrthoGraphicCameraController::OrthoGraphicCameraController(float vx, float vy)
+hyp::OrthoGraphicCameraController::OrthoGraphicCameraController(float vx, float vy, OrthoGraphicOnProjectionCB projection)
     : m_aspectRatio(vx / vy),
       m_camera(0, vx, vy, 0),
-      m_width(vx), m_height(vy) {
+      m_width(vx), m_height(vy),
+      m_projectionCB(projection) {
 	m_camera.setPosition(glm::vec3(0.f));
-	m_camera.setProjection(m_zoomLevel * -m_aspectRatio, m_zoomLevel * m_aspectRatio, -m_zoomLevel, m_zoomLevel);
+
+	if (!m_projectionCB)
+	{
+		m_camera.setProjection(m_zoomLevel * -m_aspectRatio, m_zoomLevel * m_aspectRatio, -m_zoomLevel, m_zoomLevel);
+	}
+	else
+	{
+		(*m_projectionCB)(this, (float)m_width, (float)m_height);
+	}
 }
 
 void hyp::OrthoGraphicCameraController::onEvent(hyp::Event& event) {
@@ -68,7 +77,19 @@ void hyp::OrthoGraphicCameraController::onResize(float width, float height) {
 	m_aspectRatio = width / height;
 	m_width = width;
 	m_height = height;
+
+	// use the callback to update the projection instead
+	if (m_projectionCB)
+	{
+		(*m_projectionCB)(this, (float)m_width, (float)m_height);
+		return;
+	}
+
 	m_camera.setProjection(m_zoomLevel * -m_aspectRatio, m_zoomLevel * m_aspectRatio, -m_zoomLevel, m_zoomLevel);
+}
+
+void hyp::OrthoGraphicCameraController::setProjectionCallBack(OrthoGraphicOnProjectionCB cb) {
+	m_projectionCB = cb;
 }
 
 bool hyp::OrthoGraphicCameraController::onMouseScrolled(hyp::MouseScrolledEvent& event) {
@@ -77,8 +98,12 @@ bool hyp::OrthoGraphicCameraController::onMouseScrolled(hyp::MouseScrolledEvent&
 
 	m_zoomLevel = std::min(m_zoomLevel, 12.5f);
 
-	float half_width = m_width / 2.f;
-	float half_height = m_height / 2.f;
+	if (m_projectionCB)
+	{
+		(*m_projectionCB)(this, (float)m_width, (float)m_height);
+		return false;
+	}
+
 	m_camera.setProjection(m_zoomLevel * -m_aspectRatio, m_zoomLevel * m_aspectRatio, -m_zoomLevel, m_zoomLevel);
 
 	return false;

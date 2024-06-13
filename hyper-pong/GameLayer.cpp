@@ -7,7 +7,17 @@ GameLayer::GameLayer(const glm::vec2& viewport) {
 
 	glm::vec2 size(5.f, 75.f);
 
-	m_controller = hyp::CreateRef<hyp::OrthoGraphicCameraController>(v_width, v_height);
+	m_controller = hyp::CreateRef<hyp::OrthoGraphicCameraController>(v_width, v_height, [](hyp::OrthoGraphicCameraController* controller, float width, float height)
+	{
+		float half_width = width / 2.f;
+		float half_height = height / 2.f;
+		float zoomLevel = controller->getZoomLevel();
+		auto& camera = controller->getCamera();
+		camera.setProjection(-half_width * zoomLevel, half_width * zoomLevel,
+		    half_height * zoomLevel, -half_height * zoomLevel);
+
+		controller->setCameraSpeed(50.f);
+	});
 
 	float centerX = v_width / 2.f;
 	float centerY = v_height / 2.f;

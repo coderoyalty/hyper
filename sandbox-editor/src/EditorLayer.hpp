@@ -13,6 +13,7 @@
 	#include <renderer/shader.hpp>
 	#include <renderer/vertex_array.hpp>
 	#include <renderer/vertex_buffer.hpp>
+	#include "panels/contentBrowser.hpp"
 
 namespace fs = std::filesystem;
 
@@ -91,7 +92,6 @@ namespace hyp {
 				Stop
 			};
 
-
 			SceneState m_sceneState = SceneState::Edit;
 
 			hyp::Ref<hyp::Texture2D> m_iconPlay;
@@ -103,6 +103,7 @@ namespace hyp {
 			hyp::Ref<hyp::Scene> m_editorScene;
 			hyp::Ref<hyp::Scene> m_activeScene; // mostly used for interacting with the outside world :)
 			hyp::Ref<hyp::HierarchyPanel> m_hierarchyPanel;
+			hyp::Scope<ContentBrowserPanel> m_contentBrowserPanel;
 
 			hyp::Ref<hyp::ShaderProgram> m_gridProgram;
 			hyp::Ref<hyp::VertexArray> m_gridVao;

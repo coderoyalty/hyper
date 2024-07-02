@@ -1,0 +1,52 @@
+Scene: Untitled-Hyper Scene
+Entities:
+  - Entity: 4058681316960453005
+    TagComponent:
+      Name: camera
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      FixedAspectRatio: false
+      Type: Orthographic
+      OrthoSize: 16
+      OrthoFar: 1
+      OrthoNear: -1
+      PerspectiveFOV: 0.785398185
+      PerspectiveFar: 1000
+      PerspectiveNear: 0.00100000005
+  - Entity: 10479352382043180293
+    TagComponent:
+      Name: b_pawn
+    TransformComponent:
+      Position: [1, -5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Texture: assets\textures\chess\bp.png
+      TilingFactor: 1
+  - Entity: 2935484556248550873
+    TagComponent:
+      Name: w_pawn
+    TransformComponent:
+      Position: [-1, 1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.5, 1.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Texture: assets\textures\chess\wp.png
+      TilingFactor: 1
+  - Entity: 18154087948663037416
+    TagComponent:
+      Name: board
+    TransformComponent:
+      Position: [0, 0, -0.5]
+      Rotation: [0, 0, 0]
+      Scale: [16, 16, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Texture: assets\textures\chess\metal_board.png
+      TilingFactor: 1

@@ -68,6 +68,9 @@ void hyp::editor::EditorLayer::onAttach() {
 	m_hierarchyPanel = hyp::CreateRef<hyp::HierarchyPanel>(m_activeScene);
 
 	m_editorCamera = hyp::EditorCamera(30.f, 1.778f, 0.1f, 1000.f);
+
+	m_settings.cameraType = CameraType::Orthographic;
+	m_settings.showGrid = false;
 }
 
 void hyp::editor::EditorLayer::onDetach() {
